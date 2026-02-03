@@ -42,7 +42,7 @@ pub fn player(
         Name::new("Player"),
         Player,
         Sprite::from_atlas_image(
-            player_assets.ducky.clone(),
+            player_assets.sprite.clone(),
             TextureAtlas {
                 layout: texture_atlas_layout,
                 index: player_animation.get_atlas_index(),
@@ -95,23 +95,23 @@ fn record_player_directional_input(
 #[reflect(Resource)]
 pub struct PlayerAssets {
     #[dependency]
-    ducky: Handle<Image>,
+    sprite: Handle<Image>,
     #[dependency]
-    pub steps: Vec<Handle<AudioSource>>,
+    pub steps_sound: Vec<Handle<AudioSource>>,
 }
 
 impl FromWorld for PlayerAssets {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
         Self {
-            ducky: assets.load_with_settings(
+            sprite: assets.load_with_settings(
                 "images/ducky.png",
                 |settings: &mut ImageLoaderSettings| {
                     // Use `nearest` image sampling to preserve pixel art style.
                     settings.sampler = ImageSampler::nearest();
                 },
             ),
-            steps: vec![
+            steps_sound: vec![
                 assets.load("audio/sound_effects/step1.ogg"),
                 assets.load("audio/sound_effects/step2.ogg"),
                 assets.load("audio/sound_effects/step3.ogg"),

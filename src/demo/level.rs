@@ -6,6 +6,7 @@ use crate::{
     asset_tracking::LoadResource,
     audio::music,
     demo::player::{PlayerAssets, player},
+    demo::weapon::{WeaponAssets, weapon},
     screens::Screen,
 };
 
@@ -34,19 +35,26 @@ pub fn spawn_level(
     mut commands: Commands,
     level_assets: Res<LevelAssets>,
     player_assets: Res<PlayerAssets>,
+    weapon_assets: Res<WeaponAssets>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
-    commands.spawn((
-        Name::new("Level"),
-        Transform::default(),
-        Visibility::default(),
-        DespawnOnExit(Screen::Gameplay),
-        children![
-            player(400.0, &player_assets, &mut texture_atlas_layouts),
-            (
-                Name::new("Gameplay Music"),
-                music(level_assets.music.clone())
-            )
-        ],
-    ));
+    let level = commands
+        .spawn((
+            Name::new("Level"),
+            Transform::default(),
+            Visibility::default(),
+            DespawnOnExit(Screen::Gameplay),
+        ))
+        .id();
+
+    commands.entity(level).with_children(|parent| {
+        parent.spawn(player(400.0, &player_assets, &mut texture_atlas_layouts)).with_children(|p| {
+            p.spawn(weapon(&weapon_assets, &mut texture_atlas_layouts));
+        });
+
+        parent.spawn((
+            Name::new("Gameplay Music"),
+            music(level_assets.music.clone()),
+        ));
+    });
 }

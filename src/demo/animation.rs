@@ -107,11 +107,11 @@ pub enum PlayerAnimationState {
 
 impl PlayerAnimation {
     /// The number of idle frames.
-    const IDLE_FRAMES: usize = 2;
+    const IDLE_FRAMES: usize = 1;
     /// The duration of each idle frame.
     const IDLE_INTERVAL: Duration = Duration::from_millis(500);
     /// The number of walking frames.
-    const WALKING_FRAMES: usize = 6;
+    const WALKING_FRAMES: usize = 4;
     /// The duration of each walking frame.
     const WALKING_INTERVAL: Duration = Duration::from_millis(50);
 
@@ -167,7 +167,7 @@ impl PlayerAnimation {
     pub fn get_atlas_index(&self) -> usize {
         match self.state {
             PlayerAnimationState::Idling => self.frame,
-            PlayerAnimationState::Walking => 6 + self.frame,
+            PlayerAnimationState::Walking => 1 +self.frame, // Walking frames start at index 1 in the atlas.
         }
     }
 }

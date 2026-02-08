@@ -12,11 +12,8 @@ Purpose: help an AI coding agent be immediately productive in this Bevy-based ga
   - `assets/`: organized into `images/` and `audio/` (music, sound_effects). Native dev builds support hot-reload via features.
 
 - **Build & run (concrete commands used in this workspace):**
-  - Native dev: `bevy run` (VS Code task: "Run native dev" — sets `RUST_BACKTRACE=full`).
-  - Native release: `bevy run --release`.
-  - Web dev: `bevy run --yes web` (uses `web` target and features configured in Cargo.toml metadata).
-  - Web release: `bevy run --yes --release web`.
-  - Cargo features: default uses `dev_native`. To run with explicit features: `cargo run --features dev_native`.
+  - Build dev: `bevy run` (VS Code task: "Run dev build" — sets `RUST_BACKTRACE=full`).
+  - Build release: `bevy run --release`.
 
 - **Important repo-specific notes for edits and fixes:**
   - Asset meta check is disabled for web builds in `src/main.rs` (see `AssetMetaCheck::Never`). Avoid reverting that change when touching the default plugin set — it prevents web build failures.
@@ -42,5 +39,8 @@ Purpose: help an AI coding agent be immediately productive in this Bevy-based ga
   - Provide a minimal `apply_patch` that only changes necessary files.
   - When changing `AppSystems` or states, update `src/main.rs` accordingly and run a quick static read of affected files.
   - Use existing folder/file examples: `src/demo/player.rs`, `src/screens/mod.rs`, `src/theme/palette.rs` for component, state, and style patterns.
+
+- **Things to keep in mind:**
+  - `get_single` or `get_single_mut` does not exist in Bevy 0.18; use `single()` or `single_mut()` instead.
 
 If anything here is unclear or you want more detail (examples, typical PR size, or test/run checks to run locally), tell me which area to expand.

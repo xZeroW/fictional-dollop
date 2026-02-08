@@ -10,6 +10,7 @@ pub mod level;
 mod movement;
 pub mod player;
 mod weapon;
+pub mod cursor;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((
@@ -18,5 +19,6 @@ pub(super) fn plugin(app: &mut App) {
         movement::plugin,
         player::plugin,
         weapon::plugin,
+        cursor::plugin,
     ));
 }

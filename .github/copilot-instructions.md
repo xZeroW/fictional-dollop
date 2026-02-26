@@ -9,7 +9,7 @@ Purpose: help an AI coding agent be immediately productive in this Bevy-based ga
   - `src/screens/`: state-driven UI and game screens (splash, title, loading, gameplay). Follow existing patterns for states and `in_state` guards.
   - `src/demo/`: gameplay/demo code (movement, player, levels). Use these modules for entity/component examples.
   - `src/theme/`: palette, widget styles and reusable UI pieces.
-  - `assets/`: organized into `images/` and `audio/` (music, sound_effects). Native dev builds support hot-reload via features.
+  - `assets/`: organized into `images/` and `audio/` (music, sfx). Native dev builds support hot-reload via features.
 
 - **Build & run (concrete commands used in this workspace):**
   - Build dev: `bevy run` (VS Code task: "Run dev build" — sets `RUST_BACKTRACE=full`).
@@ -42,5 +42,8 @@ Purpose: help an AI coding agent be immediately productive in this Bevy-based ga
 
 - **Things to keep in mind:**
   - `get_single` or `get_single_mut` does not exist in Bevy 0.18; use `single()` or `single_mut()` instead.
+  - `Camera2dBundle` is now `Camera2d`.
+  - `SpriteBundle` is now `Sprite`.
+  - If examples are needed, ask the user to add it to the example folder.
 
 If anything here is unclear or you want more detail (examples, typical PR size, or test/run checks to run locally), tell me which area to expand.

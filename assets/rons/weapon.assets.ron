@@ -1,0 +1,9 @@
+({
+    "weapon.sprite": Image (
+        path: "weapons/dagger.png",
+        sampler: Nearest
+    ),
+    "weapon.fire_sound": File (
+        path: "audio/sfx/step1.ogg", // Placeholder sound effect
+    ),
+})

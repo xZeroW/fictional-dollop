@@ -3,7 +3,7 @@
 // Disable console on Windows for non-dev builds.
 #![cfg_attr(not(feature = "dev"), windows_subsystem = "windows")]
 
-mod asset_tracking;
+mod ron_asset;
 mod audio;
 mod demo;
 #[cfg(feature = "dev")]
@@ -12,7 +12,7 @@ mod menus;
 mod screens;
 mod theme;
 
-use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::prelude::*;
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -25,13 +25,6 @@ impl Plugin for AppPlugin {
         // Add Bevy plugins.
         app.add_plugins(
             DefaultPlugins
-                .set(AssetPlugin {
-                    // Wasm builds will check for meta files (that don't exist) if this isn't set.
-                    // This causes errors and even panics on web build on itch.
-                    // See https://github.com/bevyengine/bevy_github_ci_template/issues/48.
-                    meta_check: AssetMetaCheck::Never,
-                    ..default()
-                })
                 .set(WindowPlugin {
                     primary_window: Window {
                         title: "My Rebanho".to_string(),
@@ -45,7 +38,7 @@ impl Plugin for AppPlugin {
 
         // Add other plugins.
         app.add_plugins((
-            asset_tracking::plugin,
+            ron_asset::plugin,
             audio::plugin,
             demo::plugin,
             #[cfg(feature = "dev")]
@@ -98,5 +91,5 @@ struct Pause(pub bool);
 struct PausableSystems;
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn((Name::new("Camera"), Camera2d));
+    commands.spawn((Name::new("Camera"), (Camera2d, Msaa::Off)));
 }

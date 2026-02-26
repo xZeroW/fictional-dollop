@@ -11,7 +11,7 @@ use std::time::Duration;
 use crate::{
     AppSystems, PausableSystems,
     audio::sound_effect,
-    demo::{movement::MovementController, player::PlayerAssets},
+    demo::movement::MovementController, ron_asset::AudioAssets,
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -74,7 +74,7 @@ fn update_animation_atlas(mut query: Query<(&PlayerAnimation, &mut Sprite)>) {
 /// animation.
 fn trigger_step_sound_effect(
     mut commands: Commands,
-    player_assets: If<Res<PlayerAssets>>,
+    player_assets: If<Res<AudioAssets>>,
     mut step_query: Query<&PlayerAnimation>,
 ) {
     for animation in &mut step_query {

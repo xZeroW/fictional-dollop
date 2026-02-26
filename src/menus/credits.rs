@@ -2,7 +2,7 @@
 
 use bevy::{ecs::spawn::SpawnIter, input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{asset_tracking::LoadResource, audio::music, menus::Menu, theme::prelude::*};
+use crate::{audio::music, menus::Menu, theme::prelude::*};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Credits), spawn_credits_menu);
@@ -11,8 +11,42 @@ pub(super) fn plugin(app: &mut App) {
         go_back.run_if(in_state(Menu::Credits).and(input_just_pressed(KeyCode::Escape))),
     );
 
-    app.load_resource::<CreditsAssets>();
-    app.add_systems(OnEnter(Menu::Credits), start_credits_music);
+    // initialize credits-only assets when entering the credits menu, then start music
+    app.add_systems(
+        OnEnter(Menu::Credits),
+        (
+            init_credits_assets,
+            start_credits_music.after(init_credits_assets),
+        ),
+    );
+    // unload credits-only assets when leaving the credits menu
+    app.add_systems(OnExit(Menu::Credits), unload_credits_assets);
+}
+
+#[derive(Resource, Asset, Clone, Reflect)]
+#[reflect(Resource)]
+struct CreditsAssets {
+    #[dependency]
+    music: Handle<AudioSource>,
+}
+
+fn init_credits_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let assets = CreditsAssets {
+        music: asset_server.load("audio/music/Monkeys Spinning Monkeys.ogg"),
+    };
+    commands.insert_resource(assets);
+}
+
+fn unload_credits_assets(mut commands: Commands) {
+    commands.remove_resource::<CreditsAssets>();
+}
+
+fn start_credits_music(mut commands: Commands, credits_music: Res<CreditsAssets>) {
+    commands.spawn((
+        Name::new("Credits Music"),
+        DespawnOnExit(Menu::Credits),
+        music(credits_music.music.clone()),
+    ));
 }
 
 fn spawn_credits_menu(mut commands: Commands) {
@@ -83,28 +117,4 @@ fn go_back_on_click(_: On<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>
 
 fn go_back(mut next_menu: ResMut<NextState<Menu>>) {
     next_menu.set(Menu::Main);
-}
-
-#[derive(Resource, Asset, Clone, Reflect)]
-#[reflect(Resource)]
-struct CreditsAssets {
-    #[dependency]
-    music: Handle<AudioSource>,
-}
-
-impl FromWorld for CreditsAssets {
-    fn from_world(world: &mut World) -> Self {
-        let assets = world.resource::<AssetServer>();
-        Self {
-            music: assets.load("audio/music/Monkeys Spinning Monkeys.ogg"),
-        }
-    }
-}
-
-fn start_credits_music(mut commands: Commands, credits_music: Res<CreditsAssets>) {
-    commands.spawn((
-        Name::new("Credits Music"),
-        DespawnOnExit(Menu::Credits),
-        music(credits_music.music.clone()),
-    ));
 }

@@ -1,0 +1,8 @@
+({
+    "menu.hover": File (
+        path: "audio/sfx/button_hover.ogg",
+    ),
+    "menu.click": File (
+        path: "audio/sfx/button_click.ogg",
+    ),
+})

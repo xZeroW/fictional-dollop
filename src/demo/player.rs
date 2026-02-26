@@ -1,22 +1,17 @@
 //! Player-specific behavior.
 
-use bevy::{
-    image::{ImageLoaderSettings, ImageSampler},
-    prelude::*,
-};
+use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
-    asset_tracking::LoadResource,
     demo::{
         animation::PlayerAnimation,
         movement::{MovementController, ScreenWrap},
     },
+    ron_asset::CharacterAssets,
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.load_resource::<PlayerAssets>();
-
     // Record directional input as movement controls.
     app.add_systems(
         Update,
@@ -29,13 +24,10 @@ pub(super) fn plugin(app: &mut App) {
 /// The player character.
 pub fn player(
     max_speed: f32,
-    player_assets: &PlayerAssets,
-    texture_atlas_layouts: &mut Assets<TextureAtlasLayout>,
+    player_assets: &CharacterAssets,
 ) -> impl Bundle {
     // A texture atlas is a way to split a single image into a grid of related images.
     // You can learn more in this example: https://github.com/bevyengine/bevy/blob/latest/examples/2d/texture_atlas.rs
-    let layout = TextureAtlasLayout::from_grid(UVec2::splat(15), 5, 1, Some(UVec2::splat(1)), None);
-    let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let player_animation = PlayerAnimation::new();
 
     (
@@ -44,7 +36,7 @@ pub fn player(
         Sprite::from_atlas_image(
             player_assets.sprite.clone(),
             TextureAtlas {
-                layout: texture_atlas_layout,
+                layout: player_assets.layout.clone(),
                 index: player_animation.get_atlas_index(),
             },
         ),
@@ -88,35 +80,5 @@ fn record_player_directional_input(
     // Apply movement intent to controllers.
     for mut controller in &mut controller_query {
         controller.intent = intent;
-    }
-}
-
-#[derive(Resource, Asset, Clone, Reflect)]
-#[reflect(Resource)]
-pub struct PlayerAssets {
-    #[dependency]
-    sprite: Handle<Image>,
-    #[dependency]
-    pub steps_sound: Vec<Handle<AudioSource>>,
-}
-
-impl FromWorld for PlayerAssets {
-    fn from_world(world: &mut World) -> Self {
-        let assets = world.resource::<AssetServer>();
-        Self {
-            sprite: assets.load_with_settings(
-                "images/assets.png",
-                |settings: &mut ImageLoaderSettings| {
-                    // Use `nearest` image sampling to preserve pixel art style.
-                    settings.sampler = ImageSampler::nearest();
-                },
-            ),
-            steps_sound: vec![
-                assets.load("audio/sound_effects/step1.ogg"),
-                assets.load("audio/sound_effects/step2.ogg"),
-                assets.load("audio/sound_effects/step3.ogg"),
-                assets.load("audio/sound_effects/step4.ogg"),
-            ],
-        }
     }
 }

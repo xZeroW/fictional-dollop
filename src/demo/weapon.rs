@@ -2,33 +2,33 @@
 
 use bevy::prelude::*;
 
-use crate::demo::player::Player;
+use bevy_asset_loader::prelude::*;
+
+use crate::demo::{player::Player, cursor::CursorPosition};
 use crate::{AppSystems, PausableSystems};
-use crate::asset_tracking::LoadResource;
-use crate::demo::cursor::CursorPosition;
+use crate::screens::Screen;
 
-pub(super) fn plugin(app: &mut App) {
-    app.load_resource::<WeaponAssets>();
-    app.add_systems(Update, update_weapon_transform.in_set(AppSystems::Update).in_set(PausableSystems));
-}
-
-#[derive(Resource, Asset, Clone, Reflect)]
-#[reflect(Resource)]
+#[derive(AssetCollection, Resource)]
 pub struct WeaponAssets {
-    #[dependency]
+    #[asset(key = "weapon.sprite")]
     pub sprite: Handle<Image>,
-    #[dependency]
+    #[asset(key = "weapon.fire_sound")]
     pub fire_sound: Handle<AudioSource>,
 }
 
-impl FromWorld for WeaponAssets {
-    fn from_world(world: &mut World) -> Self {
-        let assets = world.resource::<AssetServer>();
-        Self {
-            sprite: assets.load("weapons/dagger.png"),
-            fire_sound: assets.load("audio/sound_effects/step1.ogg"),
-        }
-    }
+pub(super) fn plugin(app: &mut App) {
+    app.add_loading_state(
+        LoadingState::new(Screen::Loading)
+            .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
+                "rons/weapon.assets.ron",
+            )
+            .load_collection::<WeaponAssets>()
+    );
+
+    app.add_systems(Update, update_weapon_transform
+        .in_set(AppSystems::Update)
+        .in_set(PausableSystems)
+    );
 }
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]

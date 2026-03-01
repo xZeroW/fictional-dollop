@@ -107,8 +107,4 @@ fn record_player_input(
     for mut controller in &mut controller_query {
         controller.intent = intent;
     }
-
-    if action_state.just_pressed(&PlayerAction::Attack) {
-        println!("Attack!");
-    }
 }

@@ -3,7 +3,13 @@
         path: "weapons/dagger.png",
         sampler: Nearest
     ),
+    "weapon.layout": TextureAtlasLayout (
+        tile_size_x: 15,
+        tile_size_y: 15,
+        columns: 2,
+        rows: 1,
+    ),
     "weapon.fire_sound": File (
-        path: "audio/sfx/step1.ogg", // Placeholder sound effect
+        path: "audio/sfx/step1.ogg",
     ),
 })

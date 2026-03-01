@@ -18,7 +18,6 @@ pub fn spawn_level(
     audio_assets: Res<AudioAssets>,
     player_assets: Res<CharacterAssets>,
     weapon_assets: Res<WeaponAssets>,
-    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     let level = commands
         .spawn((
@@ -33,7 +32,7 @@ pub fn spawn_level(
         parent
             .spawn(player(400.0, &player_assets))
             .with_children(|p| {
-                p.spawn(weapon(&weapon_assets, &mut texture_atlas_layouts));
+                p.spawn(weapon(&weapon_assets));
             });
 
         parent.spawn((

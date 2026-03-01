@@ -18,9 +18,6 @@ tracing = { version = "0.1.44", features = [
     "release_max_level_warn",
 ] }
 
-[target.wasm32-unknown-unknown.dependencies]
-getrandom = { version = "0.4.1", features = ["wasm_js"] }
-
 [features]
 # Default to a native dev build.
 default = ["dev_native"]
@@ -44,14 +41,6 @@ dev_native = [
 [package.metadata.bevy_cli.release]
 # Disable dev features for release builds.
 default-features = false
-
-[package.metadata.bevy_cli.web]
-# Disable native features for web builds.
-default-features = false
-
-[package.metadata.bevy_cli.web.dev]
-features = ["dev"]
-
 
 [lints.rust]
 # Mark `bevy_lint` as a valid `cfg`, as it is set when the Bevy linter runs.

@@ -22,10 +22,7 @@ fn spawn_main_menu(mut commands: Commands) {
     ));
 }
 
-fn enter_loading_screen(
-    _: On<Pointer<Click>>,
-    mut next_screen: ResMut<NextState<Screen>>,
-) {
+fn enter_loading_screen(_: On<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
     next_screen.set(Screen::Loading);
 }
 

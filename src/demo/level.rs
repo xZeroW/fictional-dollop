@@ -6,7 +6,7 @@ use crate::{
     audio::music,
     demo::{
         player::player,
-        weapon::{weapon, WeaponAssets},
+        weapon::{WeaponAssets, weapon},
     },
     ron_asset::{AudioAssets, CharacterAssets},
     screens::Screen,

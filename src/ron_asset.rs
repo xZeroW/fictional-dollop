@@ -34,14 +34,10 @@ pub fn plugin(app: &mut App) {
             .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
                 "rons/characters.assets.ron",
             )
-            .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
-                "rons/audio.assets.ron",
-            )
-            .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
-                "rons/weapon.assets.ron",
-            )
+            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("rons/audio.assets.ron")
+            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("rons/weapon.assets.ron")
             .load_collection::<CharacterAssets>()
             .load_collection::<AudioAssets>()
-            .continue_to_state(Screen::Gameplay)
+            .continue_to_state(Screen::Gameplay),
     );
 }

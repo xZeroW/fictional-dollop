@@ -4,9 +4,9 @@ use bevy::prelude::*;
 
 use bevy_asset_loader::prelude::*;
 
-use crate::demo::{player::Player, cursor::CursorPosition};
-use crate::{AppSystems, PausableSystems};
+use crate::demo::{cursor::CursorPosition, player::Player};
 use crate::screens::Screen;
+use crate::{AppSystems, PausableSystems};
 
 #[derive(AssetCollection, Resource)]
 pub struct WeaponAssets {
@@ -19,15 +19,15 @@ pub struct WeaponAssets {
 pub(super) fn plugin(app: &mut App) {
     app.add_loading_state(
         LoadingState::new(Screen::Loading)
-            .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
-                "rons/weapon.assets.ron",
-            )
-            .load_collection::<WeaponAssets>()
+            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("rons/weapon.assets.ron")
+            .load_collection::<WeaponAssets>(),
     );
 
-    app.add_systems(Update, update_weapon_transform
-        .in_set(AppSystems::Update)
-        .in_set(PausableSystems)
+    app.add_systems(
+        Update,
+        update_weapon_transform
+            .in_set(AppSystems::Update)
+            .in_set(PausableSystems),
     );
 }
 
@@ -64,12 +64,20 @@ fn update_weapon_transform(
         return;
     }
 
-    let player_gt = if let Ok(gt) = player_query.single() { gt } else { return };
+    let player_gt = if let Ok(gt) = player_query.single() {
+        gt
+    } else {
+        return;
+    };
     let player_pos = player_gt.translation().truncate();
 
     let cursor_world = cursor_pos.0.unwrap_or(player_pos);
 
-    let (mut weapon_transform, mut weapon_sprite) = if let Ok(v) = gun_query.single_mut() { v } else { return };
+    let (mut weapon_transform, mut weapon_sprite) = if let Ok(v) = gun_query.single_mut() {
+        v
+    } else {
+        return;
+    };
 
     let dir = cursor_world - player_pos;
     if dir.length_squared() <= f32::EPSILON {

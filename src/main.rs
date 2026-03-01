@@ -3,12 +3,12 @@
 // Disable console on Windows for non-dev builds.
 #![cfg_attr(not(feature = "dev"), windows_subsystem = "windows")]
 
-mod ron_asset;
 mod audio;
 mod demo;
 #[cfg(feature = "dev")]
 mod dev_tools;
 mod menus;
+mod ron_asset;
 mod screens;
 mod theme;
 
@@ -24,16 +24,15 @@ impl Plugin for AppPlugin {
     fn build(&self, app: &mut App) {
         // Add Bevy plugins.
         app.add_plugins(
-            DefaultPlugins
-                .set(WindowPlugin {
-                    primary_window: Window {
-                        title: "My Rebanho".to_string(),
-                        fit_canvas_to_parent: true,
-                        ..default()
-                    }
-                    .into(),
+            DefaultPlugins.set(WindowPlugin {
+                primary_window: Window {
+                    title: "My Rebanho".to_string(),
+                    fit_canvas_to_parent: true,
                     ..default()
-                }),
+                }
+                .into(),
+                ..default()
+            }),
         );
 
         // Add other plugins.

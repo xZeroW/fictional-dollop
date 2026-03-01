@@ -32,10 +32,10 @@ pub fn plugin(app: &mut App) {
     app.add_loading_state(
         LoadingState::new(Screen::Loading)
             .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
-                "rons/characters.assets.ron",
+                "data/characters.assets.ron",
             )
-            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("rons/audio.assets.ron")
-            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("rons/weapon.assets.ron")
+            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/audio.assets.ron")
+            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/weapon.assets.ron")
             .load_collection::<CharacterAssets>()
             .load_collection::<AudioAssets>()
             .continue_to_state(Screen::Gameplay),

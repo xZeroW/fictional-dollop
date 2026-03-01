@@ -49,6 +49,13 @@ cargo clippy
 cargo check
 ```
 
+### Adding new packages
+
+```bash
+# Add new package
+cargo add <package_name>
+```
+
 ---
 
 ## Code Style Guidelines

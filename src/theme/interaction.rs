@@ -15,7 +15,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_loading_state(
         LoadingState::new(Screen::Splash)
             .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
-                "rons/interaction.assets.ron",
+                "data/interaction.assets.ron",
             )
             .load_collection::<InteractionAssets>(),
     );

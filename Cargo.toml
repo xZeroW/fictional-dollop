@@ -8,8 +8,10 @@ edition = "2024"
 bevy = { version = "0.18.0" }
 bevy-inspector-egui = "0.36.0"
 bevy_asset_loader = { version = "0.25.0", features = ["2d", "standard_dynamic_assets"] }
+bevy_common_assets = { version = "0.15.0", features = ["ron"] }
 leafwing-input-manager = "0.20.0"
 rand = "0.10.0"
+serde = { version = "1.0.228", features = ["derive"] }
 # Compile out low-severity logs to improve performance.
 # Remove these features if you want to profile your game with tracy.
 # (see <https://github.com/bevyengine/bevy/blob/main/docs/profiling.md#tracy-profiler>)

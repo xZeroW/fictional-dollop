@@ -31,14 +31,14 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 /// The player character.
-pub fn player(max_speed: f32, player_assets: &CharacterAssets) -> impl Bundle {
+pub fn player(max_speed: f32, player_assets: &CharacterAssets, weapon: String) -> impl Bundle {
     // A texture atlas is a way to split a single image into a grid of related images.
     // You can learn more in this example: https://github.com/bevyengine/bevy/blob/latest/examples/2d/texture_atlas.rs
     let player_animation = PlayerAnimation::new();
 
     (
         Name::new("Player"),
-        Player,
+        Player { weapon },
         Sprite::from_atlas_image(
             player_assets.sprite.clone(),
             TextureAtlas {
@@ -57,9 +57,19 @@ pub fn player(max_speed: f32, player_assets: &CharacterAssets) -> impl Bundle {
     )
 }
 
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
+#[derive(Component, Debug, Clone, PartialEq, Reflect)]
 #[reflect(Component)]
-pub struct Player;
+pub struct Player {
+    pub weapon: String,
+}
+
+impl Default for Player {
+    fn default() -> Self {
+        Self {
+            weapon: "dagger".to_string(),
+        }
+    }
+}
 
 impl Player {
     fn default_input_map() -> InputMap<PlayerAction> {

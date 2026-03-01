@@ -3540,8 +3540,10 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_asset_loader",
+ "bevy_common_assets",
  "leafwing-input-manager",
  "rand 0.10.0",
+ "serde",
  "tracing",
 ]
 

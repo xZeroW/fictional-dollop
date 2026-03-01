@@ -1,0 +1,11 @@
+({
+    "dagger": (
+        name: "Dagger",
+        damage: 10,
+        velocity: 600.0,
+        cooldown: 0.2,
+        scale: 2.0,
+        sprite_index: 0,
+        fire_sound_key: "weapon.fire_sound",
+    ),
+})

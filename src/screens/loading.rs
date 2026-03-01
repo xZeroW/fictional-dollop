@@ -14,7 +14,7 @@ pub(super) fn plugin(app: &mut App) {
     );
 
     // TODO: Remove this once we have a real loading process that takes time.
-    app.add_systems(OnExit(Screen::Loading), slow_loading_system);
+    // app.add_systems(OnExit(Screen::Loading), slow_loading_system);
 }
 
 fn spawn_loading_screen(mut commands: Commands) {

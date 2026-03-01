@@ -30,7 +30,7 @@ pub fn spawn_level(
 
     commands.entity(level).with_children(|parent| {
         parent
-            .spawn(player(400.0, &player_assets))
+            .spawn(player(400.0, &player_assets, "dagger".to_string()))
             .with_children(|p| {
                 p.spawn(weapon(&weapon_assets));
             });

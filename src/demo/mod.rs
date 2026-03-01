@@ -12,6 +12,7 @@ pub mod level;
 mod movement;
 pub mod player;
 mod weapon;
+mod weapon_data;
 
 use player::PlayerAction;
 
@@ -23,6 +24,7 @@ pub(super) fn plugin(app: &mut App) {
         movement::plugin,
         player::plugin,
         weapon::plugin,
+        weapon_data::plugin,
         cursor::plugin,
     ));
 }

@@ -5,9 +5,16 @@ use leafwing_input_manager::prelude::*;
 
 use bevy_asset_loader::prelude::*;
 
-use crate::demo::{cursor::CursorPosition, player::Player, PlayerAction};
+use crate::demo::{
+    PlayerAction,
+    cursor::CursorPosition,
+    player::Player,
+    weapon_data::{Weapons, WeaponsHandle},
+};
 use crate::screens::Screen;
 use crate::{AppSystems, PausableSystems};
+
+const BULLET_LIFETIME: f32 = 2.0;
 
 #[derive(AssetCollection, Resource)]
 pub struct WeaponAssets {
@@ -31,31 +38,23 @@ pub struct Bullet {
 }
 
 impl Bullet {
-    pub fn new(direction: Vec2) -> Self {
+    pub fn new(direction: Vec2, velocity: f32) -> Self {
         Self {
-            velocity: direction.normalize() * 600.0,
-            lifetime: Timer::from_seconds(2.0, TimerMode::Once),
+            velocity: direction.normalize() * velocity,
+            lifetime: Timer::from_seconds(BULLET_LIFETIME, TimerMode::Once),
         }
     }
 }
 
-#[derive(Resource)]
-pub struct BulletSpawnTimer {
-    pub timer: Timer,
-}
-
-impl Default for BulletSpawnTimer {
-    fn default() -> Self {
-        Self {
-            timer: Timer::from_seconds(0.2, TimerMode::Once),
-        }
-    }
+#[derive(Resource, Default)]
+pub struct LastShotTime {
+    pub time: f32,
 }
 
 pub(super) fn plugin(app: &mut App) {
     app.add_loading_state(
         LoadingState::new(Screen::Loading)
-            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("rons/weapon.assets.ron")
+            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/weapon.assets.ron")
             .load_collection::<WeaponAssets>(),
     );
 
@@ -71,7 +70,7 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(PausableSystems),
     );
 
-    app.insert_resource(BulletSpawnTimer::default());
+    app.insert_resource(LastShotTime::default());
 }
 
 pub fn weapon(weapon_assets: &WeaponAssets) -> impl Bundle {
@@ -131,18 +130,24 @@ fn update_weapon_transform(
     weapon_sprite.flip_y = local_x < 0.0;
 }
 
-pub fn bullet(weapon_assets: &WeaponAssets, position: Vec2, direction: Vec2) -> impl Bundle {
+pub fn bullet(
+    weapon_assets: &WeaponAssets,
+    weapon_data: &crate::demo::weapon_data::WeaponData,
+    position: Vec2,
+    direction: Vec2,
+) -> impl Bundle {
     (
         Name::new("Bullet"),
-        Bullet::new(direction),
+        Bullet::new(direction, weapon_data.velocity),
         Sprite::from_atlas_image(
             weapon_assets.sprite.clone(),
             TextureAtlas {
                 layout: weapon_assets.layout.clone(),
-                index: 0,
+                index: weapon_data.sprite_index,
             },
         ),
-        Transform::from_translation(position.extend(10.0)).with_scale(Vec3::splat(1.5)),
+        Transform::from_translation(position.extend(10.0))
+            .with_scale(Vec3::splat(weapon_data.scale)),
     )
 }
 
@@ -150,26 +155,20 @@ fn spawn_bullet(
     mut commands: Commands,
     action_state: Single<&ActionState<PlayerAction>>,
     cursor_pos: Res<CursorPosition>,
-    player_query: Query<&GlobalTransform, With<Player>>,
+    player_query: Query<(&GlobalTransform, &Player)>,
     weapon_query: Query<&GlobalTransform, With<Weapon>>,
-    mut spawn_timer: ResMut<BulletSpawnTimer>,
+    mut last_shot: ResMut<LastShotTime>,
     time: Res<Time>,
     weapon_assets: Res<WeaponAssets>,
+    weapons_handle: Res<WeaponsHandle>,
+    weapons_assets: Res<Assets<Weapons>>,
 ) {
-    spawn_timer.timer.tick(time.delta());
-
     if !action_state.pressed(&PlayerAction::Attack) {
         return;
     }
 
-    if spawn_timer.timer.elapsed() < spawn_timer.timer.duration() {
-        return;
-    }
-
-    spawn_timer.timer.reset();
-
-    let player_gt = match player_query.single() {
-        Ok(gt) => gt,
+    let (player_gt, player) = match player_query.single() {
+        Ok(v) => v,
         Err(_) => return,
     };
     let player_pos = player_gt.translation().truncate();
@@ -180,6 +179,28 @@ fn spawn_bullet(
     };
     let weapon_pos = weapon_gt.translation().truncate();
 
+    let weapons = match weapons_assets.get(&weapons_handle.0) {
+        Some(w) => w,
+        None => return,
+    };
+
+    let weapon_data = match weapons.0.get(&player.weapon) {
+        Some(data) => data,
+        None => {
+            let default = weapons.0.get("dagger");
+            match default {
+                Some(d) => d,
+                None => return,
+            }
+        }
+    };
+
+    let current_time = time.elapsed_secs();
+    if current_time - last_shot.time < weapon_data.cooldown {
+        return;
+    }
+    last_shot.time = current_time;
+
     let cursor_world = cursor_pos.0.unwrap_or(player_pos);
     let direction = cursor_world - weapon_pos;
 
@@ -187,7 +208,7 @@ fn spawn_bullet(
         return;
     }
 
-    commands.spawn(bullet(&weapon_assets, weapon_pos, direction));
+    commands.spawn(bullet(&weapon_assets, weapon_data, weapon_pos, direction));
 }
 
 fn move_bullet(mut bullet_query: Query<(&mut Transform, &mut Bullet)>, time: Res<Time>) {

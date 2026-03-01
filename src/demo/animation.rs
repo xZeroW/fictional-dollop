@@ -167,7 +167,7 @@ impl PlayerAnimation {
     pub fn get_atlas_index(&self) -> usize {
         match self.state {
             PlayerAnimationState::Idling => self.frame,
-            PlayerAnimationState::Walking => 1 +self.frame, // Walking frames start at index 1 in the atlas.
+            PlayerAnimationState::Walking => 1 + self.frame, // Walking frames start at index 1 in the atlas.
         }
     }
 }

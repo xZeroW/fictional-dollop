@@ -1,6 +1,7 @@
 //! Player-specific behavior.
 
 use bevy::prelude::*;
+use leafwing_input_manager::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
@@ -11,21 +12,26 @@ use crate::{
     ron_asset::CharacterAssets,
 };
 
+#[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
+pub enum PlayerAction {
+    Up,
+    Down,
+    Left,
+    Right,
+    Attack,
+}
+
 pub(super) fn plugin(app: &mut App) {
-    // Record directional input as movement controls.
     app.add_systems(
         Update,
-        record_player_directional_input
+        record_player_input
             .in_set(AppSystems::RecordInput)
             .in_set(PausableSystems),
     );
 }
 
 /// The player character.
-pub fn player(
-    max_speed: f32,
-    player_assets: &CharacterAssets,
-) -> impl Bundle {
+pub fn player(max_speed: f32, player_assets: &CharacterAssets) -> impl Bundle {
     // A texture atlas is a way to split a single image into a grid of related images.
     // You can learn more in this example: https://github.com/bevyengine/bevy/blob/latest/examples/2d/texture_atlas.rs
     let player_animation = PlayerAnimation::new();
@@ -47,6 +53,7 @@ pub fn player(
         },
         ScreenWrap,
         player_animation,
+        Player::default_input_map(),
     )
 }
 
@@ -54,31 +61,54 @@ pub fn player(
 #[reflect(Component)]
 pub struct Player;
 
-fn record_player_directional_input(
-    input: Res<ButtonInput<KeyCode>>,
+impl Player {
+    fn default_input_map() -> InputMap<PlayerAction> {
+        use PlayerAction::*;
+        let mut input_map = InputMap::default();
+
+        input_map.insert(Up, KeyCode::KeyW);
+        input_map.insert(Up, KeyCode::ArrowUp);
+
+        input_map.insert(Down, KeyCode::KeyS);
+        input_map.insert(Down, KeyCode::ArrowDown);
+
+        input_map.insert(Left, KeyCode::KeyA);
+        input_map.insert(Left, KeyCode::ArrowLeft);
+
+        input_map.insert(Right, KeyCode::KeyD);
+        input_map.insert(Right, KeyCode::ArrowRight);
+
+        input_map.insert(Attack, MouseButton::Left);
+
+        input_map
+    }
+}
+
+fn record_player_input(
+    action_state: Single<&ActionState<PlayerAction>>,
     mut controller_query: Query<&mut MovementController, With<Player>>,
 ) {
-    // Collect directional input.
     let mut intent = Vec2::ZERO;
-    if input.pressed(KeyCode::KeyW) || input.pressed(KeyCode::ArrowUp) {
+    if action_state.pressed(&PlayerAction::Up) {
         intent.y += 1.0;
     }
-    if input.pressed(KeyCode::KeyS) || input.pressed(KeyCode::ArrowDown) {
+    if action_state.pressed(&PlayerAction::Down) {
         intent.y -= 1.0;
     }
-    if input.pressed(KeyCode::KeyA) || input.pressed(KeyCode::ArrowLeft) {
+    if action_state.pressed(&PlayerAction::Left) {
         intent.x -= 1.0;
     }
-    if input.pressed(KeyCode::KeyD) || input.pressed(KeyCode::ArrowRight) {
+    if action_state.pressed(&PlayerAction::Right) {
         intent.x += 1.0;
     }
 
-    // Normalize intent so that diagonal movement is the same speed as horizontal / vertical.
-    // This should be omitted if the input comes from an analog stick instead.
     let intent = intent.normalize_or_zero();
 
-    // Apply movement intent to controllers.
     for mut controller in &mut controller_query {
         controller.intent = intent;
+    }
+
+    if action_state.just_pressed(&PlayerAction::Attack) {
+        println!("Attack!");
     }
 }

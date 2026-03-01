@@ -4,16 +4,20 @@
 //! to get a feeling for the template.
 
 use bevy::prelude::*;
+use leafwing_input_manager::prelude::*;
 
 mod animation;
+pub mod cursor;
 pub mod level;
 mod movement;
 pub mod player;
 mod weapon;
-pub mod cursor;
+
+use player::PlayerAction;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((
+        InputManagerPlugin::<PlayerAction>::default(),
         animation::plugin,
         // level::plugin,
         movement::plugin,

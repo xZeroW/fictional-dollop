@@ -6,10 +6,10 @@ use crate::{
     audio::music,
     demo::{
         player::player,
-        weapon::{WeaponAssets, weapon}
+        weapon::{weapon, WeaponAssets},
     },
     ron_asset::{AudioAssets, CharacterAssets},
-    screens::Screen
+    screens::Screen,
 };
 
 /// A system that spawns the main level.
@@ -30,9 +30,11 @@ pub fn spawn_level(
         .id();
 
     commands.entity(level).with_children(|parent| {
-        parent.spawn(player(400.0, &player_assets)).with_children(|p| {
-            p.spawn(weapon(&weapon_assets, &mut texture_atlas_layouts));
-        });
+        parent
+            .spawn(player(400.0, &player_assets))
+            .with_children(|p| {
+                p.spawn(weapon(&weapon_assets, &mut texture_atlas_layouts));
+            });
 
         parent.spawn((
             Name::new("Gameplay Music"),

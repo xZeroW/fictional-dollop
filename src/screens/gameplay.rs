@@ -2,7 +2,7 @@
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{menus::Menu, screens::Screen, Pause};
+use crate::{Pause, menus::Menu, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
     // Toggle pause on key press.

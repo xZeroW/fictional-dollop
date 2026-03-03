@@ -90,7 +90,7 @@ impl Player {
 
         input_map.insert(Attack, MouseButton::Left);
 
-        return input_map;
+        input_map
     }
 }
 

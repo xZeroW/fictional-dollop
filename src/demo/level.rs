@@ -3,14 +3,15 @@
 use bevy::prelude::*;
 
 use crate::{
+    assets::{AudioAssets, CharacterAssets, WeaponAssets},
     audio::music,
-    demo::{
-        player::player,
-        weapon::{WeaponAssets, weapon},
-    },
-    ron_asset::{AudioAssets, CharacterAssets},
+    demo::{player::player, weapon::weapon},
     screens::Screen,
 };
+
+pub(super) fn plugin(app: &mut App) {
+    app.add_systems(OnEnter(Screen::Gameplay), spawn_level);
+}
 
 /// A system that spawns the main level.
 pub fn spawn_level(

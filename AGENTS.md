@@ -33,22 +33,6 @@ cargo test test_name_here
 cargo test -- --nocapture
 ```
 
-### Linting and Formatting
-
-```bash
-# Check formatting (rustfmt)
-cargo fmt --check
-
-# Format code automatically
-cargo fmt
-
-# Run clippy lints
-cargo clippy
-
-# Run all checks (fmt + clippy + tests)
-cargo check
-```
-
 ### Adding new packages
 
 ```bash
@@ -180,8 +164,16 @@ nonstandard_macro_braces = "warn"  # Follow standard Rust brace style
 
 ## Asset Management
 
-- Assets live in `assets/images/` and `assets/audio/`
+- Assets live in `assets/`
 - Native dev builds support hot-reload via `dev_native` feature
+
+| File | Purpose |
+|------|---------|
+| `assets/audio/` | Anything audio related, music, sfx |
+| `assets/data/` | Screen state definitions |
+| `assets/images/` | Images to render as it is |
+| `assets/sprites/` | Sprites (classes, enemies, weapons) |
+| `assets/maps/` | Maps tilesets |
 
 ---
 

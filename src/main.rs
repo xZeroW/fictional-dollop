@@ -3,12 +3,13 @@
 // Disable console on Windows for non-dev builds.
 #![cfg_attr(not(feature = "dev"), windows_subsystem = "windows")]
 
+mod assets;
 mod audio;
 mod demo;
 #[cfg(feature = "dev")]
 mod dev_tools;
+mod enemies;
 mod menus;
-mod ron_asset;
 mod screens;
 mod theme;
 
@@ -37,7 +38,7 @@ impl Plugin for AppPlugin {
 
         // Add other plugins.
         app.add_plugins((
-            ron_asset::plugin,
+            assets::plugin,
             audio::plugin,
             demo::plugin,
             #[cfg(feature = "dev")]
@@ -45,6 +46,7 @@ impl Plugin for AppPlugin {
             menus::plugin,
             screens::plugin,
             theme::plugin,
+            enemies::plugin,
         ));
 
         // Order new `AppSystems` variants by adding them here:

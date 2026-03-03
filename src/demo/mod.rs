@@ -20,7 +20,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins((
         InputManagerPlugin::<PlayerAction>::default(),
         animation::plugin,
-        // level::plugin,
+        level::plugin,
         movement::plugin,
         player::plugin,
         weapon::plugin,

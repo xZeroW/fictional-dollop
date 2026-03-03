@@ -5,11 +5,11 @@ use leafwing_input_manager::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
+    assets::CharacterAssets,
     demo::{
         animation::PlayerAnimation,
         movement::{MovementController, ScreenWrap},
     },
-    ron_asset::CharacterAssets,
 };
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
@@ -90,7 +90,7 @@ impl Player {
 
         input_map.insert(Attack, MouseButton::Left);
 
-        input_map
+        return input_map;
     }
 }
 

@@ -9,7 +9,7 @@ Purpose: help an AI coding agent be immediately productive in this Bevy-based ga
   - `src/screens/`: state-driven UI and game screens (splash, title, loading, gameplay). Follow existing patterns for states and `in_state` guards.
   - `src/demo/`: gameplay/demo code (movement, player, levels). Use these modules for entity/component examples.
   - `src/theme/`: palette, widget styles and reusable UI pieces.
-  - `assets/`: organized into `images/` and `audio/` (music, sfx). Native dev builds support hot-reload via features.
+  - `assets/`: organized into `images/`, `sprites/`, `audio/` (music, sfx). Native dev builds support hot-reload via features.
 
 - **Build & run (concrete commands used in this workspace):**
   - Build dev: `bevy run` (VS Code task: "Run dev build" — sets `RUST_BACKTRACE=full`).

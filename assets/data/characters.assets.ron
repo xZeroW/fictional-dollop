@@ -1,7 +1,7 @@
 
 ({
     "player.sprite": Image (
-        path: "images/assets.png",
+        path: "sprites/classes/rogue.png",
         sampler: Nearest
     ),
     "player.layout": TextureAtlasLayout (

@@ -3,28 +3,18 @@
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use bevy_asset_loader::prelude::*;
-
-use crate::demo::{
-    PlayerAction,
-    cursor::CursorPosition,
-    player::Player,
-    weapon_data::{Weapons, WeaponsHandle},
+use crate::{
+    AppSystems, PausableSystems,
+    assets::WeaponAssets,
+    demo::{
+        PlayerAction,
+        cursor::CursorPosition,
+        player::Player,
+        weapon_data::{Weapons, WeaponsHandle},
+    },
 };
-use crate::screens::Screen;
-use crate::{AppSystems, PausableSystems};
 
 const BULLET_LIFETIME: f32 = 2.0;
-
-#[derive(AssetCollection, Resource)]
-pub struct WeaponAssets {
-    #[asset(key = "weapon.sprite")]
-    pub sprite: Handle<Image>,
-    #[asset(key = "weapon.layout")]
-    pub layout: Handle<TextureAtlasLayout>,
-    #[asset(key = "weapon.fire_sound")]
-    pub fire_sound: Handle<AudioSource>,
-}
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
 #[reflect(Component)]
@@ -52,12 +42,6 @@ pub struct LastShotTime {
 }
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_loading_state(
-        LoadingState::new(Screen::Loading)
-            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/weapon.assets.ron")
-            .load_collection::<WeaponAssets>(),
-    );
-
     app.add_systems(
         Update,
         (

@@ -19,15 +19,17 @@ pub struct AudioAssets {
     pub steps_sound: Vec<Handle<AudioSource>>,
 }
 
-#[derive(States, Clone, Eq, PartialEq, Debug, Hash, Default)]
-enum AssetStates {
-    #[default]
-    Loading,
-    Done,
+#[derive(AssetCollection, Resource)]
+pub struct WeaponAssets {
+    #[asset(key = "weapon.sprite")]
+    pub sprite: Handle<Image>,
+    #[asset(key = "weapon.layout")]
+    pub layout: Handle<TextureAtlasLayout>,
+    #[asset(key = "weapon.fire_sound")]
+    pub fire_sound: Handle<AudioSource>,
 }
 
 pub fn plugin(app: &mut App) {
-    app.init_state::<AssetStates>();
     // Main asset loading that runs when entering the Loading screen.
     app.add_loading_state(
         LoadingState::new(Screen::Loading)
@@ -38,6 +40,7 @@ pub fn plugin(app: &mut App) {
             .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/weapon.assets.ron")
             .load_collection::<CharacterAssets>()
             .load_collection::<AudioAssets>()
+            .load_collection::<WeaponAssets>()
             .continue_to_state(Screen::Gameplay),
     );
 }

@@ -1,6 +1,6 @@
 ({
     "weapon.sprite": Image (
-        path: "weapons/dagger.png",
+        path: "sprites/weapons/dagger.png",
         sampler: Nearest
     ),
     "weapon.layout": TextureAtlasLayout (

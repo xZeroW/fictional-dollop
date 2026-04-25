@@ -19,6 +19,7 @@ pub enum PlayerAction {
     Left,
     Right,
     Attack,
+    SwitchWeapon,
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -32,13 +33,14 @@ pub(super) fn plugin(app: &mut App) {
 
 /// The player character.
 pub fn player(max_speed: f32, player_assets: &CharacterAssets, weapon: String) -> impl Bundle {
-    // A texture atlas is a way to split a single image into a grid of related images.
-    // You can learn more in this example: https://github.com/bevyengine/bevy/blob/latest/examples/2d/texture_atlas.rs
     let player_animation = PlayerAnimation::new();
 
     (
         Name::new("Player"),
-        Player { weapon },
+        Player {
+            weapon,
+            ..default()
+        },
         Sprite::from_atlas_image(
             player_assets.sprite.clone(),
             TextureAtlas {
@@ -61,12 +63,22 @@ pub fn player(max_speed: f32, player_assets: &CharacterAssets, weapon: String) -
 #[reflect(Component)]
 pub struct Player {
     pub weapon: String,
+    pub weapon_entity: Option<Entity>,
+    pub last_shot_time: f32,
+    pub switching_weapon: bool,
+    pub switch_timer: Timer,
+    pub can_shoot_timer: Timer,
 }
 
 impl Default for Player {
     fn default() -> Self {
         Self {
             weapon: "dagger".to_string(),
+            weapon_entity: None,
+            last_shot_time: 0.0,
+            switching_weapon: false,
+            switch_timer: Timer::from_seconds(3.0, TimerMode::Once),
+            can_shoot_timer: Timer::from_seconds(0.2, TimerMode::Once),
         }
     }
 }
@@ -89,6 +101,7 @@ impl Player {
         input_map.insert(Right, KeyCode::ArrowRight);
 
         input_map.insert(Attack, MouseButton::Left);
+        input_map.insert(SwitchWeapon, KeyCode::KeyQ);
 
         input_map
     }

@@ -4,7 +4,10 @@ use bevy::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
 use std::collections::HashMap;
 
-use crate::screens::Screen;
+use crate::{
+    demo::weapon::AvailableWeapons,
+    screens::Screen,
+};
 
 #[derive(serde::Deserialize, Asset, TypePath)]
 pub struct Weapons(pub HashMap<String, WeaponData>);
@@ -16,7 +19,8 @@ pub struct WeaponData {
     pub velocity: f32,
     pub cooldown: f32,
     pub scale: f32,
-    pub sprite_index: usize,
+    pub bullet_sprite_index: usize,
+    pub weapon_sprite_index: usize,
     pub fire_sound_key: String,
 }
 
@@ -28,7 +32,13 @@ pub(super) fn plugin(app: &mut App) {
 #[derive(Resource)]
 pub struct WeaponsHandle(pub Handle<Weapons>);
 
-fn load_weapon_data(mut commands: Commands, server: Res<AssetServer>) {
+fn load_weapon_data(
+    mut commands: Commands,
+    server: Res<AssetServer>,
+    mut available_weapons: ResMut<AvailableWeapons>,
+) {
     let handle = server.load("data/weapon_data.ron");
     commands.insert_resource(WeaponsHandle(handle));
+
+    available_weapons.weapons = vec!["dagger".to_string(), "sword".to_string()];
 }

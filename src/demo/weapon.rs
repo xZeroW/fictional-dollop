@@ -16,6 +16,11 @@ use crate::{
 
 const BULLET_LIFETIME: f32 = 2.0;
 
+#[derive(Resource, Default)]
+pub struct AvailableWeapons {
+    pub weapons: Vec<String>,
+}
+
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
 #[reflect(Component)]
 pub struct Weapon;
@@ -36,9 +41,22 @@ impl Bullet {
     }
 }
 
-#[derive(Resource, Default)]
-pub struct LastShotTime {
-    pub time: f32,
+pub fn weapon(
+    weapon_assets: &WeaponAssets,
+    weapon_data: &crate::demo::weapon_data::WeaponData,
+) -> impl Bundle {
+    (
+        Name::new("Weapon"),
+        Weapon,
+        Sprite::from_atlas_image(
+            weapon_assets.sprite.clone(),
+            TextureAtlas {
+                layout: weapon_assets.layout.clone(),
+                index: weapon_data.weapon_sprite_index,
+            },
+        ),
+        Transform::from_translation(Vec3::new(12.0, 0.0, 1.0)).with_scale(Vec3::splat(1.0)),
+    )
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -46,6 +64,8 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         (
             update_weapon_transform,
+            switch_weapon,
+            update_weapon_switch_timer,
             spawn_bullet,
             move_bullet,
             despawn_bullet,
@@ -54,22 +74,7 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(PausableSystems),
     );
 
-    app.insert_resource(LastShotTime::default());
-}
-
-pub fn weapon(weapon_assets: &WeaponAssets) -> impl Bundle {
-    (
-        Name::new("Weapon"),
-        Weapon,
-        Sprite::from_atlas_image(
-            weapon_assets.sprite.clone(),
-            TextureAtlas {
-                layout: weapon_assets.layout.clone(),
-                index: 1,
-            },
-        ),
-        Transform::from_translation(Vec3::new(12.0, 0.0, 1.0)).with_scale(Vec3::splat(1.0)),
-    )
+    app.init_resource::<AvailableWeapons>();
 }
 
 fn update_weapon_transform(
@@ -114,6 +119,91 @@ fn update_weapon_transform(
     weapon_sprite.flip_y = local_x < 0.0;
 }
 
+fn switch_weapon(
+    mut commands: Commands,
+    action_state: Single<&ActionState<PlayerAction>>,
+    mut player_query: Query<(Entity, &mut Player)>,
+    available_weapons: Res<AvailableWeapons>,
+    weapons_handle: Res<WeaponsHandle>,
+    weapons_assets: Res<Assets<Weapons>>,
+    weapon_assets: Res<WeaponAssets>,
+) {
+    if !action_state.just_pressed(&PlayerAction::SwitchWeapon) {
+        return;
+    }
+
+    if available_weapons.weapons.is_empty() {
+        return;
+    }
+
+    let (player_entity, mut player) = match player_query.single_mut() {
+        Ok(v) => v,
+        Err(_) => return,
+    };
+
+    if player.switching_weapon {
+        return;
+    }
+
+    player.switching_weapon = true;
+
+    let current_index = available_weapons
+        .weapons
+        .iter()
+        .position(|w| w == &player.weapon)
+        .unwrap_or(0);
+    let next_index = (current_index + 1) % available_weapons.weapons.len();
+    let new_weapon = &available_weapons.weapons[next_index];
+
+    let weapons = match weapons_assets.get(&weapons_handle.0) {
+        Some(w) => w,
+        None => return,
+    };
+
+    let weapon_data = match weapons.0.get(new_weapon) {
+        Some(data) => data,
+        None => return,
+    };
+
+    if let Some(old_weapon) = player.weapon_entity {
+        if commands.get_entity(old_weapon).is_ok() {
+            commands.entity(old_weapon).despawn();
+        }
+    }
+
+    let new_weapon_entity = commands.spawn(weapon(&weapon_assets, weapon_data)).id();
+
+    commands.entity(player_entity).add_child(new_weapon_entity);
+
+    let mut new_player = player.clone();
+    new_player.weapon = new_weapon.to_string();
+    new_player.weapon_entity = Some(new_weapon_entity);
+    new_player.switching_weapon = true;
+    new_player.switch_timer = Timer::from_seconds(3.0, TimerMode::Once);
+    new_player.can_shoot_timer = Timer::from_seconds(0.2, TimerMode::Once);
+    commands.entity(player_entity).insert(new_player);
+}
+
+fn update_weapon_switch_timer(
+    mut player_query: Query<&mut Player>,
+    time: Res<Time>,
+) {
+    for mut player in &mut player_query {
+        if player.switching_weapon {
+            player.switch_timer.tick(time.delta());
+
+            if player.switch_timer.just_finished() {
+                player.switching_weapon = false;
+                player.switch_timer.reset();
+            }
+        }
+
+        if player.can_shoot_timer.elapsed_secs() < 0.2 {
+            player.can_shoot_timer.tick(time.delta());
+        }
+    }
+}
+
 pub fn bullet(
     weapon_assets: &WeaponAssets,
     weapon_data: &crate::demo::weapon_data::WeaponData,
@@ -127,7 +217,7 @@ pub fn bullet(
             weapon_assets.sprite.clone(),
             TextureAtlas {
                 layout: weapon_assets.layout.clone(),
-                index: weapon_data.sprite_index,
+                index: weapon_data.bullet_sprite_index,
             },
         ),
         Transform::from_translation(position.extend(10.0))
@@ -139,9 +229,8 @@ fn spawn_bullet(
     mut commands: Commands,
     action_state: Single<&ActionState<PlayerAction>>,
     cursor_pos: Res<CursorPosition>,
-    player_query: Query<(&GlobalTransform, &Player)>,
+    player_query: Query<(Entity, &GlobalTransform, &Player)>,
     weapon_query: Query<&GlobalTransform, With<Weapon>>,
-    mut last_shot: ResMut<LastShotTime>,
     time: Res<Time>,
     weapon_assets: Res<WeaponAssets>,
     weapons_handle: Res<WeaponsHandle>,
@@ -151,11 +240,22 @@ fn spawn_bullet(
         return;
     }
 
-    let (player_gt, player) = match player_query.single() {
+    let (player_entity, player_gt, player) = match player_query.single() {
         Ok(v) => v,
         Err(_) => return,
     };
+
+    if player.can_shoot_timer.elapsed_secs() < 0.2 {
+        return;
+    }
+
     let player_pos = player_gt.translation().truncate();
+    let player_weapon = player.weapon.clone();
+    let last_shot_time = player.last_shot_time;
+
+    if player_weapon.is_empty() {
+        return;
+    }
 
     let weapon_gt = match weapon_query.single() {
         Ok(gt) => gt,
@@ -168,7 +268,7 @@ fn spawn_bullet(
         None => return,
     };
 
-    let weapon_data = match weapons.0.get(&player.weapon) {
+    let weapon_data = match weapons.0.get(&player_weapon) {
         Some(data) => data,
         None => {
             let default = weapons.0.get("dagger");
@@ -180,10 +280,19 @@ fn spawn_bullet(
     };
 
     let current_time = time.elapsed_secs();
-    if current_time - last_shot.time < weapon_data.cooldown {
+    if current_time - last_shot_time < weapon_data.cooldown {
         return;
     }
-    last_shot.time = current_time;
+
+    let new_player = Player {
+        weapon: player_weapon,
+        weapon_entity: player.weapon_entity,
+        last_shot_time: current_time,
+        switching_weapon: player.switching_weapon,
+        switch_timer: player.switch_timer.clone(),
+        can_shoot_timer: player.can_shoot_timer.clone(),
+    };
+    commands.entity(player_entity).insert(new_player);
 
     let cursor_world = cursor_pos.0.unwrap_or(player_pos);
     let direction = cursor_world - weapon_pos;

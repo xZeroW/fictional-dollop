@@ -4,6 +4,8 @@
 
 This is a Bevy 2D game structured as modular Bevy plugins. The app entrypoint is `src/main.rs`, which wires together plugins from `src/` such as `audio`, `demo`, `menus`, `screens`, and `theme`.
 
+Design patterns are inspired by [TheBevyFlock/bevy_new_2d](https://github.com/TheBevyFlock/bevy_new_2d/blob/main/docs/design.md).
+
 ---
 
 ## Build, Lint, and Test Commands
@@ -288,6 +290,78 @@ fn load_weapon_data(mut commands: Commands, server: Res<AssetServer>) {
 ```
 
 This keeps game data (stats, configs) separate from engine assets.
+
+---
+
+## Bundle Functions Pattern
+
+Write functions that return `impl Bundle` to define simple entity templates:
+
+```rust
+pub fn monster(health: u32, transform: Transform) -> impl Bundle {
+    (
+        Name::new("Monster"),
+        Health::new(health),
+        transform,
+    )
+}
+```
+
+Extend a bundle function with additional components:
+
+```rust
+pub fn boss_monster(transform: Transform) -> impl Bundle {
+    (
+        monster(1000, transform),
+        Better,
+        Faster,
+        Stronger,
+    )
+}
+```
+
+Compose bundle functions for entity hierarchies:
+
+```rust
+pub fn dangerous_forest() -> impl Bundle {
+    (
+        Name::new("Dangerous Forest"),
+        Transform::default(),
+        children![
+            monster(100, Transform::from_xyz(10.0, 0.0, 0.0)),
+            monster(200, Transform::from_xyz(20.0, 0.0, 0.0)),
+            boss_monster(Transform::from_xyz(30.0, 0.0, 0.0)),
+        ],
+    )
+}
+```
+
+Spawn using bundle functions:
+
+```rust
+fn spawn_dangerous_forest(mut commands: Commands) {
+    commands.spawn(dangerous_forest());
+}
+```
+
+**Limitations:**
+- **No dependency injection**: Pass required data as arguments
+- **No replacing components**: Cannot modify components from extended bundles; use `commands.spawn(foo()).insert(Replacement)` instead
+
+---
+
+## Dev Tools Pattern
+
+Group development-only systems in a dedicated plugin:
+
+```rust
+// dev_tools.rs
+pub(super) fn plugin(app: &mut App) {
+    app.add_systems(Update, (draw_debug_lines, show_debug_console, show_fps_counter));
+}
+```
+
+Only include this plugin in dev builds (via `#[cfg(debug_assertions)]` or feature gate) to guarantee it won't be included in release builds.
 
 ---
 

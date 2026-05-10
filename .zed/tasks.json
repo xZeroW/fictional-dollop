@@ -1,0 +1,17 @@
+[
+  {
+    "label": "Run native dev",
+    "command": "bevy",
+    "args": ["run"],
+    "env": {
+      "RUST_BACKTRACE": "full"
+    },
+    "problemMatcher": ["$rustc"]
+  },
+  {
+    "label": "Run native release",
+    "command": "bevy",
+    "args": ["run", "--release"],
+    "problemMatcher": ["$rustc"]
+  }
+]

@@ -73,23 +73,23 @@ fn apply_interaction_palette_on_out(
 }
 
 fn play_sound_effect_on_click(
-    click: On<Pointer<Click>>,
+    on: On<Pointer<Click>>,
     interaction_assets: If<Res<InteractionAssets>>,
+    interaction_entities: Query<Entity, With<InteractionPalette>>,
     mut commands: Commands,
-    palette_query: Query<&InteractionPalette>,
 ) {
-    if palette_query.get(click.event_target()).is_ok() {
+    if interaction_entities.contains(on.event_target()) {
         commands.spawn(sound_effect(interaction_assets.click.clone()));
     }
 }
 
 fn play_sound_effect_on_over(
-    over: On<Pointer<Over>>,
+    on: On<Pointer<Over>>,
     interaction_assets: If<Res<InteractionAssets>>,
+    interaction_entities: Query<Entity, With<InteractionPalette>>,
     mut commands: Commands,
-    palette_query: Query<&InteractionPalette>,
 ) {
-    if palette_query.get(over.event_target()).is_ok() {
+    if interaction_entities.contains(on.event_target()) {
         commands.spawn(sound_effect(interaction_assets.hover.clone()));
     }
 }

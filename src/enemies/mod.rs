@@ -1,20 +1,17 @@
+use bevy::image::{ImageLoaderSettings, ImageSampler};
 use bevy::prelude::*;
 use bevy::time::common_conditions::on_timer;
 use std::time::Duration;
 
-use crate::{AppSystems, PausableSystems, demo::level::LevelEntity};
+use crate::common::components::characters::c_enemy::Enemy;
+use crate::common::components::characters::c_movement::Movement;
+use crate::common::components::characters::damage::Damage;
+use crate::common::components::characters::health::Health;
+use crate::{AppSystems, PausableSystems, game::level::LevelEntity};
 
 mod monster_data;
 
 pub use monster_data::{Enemies, EnemyAssets};
-
-#[derive(Component)]
-pub struct Enemy {
-    pub health: i32,
-    pub damage: i32,
-    pub speed: f32,
-    pub enemy_type: String,
-}
 
 #[derive(Resource)]
 pub struct EnemySpawner {
@@ -68,7 +65,7 @@ fn spawn_enemies(
     enemies_data_handle: Option<Res<EnemiesDataHandle>>,
     enemy_assets: Option<Res<Assets<EnemyAssets>>>,
     enemies_data: Option<Res<Assets<Enemies>>>,
-    player_query: Query<&GlobalTransform, With<crate::demo::player::Player>>,
+    player_query: Query<&GlobalTransform, With<crate::game::player::Player>>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     asset_server: Res<AssetServer>,
 ) {
@@ -129,7 +126,12 @@ fn spawn_enemies(
         None => return,
     };
 
-    let image = asset_server.load(&enemy_assets.sprite_path);
+    let image = asset_server.load_with_settings(
+        &enemy_assets.sprite_path,
+        |settings: &mut ImageLoaderSettings| {
+            settings.sampler = ImageSampler::nearest();
+        },
+    );
     let layout = texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
         UVec2::new(
             enemy_assets.layout.tile_size_x,
@@ -149,12 +151,10 @@ fn spawn_enemies(
     commands.entity(level_entity.0).with_children(|parent| {
         parent.spawn((
             Name::new(enemy_data.name.clone()),
-            Enemy {
-                health: enemy_data.health,
-                damage: enemy_data.damage,
-                speed: enemy_data.speed,
-                enemy_type: enemy_key.clone(),
-            },
+            Enemy::new(enemy_key.clone()),
+            Health::new(enemy_data.health as f32),
+            Movement::new(enemy_data.speed),
+            Damage::new(enemy_data.damage as f32),
             Sprite::from_atlas_image(
                 image,
                 TextureAtlas {

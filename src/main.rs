@@ -5,10 +5,12 @@
 
 mod assets;
 mod audio;
-mod demo;
+mod common;
 #[cfg(feature = "dev")]
 mod dev_tools;
 mod enemies;
+mod game;
+mod libs;
 mod menus;
 mod screens;
 mod theme;
@@ -40,7 +42,7 @@ impl Plugin for AppPlugin {
         app.add_plugins((
             assets::plugin,
             audio::plugin,
-            demo::plugin,
+            game::plugin,
             #[cfg(feature = "dev")]
             dev_tools::plugin,
             menus::plugin,

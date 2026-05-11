@@ -6,10 +6,11 @@
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::libs::cursor;
+use crate::{game::map::MapPlugin, libs::cursor};
 
 mod animation;
 pub mod level;
+mod map;
 mod movement;
 pub mod player;
 pub mod weapon;
@@ -27,5 +28,6 @@ pub(super) fn plugin(app: &mut App) {
         weapon::plugin,
         weapon_data::plugin,
         cursor::plugin,
+        MapPlugin,
     ));
 }

@@ -66,9 +66,6 @@ impl Plugin for AppPlugin {
         app.init_state::<Pause>();
         // Configure systems that should only run when the game is not paused.
         app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));
-
-        // Spawn the main camera.
-        app.add_systems(Startup, spawn_camera);
     }
 }
 
@@ -92,7 +89,3 @@ struct Pause(pub bool);
 /// A system set for systems that shouldn't run while the game is paused.
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 struct PausableSystems;
-
-fn spawn_camera(mut commands: Commands) {
-    commands.spawn((Name::new("Camera"), (Camera2d, Msaa::Off)));
-}

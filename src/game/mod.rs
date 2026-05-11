@@ -6,12 +6,14 @@
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::{game::map::MapPlugin, libs::cursor};
+use crate::libs::cursor;
 
 mod animation;
+pub mod camera;
+pub mod config;
 pub mod level;
 mod map;
-mod movement;
+pub mod movement;
 pub mod player;
 pub mod weapon;
 mod weapon_data;
@@ -22,12 +24,13 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins((
         InputManagerPlugin::<PlayerAction>::default(),
         animation::plugin,
+        camera::CameraPlugin,
         level::plugin,
         movement::plugin,
         player::plugin,
         weapon::plugin,
         weapon_data::plugin,
         cursor::plugin,
-        MapPlugin,
+        map::MapPlugin,
     ));
 }

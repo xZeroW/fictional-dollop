@@ -5,7 +5,7 @@
 
 mod assets;
 mod audio;
-mod common;
+mod components;
 #[cfg(feature = "dev")]
 mod dev_tools;
 mod enemies;

@@ -3,10 +3,10 @@ use bevy::prelude::*;
 use bevy::time::common_conditions::on_timer;
 use std::time::Duration;
 
-use crate::common::components::characters::c_enemy::Enemy;
-use crate::common::components::characters::c_movement::Movement;
-use crate::common::components::characters::damage::Damage;
-use crate::common::components::characters::health::Health;
+use crate::components::c_enemy::Enemy;
+use crate::components::c_movement::Movement;
+use crate::components::damage::Damage;
+use crate::components::health::Health;
 use crate::{AppSystems, PausableSystems, game::level::LevelEntity};
 
 mod monster_data;

@@ -1,8 +1,8 @@
 use bevy::prelude::Component;
 
-use crate::common::components::characters::c_movement::Movement;
-use crate::common::components::characters::damage::Damage;
-use crate::common::components::characters::health::Health;
+use crate::components::c_movement::Movement;
+use crate::components::damage::Damage;
+use crate::components::health::Health;
 
 #[derive(Component, Default)]
 #[require(Health, Movement, Damage)]

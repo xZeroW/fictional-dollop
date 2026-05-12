@@ -15,7 +15,7 @@
 
 use bevy::prelude::*;
 
-use crate::{components::c_movement::Movement, AppSystems, PausableSystems};
+use crate::{AppSystems, PausableSystems, components::Movement};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -38,9 +38,7 @@ pub struct MovementController {
 
 impl Default for MovementController {
     fn default() -> Self {
-        Self {
-            intent: Vec2::ZERO,
-        }
+        Self { intent: Vec2::ZERO }
     }
 }
 

@@ -9,7 +9,7 @@ use crate::{
     game::{animation::PlayerAnimation, movement::MovementController},
 };
 
-use crate::components::{c_movement::Movement, health::Health};
+use crate::components::{Health, Movement};
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
 pub enum PlayerAction {

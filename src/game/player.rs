@@ -9,6 +9,8 @@ use crate::{
     game::{animation::PlayerAnimation, movement::MovementController},
 };
 
+use crate::components::{c_movement::Movement, health::Health};
+
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
 pub enum PlayerAction {
     Up,
@@ -29,7 +31,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 /// The player character.
-pub fn player(max_speed: f32, player_assets: &CharacterAssets, weapon: String) -> impl Bundle {
+pub fn player(player_assets: &CharacterAssets, weapon: String) -> impl Bundle {
     let player_animation = PlayerAnimation::new();
 
     (
@@ -46,10 +48,7 @@ pub fn player(max_speed: f32, player_assets: &CharacterAssets, weapon: String) -
             },
         ),
         Transform::from_scale(Vec2::splat(3.0).extend(1.0)),
-        MovementController {
-            max_speed,
-            ..default()
-        },
+        MovementController::default(),
         player_animation,
         Player::default_input_map(),
     )
@@ -57,6 +56,7 @@ pub fn player(max_speed: f32, player_assets: &CharacterAssets, weapon: String) -
 
 #[derive(Component, Debug, Clone, PartialEq, Reflect)]
 #[reflect(Component)]
+#[require(Health, Movement)]
 pub struct Player {
     pub weapon: String,
     pub weapon_entity: Option<Entity>,

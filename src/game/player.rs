@@ -6,10 +6,7 @@ use leafwing_input_manager::prelude::*;
 use crate::{
     AppSystems, PausableSystems,
     assets::CharacterAssets,
-    game::{
-        animation::PlayerAnimation,
-        movement::{MovementController, ScreenWrap},
-    },
+    game::{animation::PlayerAnimation, movement::MovementController},
 };
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
@@ -53,7 +50,6 @@ pub fn player(max_speed: f32, player_assets: &CharacterAssets, weapon: String) -
             max_speed,
             ..default()
         },
-        ScreenWrap,
         player_animation,
         Player::default_input_map(),
     )

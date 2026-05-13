@@ -185,7 +185,18 @@
   },
   "active": "031b1786b4e9e50e",
   "lastOpenFiles": [
+    "AGENTS.md",
     "Game Idea.md",
-    "Untitled"
+    "README.md",
+    "target/debug/my_rebanho.d",
+    "target/debug/my_rebanho",
+    "target/debug/deps/my_rebanho-8fa1ddfe91ad619c",
+    "target/debug/deps/my_rebanho-8fa1ddfe91ad619c.tmpb746f4b",
+    "target/debug/deps/rustcxw3Mjb/symbols.o",
+    "target/debug/deps/rustcxw3Mjb/raw-dylibs",
+    "target/debug/deps/rustcxw3Mjb",
+    "target/debug/incremental/my_rebanho-3q0ekvfmf91h8/s-hih7v48u9h-1x15hen-1bc6zcu60kpajllrdhv8lhewo/work-products.bin",
+    "target/debug/incremental/my_rebanho-3q0ekvfmf91h8/s-hih7v48u9h-1x15hen-1bc6zcu60kpajllrdhv8lhewo/thin-lto-past-keys.bin",
+    "target/debug/incremental/my_rebanho-3q0ekvfmf91h8/s-hih7v48u9h-1x15hen-1bc6zcu60kpajllrdhv8lhewo/query-cache.bin"
   ]
 }

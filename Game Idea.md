@@ -16,13 +16,7 @@
 - Integrated via `bevy_ecs_tiled`
 
 ### Map Selection
-- A random **themed map** is chosen each round
-
-### Map Timeline UI
-- Top UI displays **5 maps**:
-  - 2 previous maps (left)
-  - Current map (center)
-  - 2 upcoming maps (right)
+- A random **themed map** is chosen each 5 rounds
 
 ### Map Themes
 - Each map has a distinct **theme** (e.g. Forest, Crypt, Factory, Void)
@@ -78,8 +72,9 @@ Each monster buff grants the player a **bonus**, such as:
 #### Temporary Inventory
 - Holds items collected during the current run
 - Completely lost on death
+- Lose what is not sent to safe inventory (Bank)
 
-#### Safe Inventory
+#### Safe Inventory (Bank)
 - Persistent storage across runs
 - Player must manually move items here
 - Limited capacity to enforce meaningful decisions
@@ -162,6 +157,3 @@ Each monster buff grants the player a **bonus**, such as:
 - Single powerful boss
 - High-risk / high-reward rewards
 
-## Safe Inventory Tension
-- Safe inventory slots unlock slowly
-- Some items are too corrupted to store unless cleansed

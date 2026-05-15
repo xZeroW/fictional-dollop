@@ -1,7 +1,7 @@
 use bevy::input::mouse::MouseWheel;
 use bevy::prelude::*;
 
-use crate::game::config as cfg;
+use crate::game::config::{ORTHO_MAX_SCALE, ORTHO_MIN_SCALE};
 use crate::game::player::Player;
 
 pub struct CameraPlugin;
@@ -24,7 +24,7 @@ fn setup(mut commands: Commands) {
 fn set_camera_scale_after_spawn(mut query: Query<&mut Projection, With<Camera>>) {
     for mut projection in &mut query {
         if let Projection::Orthographic(ortho) = &mut *projection {
-            ortho.scale = cfg::ORTHO_MIN_SCALE;
+            ortho.scale = ORTHO_MIN_SCALE;
             break;
         }
     }
@@ -41,9 +41,9 @@ fn zoom(
             };
 
             if event.y < 0.0 {
-                ortho.scale = (ortho.scale + 0.1).clamp(cfg::ORTHO_MIN_SCALE, cfg::ORTHO_MAX_SCALE);
+                ortho.scale = (ortho.scale + 0.1).clamp(ORTHO_MIN_SCALE, ORTHO_MAX_SCALE);
             } else if event.y > 0.0 {
-                ortho.scale = (ortho.scale - 0.1).clamp(cfg::ORTHO_MIN_SCALE, cfg::ORTHO_MAX_SCALE);
+                ortho.scale = (ortho.scale - 0.1).clamp(ORTHO_MIN_SCALE, ORTHO_MAX_SCALE);
             }
         }
     }

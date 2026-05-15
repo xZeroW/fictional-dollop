@@ -1,29 +1,72 @@
+use std::f32::consts::PI;
+
 use bevy::image::{ImageLoaderSettings, ImageSampler};
 use bevy::prelude::*;
 use bevy::time::common_conditions::on_timer;
 use std::time::Duration;
 
 use crate::components::{Enemy, Movement, Damage, Health};
+use crate::game::config;
 use crate::{AppSystems, PausableSystems, game::level::LevelEntity};
 
 mod monster_data;
 
 pub use monster_data::{Enemies, EnemyAssets};
 
+#[derive(Component)]
+pub enum EnemyType {
+    Slime,
+    Goblin,
+    Orc,
+}
+
+impl EnemyType {
+    pub fn from_key(key: &str) -> Self {
+        match key.to_lowercase().as_str() {
+            "slime" => EnemyType::Slime,
+            "goblin" => EnemyType::Goblin,
+            "orc" => EnemyType::Orc,
+            _ => EnemyType::Slime,
+        }
+    }
+}
+
 #[derive(Resource)]
 pub struct EnemySpawner {
     pub spawned_count: u32,
     pub max_enemies: u32,
-    pub enemy_keys: Vec<String>,
+    pub enemy_keys: Vec<(String, f32)>,
+    total_spawn_weight: f32,
 }
 
 impl Default for EnemySpawner {
     fn default() -> Self {
         Self {
             spawned_count: 0,
-            max_enemies: 50000,
+            max_enemies: config::MAX_NUM_ENEMIES as u32,
             enemy_keys: vec![],
+            total_spawn_weight: 0.0,
         }
+    }
+}
+
+impl EnemySpawner {
+fn select_enemy_key(&self) -> Option<String> {
+        if self.enemy_keys.is_empty() || self.total_spawn_weight <= 0.0 {
+            return None;
+        }
+
+        let pick = rand::random::<f32>() * self.total_spawn_weight;
+        let mut accum = 0.0;
+
+        for (key, weight) in &self.enemy_keys {
+            accum += *weight;
+            if pick <= accum {
+                return Some(key.clone());
+            }
+        }
+
+        self.enemy_keys.first().map(|(k, _)| k.clone())
     }
 }
 
@@ -42,7 +85,7 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(PausableSystems)
             .in_set(AppSystems::Update)
             .run_if(in_state(crate::screens::Screen::Gameplay))
-            .run_if(on_timer(Duration::from_secs_f32(1.0))),
+            .run_if(on_timer(Duration::from_secs_f32(config::ENEMY_SPAWN_INTERVAL))),
     );
 }
 
@@ -58,11 +101,12 @@ fn spawn_enemies(
     mut commands: Commands,
     spawner: Option<ResMut<EnemySpawner>>,
     level_entity: Option<Res<LevelEntity>>,
-    enemy_assets_handle: Option<Res<EnemyAssetsHandle>>,
     enemies_data_handle: Option<Res<EnemiesDataHandle>>,
-    enemy_assets: Option<Res<Assets<EnemyAssets>>>,
     enemies_data: Option<Res<Assets<Enemies>>>,
+    current_enemies: Query<Entity, With<Enemy>>,
     player_query: Query<&GlobalTransform, With<crate::game::player::Player>>,
+    enemy_assets_handle: Option<Res<EnemyAssetsHandle>>,
+    enemy_assets: Option<Res<Assets<EnemyAssets>>>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     asset_server: Res<AssetServer>,
 ) {
@@ -81,6 +125,29 @@ fn spawn_enemies(
         return;
     };
 
+    let Some(enemies_data) = enemies_data.get(enemies_data_handle.0.id()) else {
+        return;
+    };
+
+    let num_enemies = current_enemies.iter().len();
+    if num_enemies >= config::MAX_NUM_ENEMIES {
+        return;
+    }
+
+    let spawn_count = (config::MAX_NUM_ENEMIES - num_enemies).min(config::SPAWN_RATE_PER_SECOND);
+
+    if spawner.enemy_keys.is_empty() {
+        for (key, data) in enemies_data.0.iter() {
+            spawner.enemy_keys.push((key.clone(), data.spawn_rate));
+            spawner.total_spawn_weight += data.spawn_rate;
+        }
+    }
+
+    let player_pos = match player_query.single() {
+        Ok(gt) => gt.translation().truncate(),
+        Err(_) => return,
+    };
+
     let Some(enemy_assets_handle) = enemy_assets_handle else {
         return;
     };
@@ -89,80 +156,91 @@ fn spawn_enemies(
         return;
     };
 
-    let Some(enemies_data) = enemies_data.get(enemies_data_handle.0.id()) else {
-        return;
-    };
-
-    if spawner.enemy_keys.is_empty() {
-        spawner.enemy_keys = enemies_data.0.keys().cloned().collect();
-    }
-
-    if spawner.spawned_count >= spawner.max_enemies {
-        return;
-    }
-
-    let player_pos = match player_query.single() {
-        Ok(gt) => gt.translation().truncate(),
-        Err(_) => return,
-    };
-
-    let random_index = (spawner.spawned_count as usize + 1) % spawner.enemy_keys.len();
-    let enemy_key = &spawner.enemy_keys[random_index];
-
-    let enemy_data = match enemies_data.0.get(enemy_key) {
-        Some(data) => data,
-        None => return,
-    };
-
     let Some(enemy_assets) = enemy_assets.get(enemy_assets_handle.0.id()) else {
         return;
     };
 
-    let enemy_assets = match enemy_assets.0.get(enemy_key) {
-        Some(asset) => asset,
-        None => return,
-    };
+    for _ in 0..spawn_count {
+        let Some(enemy_key) = spawner.select_enemy_key() else {
+            continue;
+        };
 
-    let image = asset_server.load_with_settings(
-        &enemy_assets.sprite_path,
-        |settings: &mut ImageLoaderSettings| {
-            settings.sampler = ImageSampler::nearest();
-        },
-    );
-    let layout = texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
-        UVec2::new(
-            enemy_assets.layout.tile_size_x,
-            enemy_assets.layout.tile_size_y,
-        ),
-        enemy_assets.layout.columns,
-        enemy_assets.layout.rows,
-        None,
-        None,
-    ));
+        let enemy_data = match enemies_data.0.get(&enemy_key) {
+            Some(data) => data,
+            None => continue,
+        };
 
-    let angle = spawner.spawned_count as f32 * std::f32::consts::TAU / 5.0;
-    let distance = 150.0;
-    let offset = Vec2::new(angle.cos() * distance, angle.sin() * distance);
-    let spawn_pos = player_pos + offset;
+        let enemy_asset = match enemy_assets.0.get(&enemy_key) {
+            Some(asset) => asset,
+            None => continue,
+        };
 
-    commands.entity(level_entity.0).with_children(|parent| {
-        parent.spawn((
-            Name::new(enemy_data.name.clone()),
-            Enemy::new(enemy_key.clone()),
-            Health::new(enemy_data.health as f32),
-            Movement::new(enemy_data.speed),
-            Damage::new(enemy_data.damage as f32),
-            Sprite::from_atlas_image(
-                image,
-                TextureAtlas {
-                    layout,
-                    index: enemy_data.sprite_index,
-                },
+        let (x, y) = get_random_position_around(player_pos);
+
+        let image = asset_server.load_with_settings(
+            &enemy_asset.sprite_path,
+            |settings: &mut ImageLoaderSettings| {
+                settings.sampler = ImageSampler::nearest();
+            },
+        );
+        let layout = texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
+            UVec2::new(
+                enemy_asset.layout.tile_size_x,
+                enemy_asset.layout.tile_size_y,
             ),
-            Transform::from_translation(spawn_pos.extend(0.0))
-                .with_scale(Vec2::splat(enemy_data.scale).extend(1.0)),
+            enemy_asset.layout.columns,
+            enemy_asset.layout.rows,
+            None,
+            None,
         ));
-    });
 
-    spawner.spawned_count += 1;
+        commands.entity(level_entity.0).with_children(|parent| {
+            parent.spawn(enemy_bundle(
+                &enemy_key,
+                enemy_data,
+                Vec3::new(x, y, 0.0),
+                image,
+                layout,
+            ));
+        });
+
+        spawner.spawned_count += 1;
+    }
+}
+
+fn enemy_bundle(
+    key: &str,
+    data: &monster_data::EnemyData,
+    position: Vec3,
+    image: Handle<Image>,
+    layout: Handle<TextureAtlasLayout>,
+) -> impl Bundle {
+    (
+        Name::new(data.name.clone()),
+        Enemy::new(key.to_string()),
+        EnemyType::from_key(key),
+        Health::new(data.health as f32),
+        Movement::new(data.speed),
+        Damage::new(data.damage as f32),
+        Sprite::from_atlas_image(
+            image,
+            TextureAtlas {
+                layout,
+                index: data.sprite_index,
+            },
+        ),
+        Transform::from_translation(position)
+            .with_scale(Vec2::splat(data.scale).extend(1.0)),
+    )
+}
+
+fn get_random_position_around(pos: Vec2) -> (f32, f32) {
+    let angle = rand::random::<f32>() * PI * 2.0;
+    let dist = config::ENEMY_SPAWN_DISTANCE_MIN
+        + rand::random::<f32>() * (config::ENEMY_SPAWN_DISTANCE_MAX - config::ENEMY_SPAWN_DISTANCE_MIN);
+
+    let offset_x = angle.cos() * dist;
+    let offset_y = angle.sin() * dist;
+
+    (pos.x + offset_x, pos.y + offset_y)
 }

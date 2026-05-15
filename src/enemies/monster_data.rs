@@ -34,6 +34,7 @@ pub struct EnemyData {
     pub speed: f32,
     pub scale: f32,
     pub sprite_index: usize,
+    pub spawn_rate: f32,
 }
 
 pub(super) fn plugin(app: &mut App) {

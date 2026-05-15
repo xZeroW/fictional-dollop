@@ -29,7 +29,7 @@ impl Plugin for AppPlugin {
         app.add_plugins(
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Window {
-                    title: "My Rebanho".to_string(),
+                    title: "My game".to_string(),
                     fit_canvas_to_parent: true,
                     ..default()
                 }
@@ -43,12 +43,15 @@ impl Plugin for AppPlugin {
             assets::plugin,
             audio::plugin,
             game::plugin,
-            #[cfg(feature = "dev")]
-            dev_tools::plugin,
             menus::plugin,
             screens::plugin,
             theme::plugin,
             enemies::plugin,
+        ));
+
+        app.add_plugins((
+            #[cfg(feature = "dev")]
+            dev_tools::plugin,
         ));
 
         // Order new `AppSystems` variants by adding them here:

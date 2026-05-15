@@ -1,4 +1,4 @@
-# AGENTS.md - Agentic Coding Guidelines for my_rebanho
+# AGENTS.md - Agentic Coding Guidelines for my_game
 
 ## Overview
 

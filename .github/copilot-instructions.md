@@ -1,4 +1,4 @@
-# Copilot instructions — my_rebanho
+# Copilot instructions — my_game
 
 Purpose: help an AI coding agent be immediately productive in this Bevy-based game.
 

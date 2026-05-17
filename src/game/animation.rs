@@ -38,16 +38,11 @@ fn update_animation_timer(time: Res<Time>, mut query: Query<&mut PlayerAnimation
     }
 }
 
-/// Update the sprite direction and animation state (idling/walking).
+/// Update the animation state (idling/walking).
 fn update_animation_movement(
-    mut player_query: Query<(&Movement, &mut Sprite, &mut PlayerAnimation)>,
+    mut player_query: Query<(&Movement, &mut PlayerAnimation), With<crate::components::Player>>,
 ) {
-    for (movement, mut sprite, mut animation) in &mut player_query {
-        let dx = movement.intent.x;
-        if dx != 0.0 {
-            sprite.flip_x = dx < 0.0;
-        }
-
+    for (movement, mut animation) in &mut player_query {
         let animation_state = if movement.intent == Vec2::ZERO {
             PlayerAnimationState::Idling
         } else {

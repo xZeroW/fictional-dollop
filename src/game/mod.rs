@@ -15,6 +15,7 @@ pub mod level;
 mod map;
 pub mod movement;
 pub mod player;
+mod systems;
 pub mod weapon;
 mod weapon_data;
 
@@ -33,4 +34,6 @@ pub(super) fn plugin(app: &mut App) {
         cursor::plugin,
         map::MapPlugin,
     ));
+
+    app.add_systems(Update, systems::flip_sprite.in_set(crate::PausableSystems));
 }

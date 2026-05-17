@@ -6,9 +6,9 @@ use leafwing_input_manager::prelude::*;
 use crate::{
     AppSystems, PausableSystems,
     assets::WeaponAssets,
+    components::Player,
     game::{
         PlayerAction,
-        player::Player,
         weapon_data::{Weapons, WeaponsHandle},
     },
     libs::cursor::CursorPosition,

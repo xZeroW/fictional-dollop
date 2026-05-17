@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use bevy::time::common_conditions::on_timer;
 use std::time::Duration;
 
-use crate::components::{Damage, Enemy, Health, Movement};
+use crate::components::{Damage, Enemy, Health, Movement, Player};
 use crate::game::config;
 use crate::{AppSystems, PausableSystems, game::level::LevelEntity};
 
@@ -79,14 +79,37 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(crate::screens::Screen::Loading), load_enemy_data);
     app.add_systems(
         Update,
-        spawn_enemies
-            .in_set(PausableSystems)
-            .in_set(AppSystems::Update)
-            .run_if(in_state(crate::screens::Screen::Gameplay))
-            .run_if(on_timer(Duration::from_secs_f32(
-                config::ENEMY_SPAWN_INTERVAL,
-            ))),
+        (
+            spawn_enemies
+                .in_set(PausableSystems)
+                .in_set(AppSystems::Update)
+                .run_if(in_state(crate::screens::Screen::Gameplay))
+                .run_if(on_timer(Duration::from_secs_f32(
+                    config::ENEMY_SPAWN_INTERVAL,
+                ))),
+            enemy_chase_player
+                .in_set(PausableSystems)
+                .in_set(AppSystems::Update)
+                .run_if(in_state(crate::screens::Screen::Gameplay)),
+        ),
     );
+}
+
+fn enemy_chase_player(
+    player: Query<&Transform, With<Player>>,
+    mut enemies: Query<(&Transform, &mut Movement), With<Enemy>>,
+) {
+    let Ok(player_pos) = player.single() else {
+        return;
+    };
+
+    let player_pos_2d = player_pos.translation.truncate();
+
+    for (transform, mut movement) in &mut enemies {
+        let enemy_pos_2d = transform.translation.truncate();
+        let direction = (player_pos_2d - enemy_pos_2d).normalize_or_zero();
+        movement.intent = direction;
+    }
 }
 
 fn load_enemy_data(mut commands: Commands, server: Res<AssetServer>) {

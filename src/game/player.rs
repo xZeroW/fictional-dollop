@@ -6,10 +6,9 @@ use leafwing_input_manager::prelude::*;
 use crate::{
     AppSystems, PausableSystems,
     assets::CharacterAssets,
-    game::{animation::PlayerAnimation, movement::MovementController},
+    game::animation::PlayerAnimation,
+    components::{Player, Movement},
 };
-
-use crate::components::{Health, Movement};
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
 pub enum PlayerAction {
@@ -48,38 +47,13 @@ pub fn player(player_assets: &CharacterAssets, weapon: String) -> impl Bundle {
             },
         ),
         Transform::from_scale(Vec2::splat(3.0).extend(1.0)),
-        MovementController::default(),
+        Movement::default(),
         player_animation,
-        Player::default_input_map(),
+        PlayerAction::default_input_map(),
     )
 }
 
-#[derive(Component, Debug, Clone, PartialEq, Reflect)]
-#[reflect(Component)]
-#[require(Health, Movement)]
-pub struct Player {
-    pub weapon: String,
-    pub weapon_entity: Option<Entity>,
-    pub last_shot_time: f32,
-    pub switching_weapon: bool,
-    pub switch_timer: Timer,
-    pub can_shoot_timer: Timer,
-}
-
-impl Default for Player {
-    fn default() -> Self {
-        Self {
-            weapon: "dagger".to_string(),
-            weapon_entity: None,
-            last_shot_time: 0.0,
-            switching_weapon: false,
-            switch_timer: Timer::from_seconds(3.0, TimerMode::Once),
-            can_shoot_timer: Timer::from_seconds(0.2, TimerMode::Once),
-        }
-    }
-}
-
-impl Player {
+impl PlayerAction {
     fn default_input_map() -> InputMap<PlayerAction> {
         use PlayerAction::*;
         let mut input_map = InputMap::default();
@@ -105,7 +79,7 @@ impl Player {
 
 fn record_player_input(
     action_state: Single<&ActionState<PlayerAction>>,
-    mut controller_query: Query<&mut MovementController, With<Player>>,
+    mut controller_query: Query<&mut Movement, With<Player>>,
 ) {
     let mut intent = Vec2::ZERO;
     if action_state.pressed(&PlayerAction::Up) {

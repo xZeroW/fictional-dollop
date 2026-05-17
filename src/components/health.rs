@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::game::player::Player;
+use crate::components::Player;
 use crate::game::weapon::Weapon;
 use crate::screens::Screen;
 

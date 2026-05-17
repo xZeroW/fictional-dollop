@@ -5,9 +5,9 @@ use bevy::prelude::*;
 use crate::{
     assets::{AudioAssets, CharacterAssets, WeaponAssets},
     audio::music,
+    components::Player,
     enemies::EnemySpawner,
     game::{
-        player::Player,
         player::player,
         weapon::weapon,
         weapon_data::{Weapons, WeaponsHandle},

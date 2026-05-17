@@ -1,6 +1,6 @@
 use bevy::prelude::Component;
 
-use crate::components::{Movement, Damage, Health};
+use crate::components::{Damage, Health, Movement};
 
 #[derive(Component, Default)]
 #[require(Health, Movement, Damage)]

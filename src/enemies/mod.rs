@@ -1,11 +1,9 @@
-use std::f32::consts::PI;
-
 use bevy::image::{ImageLoaderSettings, ImageSampler};
 use bevy::prelude::*;
 use bevy::time::common_conditions::on_timer;
 use std::time::Duration;
 
-use crate::components::{Enemy, Movement, Damage, Health};
+use crate::components::{Damage, Enemy, Health, Movement};
 use crate::game::config;
 use crate::{AppSystems, PausableSystems, game::level::LevelEntity};
 
@@ -51,7 +49,7 @@ impl Default for EnemySpawner {
 }
 
 impl EnemySpawner {
-fn select_enemy_key(&self) -> Option<String> {
+    fn select_enemy_key(&self) -> Option<String> {
         if self.enemy_keys.is_empty() || self.total_spawn_weight <= 0.0 {
             return None;
         }
@@ -85,7 +83,9 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(PausableSystems)
             .in_set(AppSystems::Update)
             .run_if(in_state(crate::screens::Screen::Gameplay))
-            .run_if(on_timer(Duration::from_secs_f32(config::ENEMY_SPAWN_INTERVAL))),
+            .run_if(on_timer(Duration::from_secs_f32(
+                config::ENEMY_SPAWN_INTERVAL,
+            ))),
     );
 }
 
@@ -104,7 +104,6 @@ fn spawn_enemies(
     enemies_data_handle: Option<Res<EnemiesDataHandle>>,
     enemies_data: Option<Res<Assets<Enemies>>>,
     current_enemies: Query<Entity, With<Enemy>>,
-    player_query: Query<&GlobalTransform, With<crate::game::player::Player>>,
     enemy_assets_handle: Option<Res<EnemyAssetsHandle>>,
     enemy_assets: Option<Res<Assets<EnemyAssets>>>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
@@ -143,11 +142,6 @@ fn spawn_enemies(
         }
     }
 
-    let player_pos = match player_query.single() {
-        Ok(gt) => gt.translation().truncate(),
-        Err(_) => return,
-    };
-
     let Some(enemy_assets_handle) = enemy_assets_handle else {
         return;
     };
@@ -159,6 +153,8 @@ fn spawn_enemies(
     let Some(enemy_assets) = enemy_assets.get(enemy_assets_handle.0.id()) else {
         return;
     };
+
+    let (min_x, max_x, min_y, max_y) = get_map_bounds();
 
     for _ in 0..spawn_count {
         let Some(enemy_key) = spawner.select_enemy_key() else {
@@ -175,7 +171,8 @@ fn spawn_enemies(
             None => continue,
         };
 
-        let (x, y) = get_random_position_around(player_pos);
+        let x = min_x + rand::random::<f32>() * (max_x - min_x);
+        let y = min_y + rand::random::<f32>() * (max_y - min_y);
 
         let image = asset_server.load_with_settings(
             &enemy_asset.sprite_path,
@@ -229,18 +226,19 @@ fn enemy_bundle(
                 index: data.sprite_index,
             },
         ),
-        Transform::from_translation(position)
-            .with_scale(Vec2::splat(data.scale).extend(1.0)),
+        Transform::from_translation(position).with_scale(Vec2::splat(data.scale).extend(1.0)),
     )
 }
 
-fn get_random_position_around(pos: Vec2) -> (f32, f32) {
-    let angle = rand::random::<f32>() * PI * 2.0;
-    let dist = config::ENEMY_SPAWN_DISTANCE_MIN
-        + rand::random::<f32>() * (config::ENEMY_SPAWN_DISTANCE_MAX - config::ENEMY_SPAWN_DISTANCE_MIN);
+fn get_map_bounds() -> (f32, f32, f32, f32) {
+    let half_width = (config::MAP_WIDTH_TILES as f32 * config::TILE_SIZE) / 2.0;
+    let half_height = (config::MAP_HEIGHT_TILES as f32 * config::TILE_SIZE) / 2.0;
+    let margin = config::MAP_MARGIN;
 
-    let offset_x = angle.cos() * dist;
-    let offset_y = angle.sin() * dist;
+    let min_x = -half_width + margin;
+    let max_x = half_width - margin;
+    let min_y = -half_height + margin;
+    let max_y = half_height - margin;
 
-    (pos.x + offset_x, pos.y + offset_y)
+    (min_x, max_x, min_y, max_y)
 }

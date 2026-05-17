@@ -7,7 +7,7 @@ mod health;
 mod position;
 mod stats;
 
-pub use c_enemy::{Enemy, Behavior};
+pub use c_enemy::{Enemy, Behavior, WanderState};
 pub use c_movement::Movement;
 pub use c_player::Player;
 pub use char_state::State;

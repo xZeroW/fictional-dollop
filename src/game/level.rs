@@ -74,8 +74,6 @@ pub fn spawn_level(
         weapon: "dagger".to_string(),
         weapon_entity: Some(weapon_entity),
         last_shot_time: 0.0,
-        switching_weapon: false,
-        switch_timer: Timer::from_seconds(3.0, TimerMode::Once),
         can_shoot_timer: Timer::from_seconds(0.2, TimerMode::Once),
     });
 }

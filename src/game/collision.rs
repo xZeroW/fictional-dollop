@@ -71,6 +71,7 @@ fn check_player_enemy_collisions(
 }
 
 fn check_bullet_enemy_collisions(
+    mut commands: Commands,
     bullet_query: Query<(Entity, &Transform, &Bullet)>,
     tree: Res<KDTree2>,
     mut writer: MessageWriter<CollisionMessage>,
@@ -90,6 +91,7 @@ fn check_bullet_enemy_collisions(
                     position: bullet_pos,
                     kind: CollisionKind::DamageEnemy,
                 });
+                commands.entity(bullet_entity).despawn();
             }
         }
     }

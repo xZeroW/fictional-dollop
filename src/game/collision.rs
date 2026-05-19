@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 
 use crate::{
-    components::{Damage, Enemy, Health, Player},
+    components::{Enemy, Player},
     game::{spatial::{KDTree2, Collidable}, weapon::Bullet},
-    messages::DamageMessage,
+    messages::CollisionMessage,
     screens::Screen,
     AppSystems, PausableSystems,
 };
@@ -19,8 +19,8 @@ impl Plugin for CollisionPlugin {
                 Update,
                 (
                     update_enemy_kd_tree,
-                    handle_bullet_enemy_collision,
-                    handle_enemy_player_collision,
+                    check_player_enemy_collisions,
+                    check_bullet_enemy_collisions,
                 )
                     .in_set(AppSystems::Update)
                     .in_set(PausableSystems)
@@ -43,14 +43,12 @@ fn update_enemy_kd_tree(
     tree.rebuild(items);
 }
 
-fn handle_enemy_player_collision(
+fn check_player_enemy_collisions(
     player_query: Query<(Entity, &Transform), With<Player>>,
-    enemy_query: Query<(Entity, &Transform, &Damage), With<Enemy>>,
     tree: Res<KDTree2>,
-    mut health_query: Query<(&mut Health, &Transform), With<Player>>,
-    mut writer: MessageWriter<DamageMessage>,
+    mut writer: MessageWriter<CollisionMessage>,
 ) {
-    if player_query.is_empty() || health_query.is_empty() {
+    if player_query.is_empty() {
         return;
     }
 
@@ -60,27 +58,21 @@ fn handle_enemy_player_collision(
     };
     let player_pos = player_transform.translation.truncate();
 
-    if let Some((nearest_pos, entity)) = tree.nearest_neighbour(player_pos) {
+    if let Some((nearest_pos, enemy_entity)) = tree.nearest_neighbour(player_pos) {
         if player_pos.distance(nearest_pos) <= config::COLLISION_RADIUS {
-            let damage = enemy_query
-                .get(entity)
-                .ok()
-                .and_then(|(_, _, d)| Some(d.value))
-                .unwrap_or(config::ENEMY_DAMAGE);
-
-            if let Ok((mut health, _transform)) = health_query.single_mut() {
-                health.take_damage(player_entity, damage, &mut writer);
-            }
+            writer.write(CollisionMessage {
+                entity_a: player_entity,
+                entity_b: enemy_entity,
+                position: player_pos,
+            });
         }
     }
 }
 
-fn handle_bullet_enemy_collision(
-    mut commands: Commands,
-    bullet_query: Query<(Entity, &Transform, &Bullet), Without<Enemy>>,
+fn check_bullet_enemy_collisions(
+    bullet_query: Query<(Entity, &Transform, &Bullet)>,
     tree: Res<KDTree2>,
-    mut enemy_query: Query<(Entity, &Transform, &mut Health), With<Enemy>>,
-    mut writer: MessageWriter<DamageMessage>,
+    mut writer: MessageWriter<CollisionMessage>,
 ) {
     if bullet_query.is_empty() {
         return;
@@ -89,12 +81,13 @@ fn handle_bullet_enemy_collision(
     for (bullet_entity, bullet_transform, _) in bullet_query.iter() {
         let bullet_pos = bullet_transform.translation.truncate();
 
-        if let Some((nearest_pos, entity)) = tree.nearest_neighbour(bullet_pos) {
+        if let Some((nearest_pos, enemy_entity)) = tree.nearest_neighbour(bullet_pos) {
             if bullet_pos.distance(nearest_pos) <= config::COLLISION_RADIUS {
-                if let Ok((enemy_entity, _enemy_transform, mut health)) = enemy_query.get_mut(entity) {
-                    commands.entity(bullet_entity).despawn();
-                    health.take_damage(enemy_entity, config::BULLET_DAMAGE, &mut writer);
-                }
+                writer.write(CollisionMessage {
+                    entity_a: bullet_entity,
+                    entity_b: enemy_entity,
+                    position: bullet_pos,
+                });
             }
         }
     }

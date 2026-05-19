@@ -15,10 +15,11 @@ mod listeners;
 mod menus;
 mod messages;
 mod screens;
+mod systems;
 mod theme;
 
-use components::HealthPlugin;
 use listeners::ListenersPlugin;
+use systems::SystemsPlugin;
 
 use bevy::prelude::*;
 
@@ -48,7 +49,7 @@ impl Plugin for AppPlugin {
             assets::plugin,
             audio::plugin,
             game::plugin,
-            HealthPlugin,
+            SystemsPlugin,
             ListenersPlugin,
             menus::plugin,
             screens::plugin,

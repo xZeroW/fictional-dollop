@@ -1,20 +1,22 @@
 ({
-    "green": (
-        sprite_path: "sprites/enemies/green.png",
-        layout: (
-            tile_size_x: 15,
-            tile_size_y: 15,
-            columns: 4,
-            rows: 1,
-        ),
+    "green.sprite": Image (
+        path: "sprites/enemies/green.png",
+        sampler: Nearest
     ),
-    "red": (
-        sprite_path: "sprites/enemies/red.png",
-        layout: (
-            tile_size_x: 15,
-            tile_size_y: 15,
-            columns: 4,
-            rows: 1,
-        ),
+    "green.layout": TextureAtlasLayout (
+        tile_size_x: 15,
+        tile_size_y: 15,
+        columns: 4,
+        rows: 1,
+    ),
+    "red.sprite": Image (
+        path: "sprites/enemies/red.png",
+        sampler: Nearest
+    ),
+    "red.layout": TextureAtlasLayout (
+        tile_size_x: 15,
+        tile_size_y: 15,
+        columns: 4,
+        rows: 1,
     ),
 })

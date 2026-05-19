@@ -5,7 +5,7 @@ use crate::game::config;
 mod monster_data;
 mod systems;
 
-pub use monster_data::{Enemies, EnemyAssets};
+pub use monster_data::Enemies;
 
 #[derive(Component)]
 pub enum EnemyType {
@@ -65,9 +65,6 @@ impl EnemySpawner {
 }
 
 #[derive(Resource)]
-pub struct EnemyAssetsHandle(pub Handle<EnemyAssets>);
-
-#[derive(Resource)]
 pub struct EnemiesDataHandle(pub Handle<Enemies>);
 
 pub(super) fn plugin(app: &mut App) {
@@ -75,13 +72,13 @@ pub(super) fn plugin(app: &mut App) {
         monster_data::plugin,
         systems::SystemsPlugin,
     ));
-    app.add_systems(OnEnter(crate::screens::Screen::Loading), load_enemy_data);
+    app.add_systems(
+        OnEnter(crate::screens::Screen::Loading),
+        load_enemies_data,
+    );
 }
 
-fn load_enemy_data(mut commands: Commands, server: Res<AssetServer>) {
-    let enemy_assets_handle = server.load("data/enemies.assets.ron");
+fn load_enemies_data(mut commands: Commands, server: Res<AssetServer>) {
     let enemies_data_handle = server.load("data/enemies_data.ron");
-
-    commands.insert_resource(EnemyAssetsHandle(enemy_assets_handle));
     commands.insert_resource(EnemiesDataHandle(enemies_data_handle));
 }

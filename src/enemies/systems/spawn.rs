@@ -1,12 +1,11 @@
 use bevy::prelude::*;
 
+use crate::assets::EnemyAssets;
 use crate::components::{Damage, Enemy, Health, Movement, WanderState};
 use crate::game::config;
 use crate::game::level::LevelEntity;
 
-use crate::enemies::{
-    EnemyAssetsHandle, Enemies, EnemiesDataHandle, EnemySpawner, EnemyType,
-};
+use crate::enemies::{Enemies, EnemiesDataHandle, EnemySpawner, EnemyType};
 
 pub fn spawn_enemies(
     mut commands: Commands,
@@ -15,10 +14,7 @@ pub fn spawn_enemies(
     enemies_data_handle: Option<Res<EnemiesDataHandle>>,
     enemies_data: Option<Res<Assets<Enemies>>>,
     current_enemies: Query<Entity, With<Enemy>>,
-    enemy_assets_handle: Option<Res<EnemyAssetsHandle>>,
-    enemy_assets: Option<Res<Assets<crate::enemies::EnemyAssets>>>,
-    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    asset_server: Res<AssetServer>,
+    enemy_assets: Res<EnemyAssets>,
 ) {
     let Some(level_entity) = level_entity else {
         return;
@@ -53,18 +49,6 @@ pub fn spawn_enemies(
         }
     }
 
-    let Some(enemy_assets_handle) = enemy_assets_handle else {
-        return;
-    };
-
-    let Some(enemy_assets) = enemy_assets else {
-        return;
-    };
-
-    let Some(enemy_assets) = enemy_assets.get(&enemy_assets_handle.0) else {
-        return;
-    };
-
     for _ in 0..spawn_count {
         let Some(enemy_key) = spawner.select_enemy_key() else {
             continue;
@@ -74,22 +58,21 @@ pub fn spawn_enemies(
             continue;
         };
 
-        let Some(enemy_asset) = enemy_assets.0.get(&enemy_key) else {
-            continue;
+        let (image, layout) = match enemy_key.as_str() {
+            "green" => (
+                enemy_assets.green_sprite.clone(),
+                enemy_assets.green_layout.clone(),
+            ),
+            "red" => (
+                enemy_assets.red_sprite.clone(),
+                enemy_assets.red_layout.clone(),
+            ),
+            _ => continue,
         };
 
         let (min_x, max_x, min_y, max_y) = get_map_bounds();
         let x = min_x + rand::random::<f32>() * (max_x - min_x);
         let y = min_y + rand::random::<f32>() * (max_y - min_y);
-
-        let image = asset_server.load(enemy_asset.sprite_path.clone());
-        let layout = texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
-            UVec2::new(enemy_asset.layout.tile_size_x, enemy_asset.layout.tile_size_y),
-            enemy_asset.layout.columns,
-            enemy_asset.layout.rows,
-            None,
-            None,
-        ));
 
         let bundle = enemy_bundle(
             &enemy_key,

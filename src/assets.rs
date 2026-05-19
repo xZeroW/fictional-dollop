@@ -29,6 +29,18 @@ pub struct WeaponAssets {
     pub fire_sound: Handle<AudioSource>,
 }
 
+#[derive(AssetCollection, Resource)]
+pub struct EnemyAssets {
+    #[asset(key = "green.sprite")]
+    pub green_sprite: Handle<Image>,
+    #[asset(key = "green.layout")]
+    pub green_layout: Handle<TextureAtlasLayout>,
+    #[asset(key = "red.sprite")]
+    pub red_sprite: Handle<Image>,
+    #[asset(key = "red.layout")]
+    pub red_layout: Handle<TextureAtlasLayout>,
+}
+
 pub fn plugin(app: &mut App) {
     // Main asset loading that runs when entering the Loading screen.
     app.add_loading_state(
@@ -38,9 +50,11 @@ pub fn plugin(app: &mut App) {
             )
             .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/audio.assets.ron")
             .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/weapon.assets.ron")
+            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/enemies.assets.ron")
             .load_collection::<CharacterAssets>()
             .load_collection::<AudioAssets>()
             .load_collection::<WeaponAssets>()
+            .load_collection::<EnemyAssets>()
             .continue_to_state(Screen::Gameplay),
     );
 }

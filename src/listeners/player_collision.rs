@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
-    components::{Damage, Enemy, Player},
-    messages::{ApplyDamageMessage, CollisionMessage},
+    components::{Damage, Enemy},
+    messages::{ApplyDamageMessage, CollisionKind, CollisionMessage},
 };
 
 use crate::game::config;
@@ -17,24 +17,16 @@ impl Plugin for PlayerCollisionListener {
 
 fn handle_enemy_player_collision(
     mut collision_reader: MessageReader<CollisionMessage>,
-    player_query: Query<(), With<Player>>,
     enemy_query: Query<&Damage, With<Enemy>>,
     mut damage_writer: MessageWriter<ApplyDamageMessage>,
 ) {
     for collision in collision_reader.read() {
-        let entity_a = collision.entity_a;
-        let entity_b = collision.entity_b;
+        if collision.kind != CollisionKind::DamagePlayer {
+            continue;
+        }
 
-        let a_is_player = player_query.get(entity_a).is_ok();
-        let b_is_player = player_query.get(entity_b).is_ok();
-        let a_is_enemy = enemy_query.get(entity_a).is_ok();
-        let b_is_enemy = enemy_query.get(entity_b).is_ok();
-
-        let (player_entity, enemy_entity) = match (a_is_player, b_is_player, a_is_enemy, b_is_enemy) {
-            (true, false, false, true) => (entity_a, entity_b),
-            (false, true, true, false) => (entity_b, entity_a),
-            _ => continue,
-        };
+        let player_entity = collision.entity_a;
+        let enemy_entity = collision.entity_b;
 
         let damage = enemy_query
             .get(enemy_entity)

@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     components::{Enemy, Player},
     game::{spatial::{KDTree2, Collidable}, weapon::Bullet},
-    messages::CollisionMessage,
+    messages::{CollisionKind, CollisionMessage},
     screens::Screen,
     AppSystems, PausableSystems,
 };
@@ -64,6 +64,7 @@ fn check_player_enemy_collisions(
                 entity_a: player_entity,
                 entity_b: enemy_entity,
                 position: player_pos,
+                kind: CollisionKind::DamagePlayer,
             });
         }
     }
@@ -87,6 +88,7 @@ fn check_bullet_enemy_collisions(
                     entity_a: bullet_entity,
                     entity_b: enemy_entity,
                     position: bullet_pos,
+                    kind: CollisionKind::DamageEnemy,
                 });
             }
         }

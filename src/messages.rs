@@ -5,6 +5,13 @@ pub struct CollisionMessage {
     pub entity_a: Entity,
     pub entity_b: Entity,
     pub position: Vec2,
+    pub kind: CollisionKind,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum CollisionKind {
+    DamagePlayer,
+    DamageEnemy,
 }
 
 #[derive(Message, Debug, Clone)]

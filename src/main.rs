@@ -11,11 +11,14 @@ mod dev_tools;
 mod enemies;
 mod game;
 mod libs;
+mod listeners;
 mod menus;
+mod messages;
 mod screens;
 mod theme;
 
 use components::HealthPlugin;
+use listeners::ListenersPlugin;
 
 use bevy::prelude::*;
 
@@ -46,6 +49,7 @@ impl Plugin for AppPlugin {
             audio::plugin,
             game::plugin,
             HealthPlugin,
+            ListenersPlugin,
             menus::plugin,
             screens::plugin,
             theme::plugin,

@@ -1,8 +1,9 @@
 use bevy::prelude::*;
 
 use crate::{
-    components::{Damage, DamageMessage, EntityDiedMessage, Enemy, Health, Player},
+    components::{Damage, Enemy, Health, Player},
     game::{spatial::{KDTree2, Collidable}, weapon::Bullet},
+    messages::DamageMessage,
     screens::Screen,
     AppSystems, PausableSystems,
 };
@@ -47,8 +48,7 @@ fn handle_enemy_player_collision(
     enemy_query: Query<(Entity, &Transform, &Damage), With<Enemy>>,
     tree: Res<KDTree2>,
     mut health_query: Query<(&mut Health, &Transform), With<Player>>,
-    mut damage_writer: MessageWriter<DamageMessage>,
-    mut death_writer: MessageWriter<EntityDiedMessage>,
+    mut writer: MessageWriter<DamageMessage>,
 ) {
     if player_query.is_empty() || health_query.is_empty() {
         return;
@@ -68,8 +68,8 @@ fn handle_enemy_player_collision(
                 .and_then(|(_, _, d)| Some(d.value))
                 .unwrap_or(config::ENEMY_DAMAGE);
 
-            if let Ok((mut health, transform)) = health_query.single_mut() {
-                health.take_damage(player_entity, Some(transform), damage, &mut damage_writer, &mut death_writer);
+            if let Ok((mut health, _transform)) = health_query.single_mut() {
+                health.take_damage(player_entity, damage, &mut writer);
             }
         }
     }
@@ -80,8 +80,7 @@ fn handle_bullet_enemy_collision(
     bullet_query: Query<(Entity, &Transform, &Bullet), Without<Enemy>>,
     tree: Res<KDTree2>,
     mut enemy_query: Query<(Entity, &Transform, &mut Health), With<Enemy>>,
-    mut damage_writer: MessageWriter<DamageMessage>,
-    mut death_writer: MessageWriter<EntityDiedMessage>,
+    mut writer: MessageWriter<DamageMessage>,
 ) {
     if bullet_query.is_empty() {
         return;
@@ -92,9 +91,9 @@ fn handle_bullet_enemy_collision(
 
         if let Some((nearest_pos, entity)) = tree.nearest_neighbour(bullet_pos) {
             if bullet_pos.distance(nearest_pos) <= config::COLLISION_RADIUS {
-                if let Ok((enemy_entity, enemy_transform, mut health)) = enemy_query.get_mut(entity) {
+                if let Ok((enemy_entity, _enemy_transform, mut health)) = enemy_query.get_mut(entity) {
                     commands.entity(bullet_entity).despawn();
-                    health.take_damage(enemy_entity, Some(enemy_transform), config::BULLET_DAMAGE, &mut damage_writer, &mut death_writer);
+                    health.take_damage(enemy_entity, config::BULLET_DAMAGE, &mut writer);
                 }
             }
         }

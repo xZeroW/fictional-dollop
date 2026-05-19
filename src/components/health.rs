@@ -2,20 +2,8 @@ use bevy::prelude::*;
 
 use crate::components::Player;
 use crate::game::weapon::Weapon;
+use crate::messages::{DamageMessage, EntityDiedMessage};
 use crate::screens::Screen;
-
-#[derive(Message, Debug, Clone)]
-pub struct EntityDiedMessage {
-    pub entity: Entity,
-    pub position: Option<Vec3>,
-    pub is_player: bool,
-}
-
-#[derive(Message, Debug, Clone)]
-pub struct DamageMessage {
-    pub target: Entity,
-    pub damage: f32,
-}
 
 #[derive(Component)]
 pub struct Health {
@@ -44,10 +32,8 @@ impl Health {
     pub fn take_damage(
         &mut self,
         target: Entity,
-        transform: Option<&Transform>,
         damage: f32,
-        damage_writer: &mut MessageWriter<DamageMessage>,
-        death_writer: &mut MessageWriter<EntityDiedMessage>,
+        writer: &mut MessageWriter<DamageMessage>,
     ) {
         if self.current <= 0.0 {
             return;
@@ -58,15 +44,7 @@ impl Health {
             self.current = 0.0;
         }
 
-        if self.current <= 0.0 {
-            death_writer.write(EntityDiedMessage {
-                entity: target,
-                position: transform.map(|t| t.translation),
-                is_player: false,
-            });
-        } else {
-            damage_writer.write(DamageMessage { target, damage });
-        }
+        writer.write(DamageMessage { target, damage });
     }
 
     pub fn heal(&mut self, amount: f32) {
@@ -94,7 +72,7 @@ fn despawn_dead_entities(
     mut commands: Commands,
     query: Query<(Entity, &Health, Option<&Player>, Option<&Transform>)>,
     weapon_query: Query<Entity, With<Weapon>>,
-    mut writer: MessageWriter<EntityDiedMessage>,
+    mut death_writer: MessageWriter<EntityDiedMessage>,
 ) {
     let mut to_despawn = Vec::new();
 
@@ -113,7 +91,7 @@ fn despawn_dead_entities(
             }
         }
 
-        writer.write(EntityDiedMessage {
+        death_writer.write(EntityDiedMessage {
             entity,
             position,
             is_player,

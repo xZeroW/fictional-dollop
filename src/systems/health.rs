@@ -2,7 +2,6 @@ use bevy::prelude::*;
 
 use crate::{
     components::{Health, Player},
-    game::weapon::Weapon,
     messages::{ApplyDamageMessage, DamageMessage, EntityDiedMessage},
     screens::Screen,
 };
@@ -44,7 +43,6 @@ fn apply_damage(
 fn despawn_dead_entities(
     mut commands: Commands,
     query: Query<(Entity, &Health, Option<&Player>, Option<&Transform>)>,
-    weapon_query: Query<Entity, With<Weapon>>,
     mut death_writer: MessageWriter<EntityDiedMessage>,
 ) {
     let mut to_despawn = Vec::new();
@@ -56,14 +54,6 @@ fn despawn_dead_entities(
     }
 
     for (entity, is_player, position) in to_despawn {
-        if is_player {
-            for weapon_entity in weapon_query.iter() {
-                if commands.get_entity(weapon_entity).is_ok() {
-                    commands.entity(weapon_entity).despawn();
-                }
-            }
-        }
-
         death_writer.write(EntityDiedMessage {
             entity,
             position,

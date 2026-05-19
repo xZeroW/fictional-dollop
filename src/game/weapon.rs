@@ -1,21 +1,16 @@
-//! Weapon plugin and attachment to the player.
+//! Auto-attack system - shoots nearest enemy within range automatically.
 
 use bevy::prelude::*;
-use leafwing_input_manager::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
     assets::WeaponAssets,
-    components::Player,
-    game::{PlayerAction, weapon_data::{Weapons, WeaponsHandle}},
-    libs::cursor::CursorPosition,
+    components::{Enemy, Player},
+    game::weapon_data::{Weapons, WeaponsHandle},
+    screens::Screen,
 };
 
 const BULLET_LIFETIME: f32 = 2.0;
-
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
-#[reflect(Component)]
-pub struct Weapon;
 
 #[derive(Component, Debug, Clone, PartialEq, Default, Reflect)]
 #[reflect(Component)]
@@ -33,87 +28,91 @@ impl Bullet {
     }
 }
 
-pub fn weapon(
-    weapon_assets: &WeaponAssets,
-    weapon_data: &crate::game::weapon_data::WeaponData,
-) -> impl Bundle {
-    (
-        Name::new("Weapon"),
-        Weapon,
-        Sprite::from_atlas_image(
-            weapon_assets.sprite.clone(),
-            TextureAtlas {
-                layout: weapon_assets.layout.clone(),
-                index: weapon_data.weapon_sprite_index,
-            },
-        ),
-        Transform::from_translation(Vec3::new(12.0, 0.0, 1.0)).with_scale(Vec3::splat(1.0)),
-    )
-}
-
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            update_weapon_transform,
-            tick_can_shoot_timer,
-            spawn_bullet,
-            move_bullet,
-            despawn_bullet,
+            auto_attack.run_if(in_state(Screen::Gameplay)),
+            move_bullet.run_if(in_state(Screen::Gameplay)),
+            despawn_bullet.run_if(in_state(Screen::Gameplay)),
         )
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
 }
 
-fn update_weapon_transform(
-    cursor_pos: Res<CursorPosition>,
-    player_query: Query<&GlobalTransform, With<Player>>,
-    mut weapon_query: Query<(&mut Transform, &mut Sprite), (With<Weapon>, Without<Player>)>,
+fn auto_attack(
+    mut commands: Commands,
+    player_query: Query<(Entity, &GlobalTransform, &Player)>,
+    enemy_query: Query<(Entity, &GlobalTransform), With<Enemy>>,
+    time: Res<Time>,
+    weapon_assets: Res<WeaponAssets>,
+    weapons_handle: Res<WeaponsHandle>,
+    weapons_assets: Res<Assets<Weapons>>,
 ) {
-    if player_query.is_empty() || weapon_query.is_empty() {
-        return;
-    }
-
-    let player_gt = if let Ok(gt) = player_query.single() {
-        gt
-    } else {
-        return;
+    let (player_entity, player_gt, player) = match player_query.single() {
+        Ok(v) => v,
+        Err(_) => return,
     };
+
     let player_pos = player_gt.translation().truncate();
+    let player_weapon = player.weapon.clone();
 
-    let cursor_world = cursor_pos.0.unwrap_or(player_pos);
-
-    let (mut weapon_transform, mut weapon_sprite) = if let Ok(v) = weapon_query.single_mut() {
-        v
-    } else {
-        return;
-    };
-
-    let dir = cursor_world - player_pos;
-    if dir.length_squared() <= f32::EPSILON {
+    if player_weapon.is_empty() {
         return;
     }
 
-    let angle = dir.y.atan2(dir.x);
-    weapon_transform.rotation = Quat::from_rotation_z(angle);
+    let weapons = match weapons_assets.get(&weapons_handle.0) {
+        Some(w) => w,
+        None => return,
+    };
 
-    const OFFSET: f32 = 20.0;
-    const WEAPON_Z: f32 = 15.0;
+    let weapon_data = match weapons.0.get(&player_weapon) {
+        Some(data) => data,
+        None => {
+            let default = weapons.0.get("dagger");
+            match default {
+                Some(d) => d,
+                None => return,
+            }
+        }
+    };
 
-    let local_x = OFFSET * angle.cos();
-    let local_y = OFFSET * angle.sin();
-    weapon_transform.translation = Vec3::new(local_x, local_y, WEAPON_Z);
+    let current_time = time.elapsed_secs();
+    if current_time - player.last_shot_time < weapon_data.cooldown {
+        return;
+    }
 
-    weapon_sprite.flip_y = local_x < 0.0;
-}
+    let mut nearest_enemy: Option<(Entity, Vec2)> = None;
+    let mut nearest_distance_sq = player.attack_range * player.attack_range;
 
-fn tick_can_shoot_timer(mut player_query: Query<&mut Player>, time: Res<Time>) {
-    for mut player in &mut player_query {
-        if player.can_shoot_timer.elapsed_secs() < 0.2 {
-            player.can_shoot_timer.tick(time.delta());
+    for (enemy_entity, enemy_gt) in enemy_query.iter() {
+        let enemy_pos = enemy_gt.translation().truncate();
+        let dist_sq = player_pos.distance_squared(enemy_pos);
+
+        if dist_sq <= nearest_distance_sq {
+            nearest_distance_sq = dist_sq;
+            nearest_enemy = Some((enemy_entity, enemy_pos));
         }
     }
+
+    let Some((_, enemy_pos)) = nearest_enemy else {
+        return;
+    };
+
+    let direction = enemy_pos - player_pos;
+    if direction.length_squared() <= f32::EPSILON {
+        return;
+    }
+
+    let new_player = Player {
+        weapon: player_weapon,
+        attack_range: player.attack_range,
+        last_shot_time: current_time,
+    };
+    commands.entity(player_entity).insert(new_player);
+
+    commands.spawn(bullet(&weapon_assets, weapon_data, player_pos, direction));
 }
 
 pub fn bullet(
@@ -135,83 +134,6 @@ pub fn bullet(
         Transform::from_translation(position.extend(10.0))
             .with_scale(Vec3::splat(weapon_data.scale)),
     )
-}
-
-fn spawn_bullet(
-    mut commands: Commands,
-    action_state: Single<&ActionState<PlayerAction>>,
-    cursor_pos: Res<CursorPosition>,
-    player_query: Query<(Entity, &GlobalTransform, &Player)>,
-    weapon_query: Query<&GlobalTransform, With<Weapon>>,
-    time: Res<Time>,
-    weapon_assets: Res<WeaponAssets>,
-    weapons_handle: Res<WeaponsHandle>,
-    weapons_assets: Res<Assets<Weapons>>,
-) {
-    if !action_state.pressed(&PlayerAction::Attack) {
-        return;
-    }
-
-    let (player_entity, player_gt, player) = match player_query.single() {
-        Ok(v) => v,
-        Err(_) => return,
-    };
-
-    if player.can_shoot_timer.elapsed_secs() < 0.2 {
-        return;
-    }
-
-    let player_pos = player_gt.translation().truncate();
-    let player_weapon = player.weapon.clone();
-    let last_shot_time = player.last_shot_time;
-
-    if player_weapon.is_empty() {
-        return;
-    }
-
-    let weapon_gt = match weapon_query.single() {
-        Ok(gt) => gt,
-        Err(_) => return,
-    };
-    let weapon_pos = weapon_gt.translation().truncate();
-
-    let weapons = match weapons_assets.get(&weapons_handle.0) {
-        Some(w) => w,
-        None => return,
-    };
-
-    let weapon_data = match weapons.0.get(&player_weapon) {
-        Some(data) => data,
-        None => {
-            let default = weapons.0.get("dagger");
-            match default {
-                Some(d) => d,
-                None => return,
-            }
-        }
-    };
-
-    let current_time = time.elapsed_secs();
-    if current_time - last_shot_time < weapon_data.cooldown {
-        return;
-    }
-
-    let new_player = Player {
-        weapon: player_weapon,
-        weapon_entity: player.weapon_entity,
-        last_shot_time: current_time,
-        can_shoot_timer: player.can_shoot_timer.clone(),
-    };
-    commands.entity(player_entity).insert(new_player);
-
-    let cursor_world = cursor_pos.0.unwrap_or(player_pos);
-    let direction = cursor_world - weapon_pos;
-
-    if direction.length_squared() <= f32::EPSILON {
-        return;
-    }
-
-    commands.spawn(bullet(&weapon_assets, weapon_data, weapon_pos, direction));
 }
 
 fn move_bullet(mut bullet_query: Query<(&mut Transform, &mut Bullet)>, time: Res<Time>) {

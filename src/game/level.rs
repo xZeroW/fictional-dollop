@@ -3,15 +3,11 @@
 use bevy::prelude::*;
 
 use crate::{
-    assets::{AudioAssets, CharacterAssets, WeaponAssets},
+    assets::{AudioAssets, CharacterAssets},
     audio::music,
     components::Player,
     enemies::EnemySpawner,
-    game::{
-        player::player,
-        weapon::weapon,
-        weapon_data::{Weapons, WeaponsHandle},
-    },
+    game::player::player,
     screens::Screen,
 };
 
@@ -30,17 +26,8 @@ pub fn spawn_level(
     mut commands: Commands,
     audio_assets: Res<AudioAssets>,
     player_assets: Res<CharacterAssets>,
-    weapon_assets: Res<WeaponAssets>,
-    weapons_handle: Res<WeaponsHandle>,
-    weapons_assets: Res<Assets<Weapons>>,
 ) {
     commands.insert_resource(EnemySpawner::default());
-
-    let weapon_data = weapons_assets
-        .get(&weapons_handle.0)
-        .and_then(|weapons| weapons.0.get("dagger"))
-        .cloned()
-        .expect("Missing dagger weapon data");
 
     let level = commands
         .spawn((
@@ -57,10 +44,6 @@ pub fn spawn_level(
     let player_bundle = player(&player_assets, "dagger".to_string());
     let player_entity = commands.spawn(player_bundle).id();
 
-    let weapon_bundle = weapon(&weapon_assets, &weapon_data);
-    let weapon_entity = commands.spawn(weapon_bundle).id();
-
-    commands.entity(player_entity).add_child(weapon_entity);
     commands.entity(level).add_child(player_entity);
 
     commands.entity(level).with_children(|parent| {
@@ -72,8 +55,7 @@ pub fn spawn_level(
 
     commands.entity(player_entity).insert(Player {
         weapon: "dagger".to_string(),
-        weapon_entity: Some(weapon_entity),
+        attack_range: 200.0,
         last_shot_time: 0.0,
-        can_shoot_timer: Timer::from_seconds(0.2, TimerMode::Once),
     });
 }

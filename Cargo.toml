@@ -14,13 +14,6 @@ kd-tree = "0.6.2"
 leafwing-input-manager = "0.20.0"
 rand = "0.10.0"
 serde = { version = "1.0.228", features = ["derive"] }
-# Compile out low-severity logs to improve performance.
-# Remove these features if you want to profile your game with tracy.
-# (see <https://github.com/bevyengine/bevy/blob/main/docs/profiling.md#tracy-profiler>)
-tracing = { version = "0.1.44", features = [
-    "max_level_debug",
-    "release_max_level_warn",
-] }
 typenum = "1.20.0"
 
 [features]

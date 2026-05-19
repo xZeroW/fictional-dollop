@@ -3632,7 +3632,6 @@ dependencies = [
  "leafwing-input-manager",
  "rand 0.10.0",
  "serde",
- "tracing",
  "typenum",
 ]
 

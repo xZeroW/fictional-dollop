@@ -7,18 +7,16 @@ use crate::components::{Health, Movement};
 #[require(Health, Movement)]
 pub struct Player {
     pub weapon: String,
-    pub weapon_entity: Option<Entity>,
+    pub attack_range: f32,
     pub last_shot_time: f32,
-    pub can_shoot_timer: Timer,
 }
 
 impl Default for Player {
     fn default() -> Self {
         Self {
             weapon: "dagger".to_string(),
-            weapon_entity: None,
+            attack_range: 200.0,
             last_shot_time: 0.0,
-            can_shoot_timer: Timer::from_seconds(0.2, TimerMode::Once),
         }
     }
 }

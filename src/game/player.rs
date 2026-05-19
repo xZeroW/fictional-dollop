@@ -16,7 +16,6 @@ pub enum PlayerAction {
     Down,
     Left,
     Right,
-    Attack,
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -68,8 +67,6 @@ impl PlayerAction {
 
         input_map.insert(Right, KeyCode::KeyD);
         input_map.insert(Right, KeyCode::ArrowRight);
-
-        input_map.insert(Attack, MouseButton::Left);
 
         input_map
     }

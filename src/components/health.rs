@@ -4,16 +4,18 @@ use crate::components::Player;
 use crate::game::weapon::Weapon;
 use crate::screens::Screen;
 
-/// Event emitted when an entity dies. Non-player deaths are used for item drops.
-pub struct EntityDiedEvent {
+#[derive(Message, Debug, Clone)]
+pub struct EntityDiedMessage {
     pub entity: Entity,
     pub position: Option<Vec3>,
     pub is_player: bool,
 }
 
-/// Simple resource queue to hold death notifications for other systems.
-#[derive(Default, Resource)]
-pub struct DeathQueue(pub Vec<EntityDiedEvent>);
+#[derive(Message, Debug, Clone)]
+pub struct DamageMessage {
+    pub target: Entity,
+    pub damage: f32,
+}
 
 #[derive(Component)]
 pub struct Health {
@@ -39,7 +41,14 @@ impl Health {
         self.current <= 0.0
     }
 
-    pub fn take_damage(&mut self, damage: f32) {
+    pub fn take_damage(
+        &mut self,
+        target: Entity,
+        transform: Option<&Transform>,
+        damage: f32,
+        damage_writer: &mut MessageWriter<DamageMessage>,
+        death_writer: &mut MessageWriter<EntityDiedMessage>,
+    ) {
         if self.current <= 0.0 {
             return;
         }
@@ -47,6 +56,16 @@ impl Health {
         self.current -= damage;
         if self.current < 0.0 {
             self.current = 0.0;
+        }
+
+        if self.current <= 0.0 {
+            death_writer.write(EntityDiedMessage {
+                entity: target,
+                position: transform.map(|t| t.translation),
+                is_player: false,
+            });
+        } else {
+            damage_writer.write(DamageMessage { target, damage });
         }
     }
 
@@ -62,6 +81,8 @@ pub struct HealthPlugin;
 
 impl Plugin for HealthPlugin {
     fn build(&self, app: &mut App) {
+        app.init_resource::<Messages<DamageMessage>>();
+        app.init_resource::<Messages<EntityDiedMessage>>();
         app.add_systems(
             Update,
             despawn_dead_entities.run_if(in_state(Screen::Gameplay)),
@@ -73,31 +94,32 @@ fn despawn_dead_entities(
     mut commands: Commands,
     query: Query<(Entity, &Health, Option<&Player>, Option<&Transform>)>,
     weapon_query: Query<Entity, With<Weapon>>,
-    mut death_queue: ResMut<DeathQueue>,
+    mut writer: MessageWriter<EntityDiedMessage>,
 ) {
-    // Loop por todas entidades com componente Health
+    let mut to_despawn = Vec::new();
+
     for (entity, health, maybe_player, maybe_transform) in query.iter() {
-        // se health <= 0
         if health.is_dead() {
-            // if it's a player, despawn weapons as well
-            if maybe_player.is_some() {
-                for weapon_entity in weapon_query.iter() {
+            to_despawn.push((entity, maybe_player.is_some(), maybe_transform.map(|t| t.translation)));
+        }
+    }
+
+    for (entity, is_player, position) in to_despawn {
+        if is_player {
+            for weapon_entity in weapon_query.iter() {
+                if commands.get_entity(weapon_entity).is_ok() {
                     commands.entity(weapon_entity).despawn();
                 }
-                (*death_queue).0.push(EntityDiedEvent {
-                    entity,
-                    position: maybe_transform.map(|t| t.translation),
-                    is_player: true,
-                });
-            } else {
-                // non-player entity died: queue for item drops
-                (*death_queue).0.push(EntityDiedEvent {
-                    entity,
-                    position: maybe_transform.map(|t| t.translation),
-                    is_player: false,
-                });
             }
+        }
 
+        writer.write(EntityDiedMessage {
+            entity,
+            position,
+            is_player,
+        });
+
+        if commands.get_entity(entity).is_ok() {
             commands.entity(entity).despawn();
         }
     }

@@ -10,11 +10,13 @@ use crate::libs::cursor;
 
 mod animation;
 pub mod camera;
+pub mod collision;
 pub mod config;
 pub mod level;
 mod map;
 pub mod movement;
 pub mod player;
+mod spatial;
 mod systems;
 pub mod weapon;
 mod weapon_data;
@@ -26,6 +28,7 @@ pub(super) fn plugin(app: &mut App) {
         InputManagerPlugin::<PlayerAction>::default(),
         animation::plugin,
         camera::CameraPlugin,
+        collision::CollisionPlugin,
         level::plugin,
         movement::plugin,
         player::plugin,

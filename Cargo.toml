@@ -10,6 +10,7 @@ bevy-inspector-egui = "0.36.0"
 bevy_asset_loader = { version = "0.25.0", features = ["2d", "standard_dynamic_assets"] }
 bevy_common_assets = { version = "0.15.0", features = ["ron"] }
 bevy_ecs_tiled = "0.11.4"
+kd-tree = "0.6.2"
 leafwing-input-manager = "0.20.0"
 rand = "0.10.0"
 serde = { version = "1.0.228", features = ["derive"] }
@@ -20,6 +21,7 @@ tracing = { version = "0.1.44", features = [
     "max_level_debug",
     "release_max_level_warn",
 ] }
+typenum = "1.20.0"
 
 [features]
 # Default to a native dev build.

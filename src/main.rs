@@ -15,6 +15,8 @@ mod menus;
 mod screens;
 mod theme;
 
+use components::HealthPlugin;
+
 use bevy::prelude::*;
 
 fn main() -> AppExit {
@@ -43,6 +45,7 @@ impl Plugin for AppPlugin {
             assets::plugin,
             audio::plugin,
             game::plugin,
+            HealthPlugin,
             menus::plugin,
             screens::plugin,
             theme::plugin,

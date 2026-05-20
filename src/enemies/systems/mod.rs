@@ -6,9 +6,16 @@ use bevy::time::common_conditions::on_timer;
 use std::time::Duration;
 
 use crate::{AppSystems, PausableSystems, screens::Screen};
+use crate::components::AttackCooldown;
 use crate::game::config;
 
 pub use behavior::behavior;
+
+fn tick_attack_cooldowns(mut query: Query<&mut AttackCooldown>, time: Res<Time>) {
+    for mut cooldown in query.iter_mut() {
+        cooldown.timer.tick(time.delta());
+    }
+}
 
 pub struct SystemsPlugin;
 
@@ -17,7 +24,10 @@ impl Plugin for SystemsPlugin {
         app.add_plugins(SpawnPlugin);
         app.add_systems(
             Update,
-            behavior
+            (
+                behavior,
+                tick_attack_cooldowns,
+            )
                 .in_set(PausableSystems)
                 .in_set(AppSystems::Update)
                 .run_if(in_state(Screen::Gameplay)),

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::assets::EnemyAssets;
-use crate::components::{Damage, Enemy, Health, Movement, WanderState};
+use crate::components::{AttackCooldown, Damage, Enemy, Health, Movement, WanderState};
 use crate::game::config;
 use crate::game::level::LevelEntity;
 
@@ -116,6 +116,7 @@ fn enemy_bundle(
         Movement::new(data.speed),
         WanderState::default(),
         Damage::new(data.damage as f32),
+        AttackCooldown::new(data.attack_speed),
         Sprite::from_atlas_image(
             image,
             TextureAtlas {

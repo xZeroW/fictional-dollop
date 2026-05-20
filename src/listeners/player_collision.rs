@@ -1,11 +1,9 @@
 use bevy::prelude::*;
 
 use crate::{
-    components::{Damage, Enemy},
+    components::{AttackCooldown, Damage, Enemy},
     messages::{ApplyDamageMessage, CollisionKind, CollisionMessage},
 };
-
-use crate::game::config;
 
 pub struct PlayerCollisionListener;
 
@@ -17,7 +15,8 @@ impl Plugin for PlayerCollisionListener {
 
 fn handle_enemy_player_collision(
     mut collision_reader: MessageReader<CollisionMessage>,
-    enemy_query: Query<&Damage, With<Enemy>>,
+    enemy_damage_query: Query<&Damage, With<Enemy>>,
+    enemy_cooldown_query: Query<&AttackCooldown, With<Enemy>>,
     mut damage_writer: MessageWriter<ApplyDamageMessage>,
 ) {
     for collision in collision_reader.read() {
@@ -28,14 +27,21 @@ fn handle_enemy_player_collision(
         let player_entity = collision.entity_a;
         let enemy_entity = collision.entity_b;
 
-        let damage = enemy_query
-            .get(enemy_entity)
-            .map(|d| d.value)
-            .unwrap_or(config::ENEMY_DAMAGE);
+        let Ok(damage) = enemy_damage_query.get(enemy_entity) else {
+            continue;
+        };
+
+        let Ok(cooldown) = enemy_cooldown_query.get(enemy_entity) else {
+            continue;
+        };
+
+        if !cooldown.timer.just_finished() {
+            continue;
+        }
 
         damage_writer.write(ApplyDamageMessage {
             target: player_entity,
-            damage,
+            damage: damage.value,
         });
     }
 }

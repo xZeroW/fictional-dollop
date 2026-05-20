@@ -5,10 +5,11 @@
         layout_key: "green",
         health: 30,
         damage: 10,
-        speed: 100.0,
+        speed: 100.0, // movement speed (pixels per second)
         scale: 2.0,
         sprite_index: 0,
-        spawn_rate: 1.0,
+        spawn_rate: 1.0, // chance of spawning
+        attack_speed: 1.0, // attacks per second
     ),
     "red": (
         name: "Red Devil",
@@ -20,5 +21,6 @@
         scale: 2.0,
         sprite_index: 0,
         spawn_rate: 0.5,
+        attack_speed: 1.0,
     ),
 })

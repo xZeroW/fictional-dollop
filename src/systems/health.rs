@@ -1,7 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
-    components::{Health, Player},
+    components::{Enemy, Health, Player},
+    enemies::HitFlash,
     messages::{ApplyDamageMessage, DamageMessage, EntityDiedMessage},
     screens::Screen,
 };
@@ -21,17 +22,41 @@ impl Plugin for HealthSystemsPlugin {
 }
 
 fn apply_damage(
+    mut commands: Commands,
     mut damage_reader: MessageReader<ApplyDamageMessage>,
-    mut health_query: Query<&mut Health>,
+    mut health_query: Query<(
+        Entity,
+        &mut Health,
+        Option<&Enemy>,
+        Option<&mut Sprite>,
+        Option<&mut HitFlash>,
+    )>,
     mut damage_writer: MessageWriter<DamageMessage>,
 ) {
     for msg in damage_reader.read() {
-        if let Ok(mut health) = health_query.get_mut(msg.target) {
+        if let Ok((entity, mut health, maybe_enemy, maybe_sprite, maybe_flash)) =
+            health_query.get_mut(msg.target)
+        {
             health.apply_damage(msg.damage);
             damage_writer.write(DamageMessage {
                 target: msg.target,
                 damage: msg.damage,
             });
+
+            if maybe_enemy.is_some() {
+                if let Some(mut sprite) = maybe_sprite {
+                    if let Some(mut flash) = maybe_flash {
+                        flash.restart();
+                        sprite.color = HitFlash::FLASH_COLOR;
+                    } else {
+                        let original_color = sprite.color;
+                        sprite.color = HitFlash::FLASH_COLOR;
+                        commands
+                            .entity(entity)
+                            .insert(HitFlash::new(original_color));
+                    }
+                }
+            }
         }
     }
 }

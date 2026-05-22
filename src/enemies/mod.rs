@@ -6,6 +6,7 @@ mod systems;
 
 pub use assets::EnemyVisualsHandle;
 pub use data::Enemies;
+pub use systems::HitFlash;
 
 #[derive(Resource)]
 pub struct EnemySpawner {

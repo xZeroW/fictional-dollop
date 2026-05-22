@@ -1,4 +1,5 @@
 mod behavior;
+mod hit_flash;
 mod spawn;
 
 use bevy::prelude::*;
@@ -10,6 +11,7 @@ use crate::game::config;
 use crate::{AppSystems, PausableSystems, screens::Screen};
 
 pub use behavior::behavior;
+pub use hit_flash::HitFlash;
 
 fn tick_attack_cooldowns(mut query: Query<&mut AttackCooldown>, time: Res<Time>) {
     for mut cooldown in query.iter_mut() {
@@ -21,7 +23,7 @@ pub struct SystemsPlugin;
 
 impl Plugin for SystemsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(SpawnPlugin);
+        app.add_plugins((SpawnPlugin, HitFlashPlugin));
         app.add_systems(
             Update,
             (behavior, tick_attack_cooldowns)
@@ -47,6 +49,27 @@ impl Plugin for SpawnPlugin {
                 )))
                 .run_if(resource_exists::<crate::enemies::EnemiesDataHandle>)
                 .run_if(resource_exists::<crate::enemies::EnemySpawner>),
+        );
+    }
+}
+
+pub struct HitFlashPlugin;
+
+impl Plugin for HitFlashPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            hit_flash::update_hit_flash
+                .in_set(PausableSystems)
+                .in_set(AppSystems::Update)
+                .run_if(in_state(Screen::Gameplay)),
+        );
+        app.add_systems(
+            Update,
+            hit_flash::tick_hit_flash
+                .in_set(PausableSystems)
+                .in_set(AppSystems::TickTimers)
+                .run_if(in_state(Screen::Gameplay)),
         );
     }
 }

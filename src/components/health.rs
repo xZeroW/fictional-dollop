@@ -1,25 +1,25 @@
 use bevy::prelude::*;
+use bevy_gauge::prelude::*;
 
-#[derive(Component)]
+#[derive(Component, AttributeComponent, Reflect, Debug)]
 pub struct Health {
-    pub current: f32,
+    #[read("Health")]
     pub max: f32,
+    #[write("Health.current")]
+    #[init_from("Health")]
+    pub current: f32,
 }
 
 impl Default for Health {
     fn default() -> Self {
-        Health {
-            current: 100.0,
+        Self {
             max: 100.0,
+            current: 100.0,
         }
     }
 }
 
 impl Health {
-    pub fn new(max: f32) -> Self {
-        Health { current: max, max }
-    }
-
     pub fn is_dead(&self) -> bool {
         self.current <= 0.0
     }

@@ -1,10 +1,11 @@
 use bevy::prelude::*;
+use bevy_gauge::prelude::*;
 
 use crate::components::{Health, Movement};
 
 #[derive(Component, Debug, Clone, PartialEq, Reflect)]
 #[reflect(Component)]
-#[require(Health, Movement)]
+#[require(Attributes, Health, Movement)]
 pub struct Player {
     pub weapon: String,
     pub attack_range: f32,

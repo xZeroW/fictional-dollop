@@ -1,13 +1,14 @@
 //! Player-specific behavior.
 
 use bevy::prelude::*;
+use bevy_gauge::prelude::*;
 use leafwing_input_manager::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
     assets::CharacterAssets,
+    components::{Health, Movement, Player},
     game::animation::PlayerAnimation,
-    components::{Player, Movement},
 };
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
@@ -21,10 +22,27 @@ pub enum PlayerAction {
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
-        record_player_input
-            .in_set(AppSystems::RecordInput)
-            .in_set(PausableSystems),
+        (
+            record_player_input
+                .in_set(AppSystems::RecordInput)
+                .in_set(PausableSystems),
+            init_player_health_from_vitality,
+        ),
     );
+}
+
+fn init_player_health_from_vitality(
+    mut attributes: AttributesMut,
+    player_query: Query<Entity, Added<Player>>,
+) {
+    for player in player_query.iter() {
+        attributes
+            .add_expr_modifier(player, "Health", "Vitality * 10.0 + 100.0")
+            .ok();
+        attributes
+            .add_expr_modifier(player, "Health.current", "Health")
+            .ok();
+    }
 }
 
 /// The player character.
@@ -37,6 +55,13 @@ pub fn player(player_assets: &CharacterAssets, weapon: String) -> impl Bundle {
             weapon,
             ..default()
         },
+        Attributes::new(),
+        attributes! {
+            "Vitality" => 10.0,
+            "Health" => "Vitality * 10 + 100.0",
+            "Health.current" => "Health",
+        },
+        Health::default(),
         Sprite::from_atlas_image(
             player_assets.sprite.clone(),
             TextureAtlas {

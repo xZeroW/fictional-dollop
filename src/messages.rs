@@ -29,6 +29,5 @@ pub struct DamageMessage {
 #[derive(Message, Debug, Clone)]
 pub struct EntityDiedMessage {
     pub entity: Entity,
-    pub position: Option<Vec3>,
     pub is_player: bool,
 }

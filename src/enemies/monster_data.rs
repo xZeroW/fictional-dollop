@@ -4,6 +4,10 @@ use bevy::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
 use std::collections::HashMap;
 
+use crate::components::{AttackCooldown, Damage, Enemy, Health, Movement, WanderState};
+
+use crate::enemies::EnemyType;
+
 #[derive(serde::Deserialize, Asset, TypePath)]
 pub struct Enemies(pub HashMap<String, EnemyData>);
 
@@ -12,8 +16,8 @@ pub struct EnemyData {
     pub name: String,
     pub sprite_key: String,
     pub layout_key: String,
-    pub health: i32,
-    pub damage: i32,
+    pub health: f32,
+    pub damage: f32,
     pub speed: f32,
     pub scale: f32,
     pub sprite_index: usize,
@@ -23,4 +27,36 @@ pub struct EnemyData {
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins(RonAssetPlugin::<Enemies>::new(&["enemies_data.ron"]));
+}
+
+impl EnemyData {
+    pub fn bundle(
+        &self,
+        key: &str,
+        position: Vec3,
+        image: Handle<Image>,
+        layout: Handle<TextureAtlasLayout>,
+    ) -> impl Bundle {
+        (
+            Name::new(self.name.clone()),
+            Enemy::new(key.to_string()),
+            EnemyType::from_key(key),
+            Health {
+                max: self.health,
+                current: self.health,
+            },
+            Movement::new(self.speed),
+            WanderState::default(),
+            Damage::new(self.damage),
+            AttackCooldown::new(self.attack_speed),
+            Sprite::from_atlas_image(
+                image,
+                TextureAtlas {
+                    layout,
+                    index: self.sprite_index,
+                },
+            ),
+            Transform::from_translation(position).with_scale(Vec3::splat(self.scale)),
+        )
+    }
 }

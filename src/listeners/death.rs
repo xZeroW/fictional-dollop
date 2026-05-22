@@ -13,9 +13,9 @@ impl Plugin for DeathListener {
 fn handle_death(mut reader: MessageReader<EntityDiedMessage>) {
     for msg in reader.read() {
         if msg.is_player {
-            println!("Player died at {:?}", msg.position);
+            println!("Player died!");
         } else {
-            println!("Enemy died at {:?}", msg.position);
+            println!("Enemy died!");
         }
     }
 }

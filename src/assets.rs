@@ -58,3 +58,13 @@ pub fn plugin(app: &mut App) {
             .continue_to_state(Screen::Gameplay),
     );
 }
+
+impl EnemyAssets {
+    pub fn get(&self, key: &str) -> Option<(&Handle<Image>, &Handle<TextureAtlasLayout>)> {
+        match key {
+            "green" => Some((&self.green_sprite, &self.green_layout)),
+            "red" => Some((&self.red_sprite, &self.red_layout)),
+            _ => None,
+        }
+    }
+}

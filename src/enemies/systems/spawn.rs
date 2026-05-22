@@ -1,24 +1,25 @@
 use bevy::prelude::*;
 
 use crate::assets::EnemyAssets;
-use crate::components::{AttackCooldown, Damage, Enemy, Health, Movement, WanderState};
+use crate::components::Enemy;
 use crate::game::config;
 use crate::game::level::LevelEntity;
 
-use crate::enemies::{Enemies, EnemiesDataHandle, EnemySpawner, EnemyType};
+use crate::enemies::{Enemies, EnemiesDataHandle, EnemySpawner};
 
 pub fn spawn_enemies(
     mut commands: Commands,
     spawner: Option<ResMut<EnemySpawner>>,
     level_entity: Option<Res<LevelEntity>>,
     enemies_data_handle: Option<Res<EnemiesDataHandle>>,
-    enemies_data: Option<Res<Assets<Enemies>>>,
+    enemies_data_assets: Option<Res<Assets<Enemies>>>,
     current_enemies: Query<Entity, With<Enemy>>,
     enemy_assets: Res<EnemyAssets>,
 ) {
     let Some(level_entity) = level_entity else {
         return;
     };
+
     let Some(mut spawner) = spawner else {
         return;
     };
@@ -27,65 +28,57 @@ pub fn spawn_enemies(
         return;
     };
 
-    let Some(enemies_data) = enemies_data else {
+    let Some(enemies_data_assets) = enemies_data_assets else {
         return;
     };
 
-    let Some(enemies_data) = enemies_data.get(enemies_data_handle.0.id()) else {
+    let Some(enemies_data) = enemies_data_assets.get(enemies_data_handle.0.id()) else {
         return;
     };
 
     let num_enemies = current_enemies.iter().len();
+
     if num_enemies >= config::MAX_NUM_ENEMIES {
         return;
     }
 
     let spawn_count = (config::MAX_NUM_ENEMIES - num_enemies).min(config::SPAWN_RATE_PER_SECOND);
 
+    // Build weighted table once
     if spawner.enemy_keys.is_empty() {
-        for (key, data) in enemies_data.0.iter() {
+        for (key, data) in &enemies_data.0 {
             spawner.enemy_keys.push((key.clone(), data.spawn_rate));
             spawner.total_spawn_weight += data.spawn_rate;
         }
     }
 
-    for _ in 0..spawn_count {
-        let Some(enemy_key) = spawner.select_enemy_key() else {
-            continue;
-        };
+    commands.entity(level_entity.0).with_children(|parent| {
+        for _ in 0..spawn_count {
+            let Some(enemy_key) = spawner.select_enemy_key() else {
+                continue;
+            };
 
-        let Some(enemy_data) = enemies_data.0.get(&enemy_key) else {
-            continue;
-        };
+            let Some(enemy_data) = enemies_data.0.get(&enemy_key) else {
+                continue;
+            };
 
-        let (image, layout) = match enemy_key.as_str() {
-            "green" => (
-                enemy_assets.green_sprite.clone(),
-                enemy_assets.green_layout.clone(),
-            ),
-            "red" => (
-                enemy_assets.red_sprite.clone(),
-                enemy_assets.red_layout.clone(),
-            ),
-            _ => continue,
-        };
+            let Some((image, layout)) = enemy_assets.get(&enemy_data.sprite_key) else {
+                continue;
+            };
 
-        let (min_x, max_x, min_y, max_y) = get_map_bounds();
-        let x = min_x + rand::random::<f32>() * (max_x - min_x);
-        let y = min_y + rand::random::<f32>() * (max_y - min_y);
+            let (min_x, max_x, min_y, max_y) = get_map_bounds();
 
-        let bundle = enemy_bundle(
-            &enemy_key,
-            enemy_data,
-            Vec3::new(x, y, 0.0),
-            image,
-            layout,
-        );
+            let x = min_x + rand::random::<f32>() * (max_x - min_x);
+            let y = min_y + rand::random::<f32>() * (max_y - min_y);
 
-        commands.entity(level_entity.0).with_children(|parent| {
-            parent.spawn(bundle);
-        });
-    }
+            parent.spawn(enemy_data.bundle(
+                &enemy_key,
+                Vec3::new(x, y, 0.0),
+                image.clone(),
+                layout.clone(),
+            ));
+        }
+    });
 }
 
 fn get_map_bounds() -> (f32, f32, f32, f32) {
@@ -99,31 +92,4 @@ fn get_map_bounds() -> (f32, f32, f32, f32) {
     let max_y = half_height - margin;
 
     (min_x, max_x, min_y, max_y)
-}
-
-fn enemy_bundle(
-    key: &str,
-    data: &crate::enemies::monster_data::EnemyData,
-    position: Vec3,
-    image: Handle<Image>,
-    layout: Handle<TextureAtlasLayout>,
-) -> impl Bundle {
-    (
-        Name::new(data.name.clone()),
-        Enemy::new(key.to_string()),
-        EnemyType::from_key(key),
-        Health::new(data.health as f32),
-        Movement::new(data.speed),
-        WanderState::default(),
-        Damage::new(data.damage as f32),
-        AttackCooldown::new(data.attack_speed),
-        Sprite::from_atlas_image(
-            image,
-            TextureAtlas {
-                layout,
-                index: data.sprite_index,
-            },
-        ),
-        Transform::from_translation(position).with_scale(Vec2::splat(data.scale).extend(1.0)),
-    )
 }

@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use rand::prelude::*;
 
 use crate::components::{Damage, Health, Movement};
 

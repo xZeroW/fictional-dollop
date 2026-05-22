@@ -4,6 +4,7 @@
 //! to get a feeling for the template.
 
 use bevy::prelude::*;
+use bevy_gauge::prelude::*;
 use leafwing_input_manager::prelude::*;
 
 use crate::libs::cursor;
@@ -35,5 +36,6 @@ pub(super) fn plugin(app: &mut App) {
         weapon_data::plugin,
         cursor::plugin,
         map::MapPlugin,
+        AttributesPlugin,
     ));
 }

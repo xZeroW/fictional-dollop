@@ -10,7 +10,7 @@ mod components;
 mod dev_tools;
 mod enemies;
 mod game;
-mod libs;
+mod hud;
 mod listeners;
 mod menus;
 mod messages;
@@ -49,6 +49,7 @@ impl Plugin for AppPlugin {
             assets::plugin,
             audio::plugin,
             game::plugin,
+            hud::plugin,
             SystemsPlugin,
             ListenersPlugin,
             menus::plugin,

@@ -4,6 +4,9 @@ use bevy::prelude::*;
 use crate::components::Player;
 use crate::game::config::{ORTHO_MAX_SCALE, ORTHO_MIN_SCALE};
 
+#[derive(Component)]
+pub(crate) struct GameplayCamera;
+
 pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
@@ -18,10 +21,10 @@ impl Plugin for CameraPlugin {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn((Name::new("Camera"), Camera2d, Msaa::Off));
+    commands.spawn((Name::new("Camera"), GameplayCamera, Camera2d, Msaa::Off));
 }
 
-fn set_camera_scale_after_spawn(mut query: Query<&mut Projection, With<Camera>>) {
+fn set_camera_scale_after_spawn(mut query: Query<&mut Projection, With<GameplayCamera>>) {
     for mut projection in &mut query {
         if let Projection::Orthographic(ortho) = &mut *projection {
             ortho.scale = ORTHO_MIN_SCALE;
@@ -32,7 +35,7 @@ fn set_camera_scale_after_spawn(mut query: Query<&mut Projection, With<Camera>>)
 
 fn zoom(
     mut mouse_wheel_events: MessageReader<MouseWheel>,
-    mut query: Query<&mut Projection, With<Camera>>,
+    mut query: Query<&mut Projection, With<GameplayCamera>>,
 ) {
     for event in mouse_wheel_events.read() {
         for mut projection in &mut query {
@@ -51,7 +54,7 @@ fn zoom(
 
 fn sync_camera_position(
     player: Query<&Transform, With<Player>>,
-    mut camera: Query<&mut Transform, (With<Camera>, Without<Player>)>,
+    mut camera: Query<&mut Transform, (With<GameplayCamera>, Without<Player>)>,
 ) {
     if let (Ok(player_transform), Ok(mut camera_transform)) = (player.single(), camera.single_mut())
     {

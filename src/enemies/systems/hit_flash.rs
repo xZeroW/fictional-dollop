@@ -36,7 +36,7 @@ pub fn update_hit_flash(
     for (entity, flash, mut sprite) in &mut query {
         if flash.timer.is_finished() {
             sprite.color = flash.original_color;
-            commands.entity(entity).remove::<HitFlash>();
+            commands.entity(entity).try_remove::<HitFlash>();
             continue;
         }
 

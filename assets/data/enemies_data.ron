@@ -2,7 +2,7 @@
     "green": (
         name: "Green Devil",
         asset_key: "green",
-        behavior: "Wandering",
+        behavior: "FollowAndAttack",
         health: 30,
         damage: 10,
         speed: 100.0,

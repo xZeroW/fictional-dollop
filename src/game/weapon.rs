@@ -43,22 +43,21 @@ pub(super) fn plugin(app: &mut App) {
 
 fn auto_attack(
     mut commands: Commands,
-    player_query: Query<(Entity, &GlobalTransform, &Player)>,
+    mut player_query: Query<(&GlobalTransform, &mut Player)>,
     enemy_query: Query<(Entity, &GlobalTransform), With<Enemy>>,
     time: Res<Time>,
     weapon_assets: Res<WeaponAssets>,
     weapons_handle: Res<WeaponsHandle>,
     weapons_assets: Res<Assets<Weapons>>,
 ) {
-    let (player_entity, player_gt, player) = match player_query.single() {
+    let (player_gt, mut player) = match player_query.single_mut() {
         Ok(v) => v,
         Err(_) => return,
     };
 
     let player_pos = player_gt.translation().truncate();
-    let player_weapon = player.weapon.clone();
 
-    if player_weapon.is_empty() {
+    if player.weapon.is_empty() {
         return;
     }
 
@@ -67,7 +66,7 @@ fn auto_attack(
         None => return,
     };
 
-    let weapon_data = match weapons.0.get(&player_weapon) {
+    let weapon_data = match weapons.0.get(&player.weapon) {
         Some(data) => data,
         None => {
             let default = weapons.0.get("dagger");
@@ -105,12 +104,7 @@ fn auto_attack(
         return;
     }
 
-    let new_player = Player {
-        weapon: player_weapon,
-        attack_range: player.attack_range,
-        last_shot_time: current_time,
-    };
-    commands.entity(player_entity).insert(new_player);
+    player.last_shot_time = current_time;
 
     commands.spawn(bullet(&weapon_assets, weapon_data, player_pos, direction));
 }

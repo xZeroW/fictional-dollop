@@ -43,6 +43,10 @@ fn apply_damage(
                 damage: msg.damage,
             });
 
+            if health.is_dead() {
+                continue;
+            }
+
             if maybe_enemy.is_some() {
                 if let Some(mut sprite) = maybe_sprite {
                     if let Some(mut flash) = maybe_flash {
@@ -53,7 +57,7 @@ fn apply_damage(
                         sprite.color = HitFlash::FLASH_COLOR;
                         commands
                             .entity(entity)
-                            .insert(HitFlash::new(original_color));
+                            .try_insert(HitFlash::new(original_color));
                     }
                 }
             }

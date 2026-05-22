@@ -60,8 +60,8 @@ fn check_player_enemy_collisions(
     };
     let player_pos = player_transform.translation.truncate();
 
-    if let Some((nearest_pos, enemy_entity)) = tree.nearest_neighbour(player_pos) {
-        if player_pos.distance(nearest_pos) <= config::COLLISION_RADIUS {
+    if let Some((nearest_pos, enemy_entity)) = tree.nearest_neighbour(player_pos)
+        && player_pos.distance(nearest_pos) <= config::COLLISION_RADIUS {
             writer.write(CollisionMessage {
                 entity_a: player_entity,
                 entity_b: enemy_entity,
@@ -69,7 +69,6 @@ fn check_player_enemy_collisions(
                 kind: CollisionKind::DamagePlayer,
             });
         }
-    }
 }
 
 fn check_bullet_enemy_collisions(
@@ -85,8 +84,8 @@ fn check_bullet_enemy_collisions(
     for (bullet_entity, bullet_transform, _) in bullet_query.iter() {
         let bullet_pos = bullet_transform.translation.truncate();
 
-        if let Some((nearest_pos, enemy_entity)) = tree.nearest_neighbour(bullet_pos) {
-            if bullet_pos.distance(nearest_pos) <= config::COLLISION_RADIUS {
+        if let Some((nearest_pos, enemy_entity)) = tree.nearest_neighbour(bullet_pos)
+            && bullet_pos.distance(nearest_pos) <= config::COLLISION_RADIUS {
                 writer.write(CollisionMessage {
                     entity_a: bullet_entity,
                     entity_b: enemy_entity,
@@ -95,6 +94,5 @@ fn check_bullet_enemy_collisions(
                 });
                 commands.entity(bullet_entity).despawn();
             }
-        }
     }
 }

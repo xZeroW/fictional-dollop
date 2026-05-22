@@ -36,7 +36,7 @@ impl KDTree2 {
     }
 
     pub fn nearest_neighbour(&self, loc: Vec2) -> Option<(Vec2, Entity)> {
-        if self.tree.len() == 0 {
+        if self.tree.is_empty() {
             return None;
         }
         let key = [loc.x, loc.y];
@@ -49,7 +49,7 @@ impl KDTree2 {
     }
 
     pub fn within_distance(&self, loc: Vec2, distance: f32) -> Vec<(Vec2, Entity)> {
-        if self.tree.len() == 0 {
+        if self.tree.is_empty() {
             return vec![];
         }
         let key = [loc.x, loc.y];

@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 
 use crate::assets::EnemyAssets;
-use crate::components::Player;
 use crate::game::config::{GameConfig, MAP_HEIGHT_TILES, MAP_MARGIN, MAP_WIDTH_TILES, TILE_SIZE};
 use crate::game::level::LevelEntity;
 
@@ -46,11 +45,10 @@ pub fn spawn_enemies(
             };
 
             let (min_x, max_x, min_y, max_y) = get_map_bounds();
-            let mut spawn_pos = Vec3::ZERO;
 
             let x = min_x + rand::random::<f32>() * (max_x - min_x);
             let y = min_y + rand::random::<f32>() * (max_y - min_y);
-            spawn_pos = Vec3::new(x, y, 0.0);
+            let spawn_pos = Vec3::new(x, y, 0.0);
 
             parent.spawn(enemy_data.bundle(enemy_key, spawn_pos, image.clone(), layout.clone()));
             spawner.spawned_count += 1;

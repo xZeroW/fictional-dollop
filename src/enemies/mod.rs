@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 
-use crate::game::config;
 
 mod monster_data;
 mod systems;

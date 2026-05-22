@@ -61,14 +61,15 @@ fn check_player_enemy_collisions(
     let player_pos = player_transform.translation.truncate();
 
     if let Some((nearest_pos, enemy_entity)) = tree.nearest_neighbour(player_pos)
-        && player_pos.distance(nearest_pos) <= config::COLLISION_RADIUS {
-            writer.write(CollisionMessage {
-                entity_a: player_entity,
-                entity_b: enemy_entity,
-                position: player_pos,
-                kind: CollisionKind::DamagePlayer,
-            });
-        }
+        && player_pos.distance(nearest_pos) <= config::COLLISION_RADIUS
+    {
+        writer.write(CollisionMessage {
+            entity_a: player_entity,
+            entity_b: enemy_entity,
+            position: player_pos,
+            kind: CollisionKind::DamagePlayer,
+        });
+    }
 }
 
 fn check_bullet_enemy_collisions(
@@ -85,14 +86,15 @@ fn check_bullet_enemy_collisions(
         let bullet_pos = bullet_transform.translation.truncate();
 
         if let Some((nearest_pos, enemy_entity)) = tree.nearest_neighbour(bullet_pos)
-            && bullet_pos.distance(nearest_pos) <= config::COLLISION_RADIUS {
-                writer.write(CollisionMessage {
-                    entity_a: bullet_entity,
-                    entity_b: enemy_entity,
-                    position: bullet_pos,
-                    kind: CollisionKind::DamageEnemy,
-                });
-                commands.entity(bullet_entity).despawn();
-            }
+            && bullet_pos.distance(nearest_pos) <= config::COLLISION_RADIUS
+        {
+            writer.write(CollisionMessage {
+                entity_a: bullet_entity,
+                entity_b: enemy_entity,
+                position: bullet_pos,
+                kind: CollisionKind::DamageEnemy,
+            });
+            commands.entity(bullet_entity).despawn();
+        }
     }
 }

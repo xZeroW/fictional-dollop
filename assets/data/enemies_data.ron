@@ -1,20 +1,20 @@
 ({
     "green": (
         name: "Green Devil",
-        sprite_key: "green",
-        layout_key: "green",
+        asset_key: "green",
+        behavior: "Wandering",
         health: 30,
         damage: 10,
-        speed: 100.0, // movement speed (pixels per second)
+        speed: 100.0,
         scale: 2.0,
         sprite_index: 0,
-        spawn_rate: 1.0, // chance of spawning
-        attack_speed: 1.0, // attacks per second
+        spawn_rate: 1.0,
+        attack_speed: 1.0,
     ),
     "red": (
         name: "Red Devil",
-        sprite_key: "red",
-        layout_key: "red",
+        asset_key: "red",
+        behavior: "FollowAndAttack",
         health: 50,
         damage: 15,
         speed: 150.0,

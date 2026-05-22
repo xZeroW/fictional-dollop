@@ -106,11 +106,15 @@ use crate::{
 
 ### Plugin Architecture
 
-Each module should expose a `plugin` function:
+Each module should expose an `impl Plugin`:
 
 ```rust
-pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Update, my_system.in_set(AppSystems::Update));
+pub(super) struct MyModulePlugin;
+
+impl Plugin for MyModulePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, my_system.in_set(AppSystems::Update));
+    }
 }
 ```
 
@@ -118,7 +122,7 @@ Register plugins in `src/main.rs`:
 
 ```rust
 app.add_plugins((
-    my_module::plugin,
+    my_module::MyModulePlugin,
     // ...
 ));
 ```
@@ -356,8 +360,12 @@ Group development-only systems in a dedicated plugin:
 
 ```rust
 // dev_tools.rs
-pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Update, (draw_debug_lines, show_debug_console, show_fps_counter));
+pub(super) struct DevToolsPlugin;
+
+impl Plugin for DevToolsPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, (draw_debug_lines, show_debug_console, show_fps_counter));
+    }
 }
 ```
 

@@ -40,7 +40,7 @@ pub fn spawn_enemies(
                 continue;
             };
 
-            let Some((image, layout)) = enemy_assets.get(&enemy_data.sprite_key) else {
+            let Some((image, layout)) = enemy_assets.get(&enemy_data.asset_key) else {
                 continue;
             };
 

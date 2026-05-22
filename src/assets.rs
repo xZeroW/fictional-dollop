@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
+use std::collections::HashMap;
 
 use crate::screens::Screen;
 
@@ -29,20 +30,14 @@ pub struct WeaponAssets {
     pub fire_sound: Handle<AudioSource>,
 }
 
-#[derive(AssetCollection, Resource)]
+#[derive(Resource, Default)]
 pub struct EnemyAssets {
-    #[asset(key = "green.sprite")]
-    pub green_sprite: Handle<Image>,
-    #[asset(key = "green.layout")]
-    pub green_layout: Handle<TextureAtlasLayout>,
-    #[asset(key = "red.sprite")]
-    pub red_sprite: Handle<Image>,
-    #[asset(key = "red.layout")]
-    pub red_layout: Handle<TextureAtlasLayout>,
+    pub sprites: HashMap<String, Handle<Image>>,
+    pub layouts: HashMap<String, Handle<TextureAtlasLayout>>,
 }
 
 pub fn plugin(app: &mut App) {
-    // Main asset loading that runs when entering the Loading screen.
+    app.init_resource::<EnemyAssets>();
     app.add_loading_state(
         LoadingState::new(Screen::Loading)
             .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
@@ -50,21 +45,17 @@ pub fn plugin(app: &mut App) {
             )
             .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/audio.assets.ron")
             .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/weapon.assets.ron")
-            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/enemies.assets.ron")
             .load_collection::<CharacterAssets>()
             .load_collection::<AudioAssets>()
             .load_collection::<WeaponAssets>()
-            .load_collection::<EnemyAssets>()
             .continue_to_state(Screen::Gameplay),
     );
 }
 
 impl EnemyAssets {
     pub fn get(&self, key: &str) -> Option<(&Handle<Image>, &Handle<TextureAtlasLayout>)> {
-        match key {
-            "green" => Some((&self.green_sprite, &self.green_layout)),
-            "red" => Some((&self.red_sprite, &self.red_layout)),
-            _ => None,
-        }
+        let sprite = self.sprites.get(key)?;
+        let layout = self.layouts.get(key)?;
+        Some((sprite, layout))
     }
 }

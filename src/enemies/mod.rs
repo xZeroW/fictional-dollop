@@ -1,28 +1,11 @@
 use bevy::prelude::*;
 
-
-mod monster_data;
+mod assets;
+mod data;
 mod systems;
 
-pub use monster_data::Enemies;
-
-#[derive(Component)]
-pub enum EnemyType {
-    Slime,
-    Goblin,
-    Orc,
-}
-
-impl EnemyType {
-    pub fn from_key(key: &str) -> Self {
-        match key.to_lowercase().as_str() {
-            "slime" => EnemyType::Slime,
-            "goblin" => EnemyType::Goblin,
-            "orc" => EnemyType::Orc,
-            _ => EnemyType::Slime,
-        }
-    }
-}
+pub use assets::EnemyVisualsHandle;
+pub use data::Enemies;
 
 #[derive(Resource)]
 pub struct EnemySpawner {
@@ -74,11 +57,24 @@ impl EnemySpawner {
 pub struct EnemiesDataHandle(pub Handle<Enemies>);
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_plugins((monster_data::plugin, systems::SystemsPlugin));
+    app.add_plugins((
+        data::EnemyDataPlugin,
+        assets::EnemyAssetsPlugin,
+        systems::SystemsPlugin,
+    ));
     app.add_systems(OnEnter(crate::screens::Screen::Loading), load_enemies_data);
+    app.add_systems(
+        OnEnter(crate::screens::Screen::Loading),
+        load_enemy_visuals_data,
+    );
 }
 
 fn load_enemies_data(mut commands: Commands, server: Res<AssetServer>) {
     let enemies_data_handle = server.load("data/enemies_data.ron");
     commands.insert_resource(EnemiesDataHandle(enemies_data_handle));
+}
+
+fn load_enemy_visuals_data(mut commands: Commands, server: Res<AssetServer>) {
+    let enemy_visuals_handle = server.load("data/enemies.assets.ron");
+    commands.insert_resource(EnemyVisualsHandle(enemy_visuals_handle));
 }

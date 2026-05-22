@@ -4,9 +4,7 @@ use bevy::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
 use std::collections::HashMap;
 
-use crate::components::{AttackCooldown, Damage, Enemy, Health, Movement, WanderState};
-
-use crate::enemies::EnemyType;
+use crate::components::{AttackCooldown, Behavior, Damage, Enemy, Health, Movement, WanderState};
 
 #[derive(serde::Deserialize, Asset, TypePath)]
 pub struct Enemies(pub HashMap<String, EnemyData>);
@@ -14,8 +12,8 @@ pub struct Enemies(pub HashMap<String, EnemyData>);
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct EnemyData {
     pub name: String,
-    pub sprite_key: String,
-    pub layout_key: String,
+    pub asset_key: String,
+    pub behavior: String,
     pub health: f32,
     pub damage: f32,
     pub speed: f32,
@@ -25,8 +23,12 @@ pub struct EnemyData {
     pub attack_speed: f32,
 }
 
-pub(super) fn plugin(app: &mut App) {
-    app.add_plugins(RonAssetPlugin::<Enemies>::new(&["enemies_data.ron"]));
+pub(super) struct EnemyDataPlugin;
+
+impl Plugin for EnemyDataPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(RonAssetPlugin::<Enemies>::new(&["enemies_data.ron"]));
+    }
 }
 
 impl EnemyData {
@@ -37,10 +39,16 @@ impl EnemyData {
         image: Handle<Image>,
         layout: Handle<TextureAtlasLayout>,
     ) -> impl Bundle {
+        let behavior = match self.behavior.as_str() {
+            "Wandering" => Behavior::Wandering,
+            "FollowAndAttack" => Behavior::FollowAndAttack,
+            "Coward" => Behavior::Coward,
+            _ => Behavior::Wandering,
+        };
+
         (
             Name::new(self.name.clone()),
             Enemy::new(key.to_string()),
-            EnemyType::from_key(key),
             Health {
                 max: self.health,
                 current: self.health,
@@ -49,6 +57,7 @@ impl EnemyData {
             WanderState::default(),
             Damage::new(self.damage),
             AttackCooldown::new(self.attack_speed),
+            behavior,
             Sprite::from_atlas_image(
                 image,
                 TextureAtlas {

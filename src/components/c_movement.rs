@@ -8,12 +8,18 @@ pub struct Movement {
 
 impl Default for Movement {
     fn default() -> Self {
-        Self { intent: Vec2::ZERO, speed: 150.0 }
+        Self {
+            intent: Vec2::ZERO,
+            speed: 150.0,
+        }
     }
 }
 
 impl Movement {
     pub fn new(speed: f32) -> Self {
-        Self { intent: Vec2::ZERO, speed }
+        Self {
+            intent: Vec2::ZERO,
+            speed,
+        }
     }
 }

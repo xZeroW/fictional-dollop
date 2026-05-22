@@ -1,11 +1,14 @@
 use bevy::prelude::*;
 
 use crate::{
+    AppSystems, PausableSystems,
     components::{Enemy, Player},
-    game::{spatial::{KDTree2, Collidable}, weapon::Bullet},
+    game::{
+        spatial::{Collidable, KDTree2},
+        weapon::Bullet,
+    },
     messages::{CollisionKind, CollisionMessage},
     screens::Screen,
-    AppSystems, PausableSystems,
 };
 
 use super::config;
@@ -14,18 +17,17 @@ pub struct CollisionPlugin;
 
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(KDTree2::default())
-            .add_systems(
-                Update,
-                (
-                    update_enemy_kd_tree,
-                    check_player_enemy_collisions,
-                    check_bullet_enemy_collisions,
-                )
-                    .in_set(AppSystems::Update)
-                    .in_set(PausableSystems)
-                    .run_if(in_state(Screen::Gameplay)),
-            );
+        app.insert_resource(KDTree2::default()).add_systems(
+            Update,
+            (
+                update_enemy_kd_tree,
+                check_player_enemy_collisions,
+                check_bullet_enemy_collisions,
+            )
+                .in_set(AppSystems::Update)
+                .in_set(PausableSystems)
+                .run_if(in_state(Screen::Gameplay)),
+        );
     }
 }
 

@@ -9,8 +9,7 @@ use rand::prelude::*;
 use std::time::Duration;
 
 use crate::{
-    AppSystems, PausableSystems, assets::AudioAssets, audio::sound_effect,
-    components::Movement,
+    AppSystems, PausableSystems, assets::AudioAssets, audio::sound_effect, components::Movement,
 };
 
 pub(super) fn plugin(app: &mut App) {

@@ -5,9 +5,9 @@ use bevy::prelude::*;
 use bevy::time::common_conditions::on_timer;
 use std::time::Duration;
 
-use crate::{AppSystems, PausableSystems, screens::Screen};
 use crate::components::AttackCooldown;
 use crate::game::config;
+use crate::{AppSystems, PausableSystems, screens::Screen};
 
 pub use behavior::behavior;
 
@@ -24,10 +24,7 @@ impl Plugin for SystemsPlugin {
         app.add_plugins(SpawnPlugin);
         app.add_systems(
             Update,
-            (
-                behavior,
-                tick_attack_cooldowns,
-            )
+            (behavior, tick_attack_cooldowns)
                 .in_set(PausableSystems)
                 .in_set(AppSystems::Update)
                 .run_if(in_state(Screen::Gameplay)),
@@ -45,7 +42,11 @@ impl Plugin for SpawnPlugin {
                 .in_set(PausableSystems)
                 .in_set(AppSystems::Update)
                 .run_if(in_state(Screen::Gameplay))
-                .run_if(on_timer(Duration::from_secs_f32(config::ENEMY_SPAWN_INTERVAL))),
+                .run_if(on_timer(Duration::from_secs_f32(
+                    config::ENEMY_SPAWN_INTERVAL,
+                )))
+                .run_if(resource_exists::<crate::enemies::EnemiesDataHandle>)
+                .run_if(resource_exists::<crate::enemies::EnemySpawner>),
         );
     }
 }

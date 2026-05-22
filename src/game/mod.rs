@@ -24,6 +24,7 @@ mod weapon_data;
 use player::PlayerAction;
 
 pub(super) fn plugin(app: &mut App) {
+    app.init_resource::<config::GameConfig>();
     app.add_plugins((
         InputManagerPlugin::<PlayerAction>::default(),
         animation::plugin,

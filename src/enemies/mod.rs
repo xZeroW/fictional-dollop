@@ -27,8 +27,7 @@ impl EnemyType {
 
 #[derive(Resource)]
 pub struct EnemySpawner {
-    pub spawned_count: u32,
-    pub max_enemies: u32,
+    pub spawned_count: usize,
     pub enemy_keys: Vec<(String, f32)>,
     total_spawn_weight: f32,
 }
@@ -37,7 +36,6 @@ impl Default for EnemySpawner {
     fn default() -> Self {
         Self {
             spawned_count: 0,
-            max_enemies: config::MAX_NUM_ENEMIES as u32,
             enemy_keys: vec![],
             total_spawn_weight: 0.0,
         }
@@ -45,7 +43,16 @@ impl Default for EnemySpawner {
 }
 
 impl EnemySpawner {
-    pub fn select_enemy_key(&self) -> Option<String> {
+    pub fn init_weights(&mut self, enemies_data: &crate::enemies::Enemies) {
+        self.enemy_keys.clear();
+        self.total_spawn_weight = 0.0;
+        for (key, data) in &enemies_data.0 {
+            self.enemy_keys.push((key.clone(), data.spawn_rate));
+            self.total_spawn_weight += data.spawn_rate;
+        }
+    }
+
+    pub fn select_enemy_key(&self) -> Option<&str> {
         if self.enemy_keys.is_empty() || self.total_spawn_weight <= 0.0 {
             return None;
         }
@@ -56,11 +63,11 @@ impl EnemySpawner {
         for (key, weight) in &self.enemy_keys {
             accum += *weight;
             if pick <= accum {
-                return Some(key.clone());
+                return Some(key.as_str());
             }
         }
 
-        self.enemy_keys.first().map(|(k, _)| k.clone())
+        self.enemy_keys.first().map(|(k, _)| k.as_str())
     }
 }
 
@@ -68,14 +75,8 @@ impl EnemySpawner {
 pub struct EnemiesDataHandle(pub Handle<Enemies>);
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_plugins((
-        monster_data::plugin,
-        systems::SystemsPlugin,
-    ));
-    app.add_systems(
-        OnEnter(crate::screens::Screen::Loading),
-        load_enemies_data,
-    );
+    app.add_plugins((monster_data::plugin, systems::SystemsPlugin));
+    app.add_systems(OnEnter(crate::screens::Screen::Loading), load_enemies_data);
 }
 
 fn load_enemies_data(mut commands: Commands, server: Res<AssetServer>) {

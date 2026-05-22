@@ -40,6 +40,8 @@ fn despawn_dead_entities(
     mut commands: Commands,
     query: Query<(Entity, &Health, Option<&Player>)>,
     mut death_writer: MessageWriter<EntityDiedMessage>,
+    mut spawner: ResMut<crate::enemies::EnemySpawner>,
+    enemy_query: Query<&crate::components::Enemy>,
 ) {
     let mut to_despawn = Vec::new();
 
@@ -53,6 +55,9 @@ fn despawn_dead_entities(
         death_writer.write(EntityDiedMessage { entity, is_player });
 
         if commands.get_entity(entity).is_ok() {
+            if enemy_query.get(entity).is_ok() {
+                spawner.spawned_count = spawner.spawned_count.saturating_sub(1);
+            }
             commands.entity(entity).despawn();
         }
     }

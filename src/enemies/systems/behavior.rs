@@ -24,9 +24,7 @@ pub fn behavior(
         let distance = player_pos_2d.distance(enemy_pos_2d);
 
         let (direction, speed) = match behavior {
-            Behavior::Wandering => {
-                wandering(time.delta(), &mut wander_state)
-            }
+            Behavior::Wandering => wandering(time.delta(), &mut wander_state),
             Behavior::FollowAndAttack => follow_and_attack(player_pos_2d, enemy_pos_2d),
             Behavior::Coward => coward(player_pos_2d, enemy_pos_2d, distance, &mut wander_state),
         };
@@ -39,8 +37,8 @@ fn wandering(delta: Duration, state: &mut WanderState) -> (Vec2, f32) {
     state.timer.tick(delta);
 
     if state.timer.just_finished() {
-        state.direction = Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
-            .normalize_or_zero();
+        state.direction =
+            Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5).normalize_or_zero();
     }
 
     (state.direction, WANDERING_SPEED)
@@ -50,9 +48,17 @@ fn follow_and_attack(player_pos: Vec2, enemy_pos: Vec2) -> (Vec2, f32) {
     ((player_pos - enemy_pos).normalize_or_zero(), FOLLOW_SPEED)
 }
 
-fn coward(player_pos: Vec2, enemy_pos: Vec2, distance: f32, wander_state: &mut WanderState) -> (Vec2, f32) {
+fn coward(
+    player_pos: Vec2,
+    enemy_pos: Vec2,
+    distance: f32,
+    wander_state: &mut WanderState,
+) -> (Vec2, f32) {
     if distance <= COWARD_DISTANCE {
-        ((enemy_pos - player_pos).normalize_or_zero(), COWARD_RUN_SPEED)
+        (
+            (enemy_pos - player_pos).normalize_or_zero(),
+            COWARD_RUN_SPEED,
+        )
     } else {
         wandering(Duration::ZERO, wander_state)
     }

@@ -1,8 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{
-    messages::{ApplyDamageMessage, CollisionKind, CollisionMessage},
-};
+use crate::messages::{ApplyDamageMessage, CollisionKind, CollisionMessage};
 
 use crate::game::config;
 

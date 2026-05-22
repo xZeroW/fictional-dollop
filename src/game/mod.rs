@@ -7,8 +7,6 @@ use bevy::prelude::*;
 use bevy_gauge::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::libs::cursor;
-
 mod animation;
 pub mod camera;
 pub mod collision;
@@ -35,7 +33,6 @@ pub(super) fn plugin(app: &mut App) {
         player::plugin,
         weapon::plugin,
         weapon_data::plugin,
-        cursor::plugin,
         map::MapPlugin,
         AttributesPlugin,
     ));

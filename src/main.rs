@@ -71,6 +71,7 @@ impl Plugin for AppPlugin {
                 AppSystems::TickTimers,
                 AppSystems::RecordInput,
                 AppSystems::Update,
+                AppSystems::WaveTransitions,
             )
                 .chain(),
         );
@@ -93,6 +94,8 @@ enum AppSystems {
     RecordInput,
     /// Do everything else (consider splitting this into further variants).
     Update,
+    /// Process wave transitions after gameplay updates.
+    WaveTransitions,
 }
 
 /// Whether or not the game is paused.

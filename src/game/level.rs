@@ -19,6 +19,7 @@ pub struct LevelEntity(pub Entity);
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_level);
+    app.add_systems(OnExit(Screen::Gameplay), remove_level_resources);
 }
 
 /// A system that spawns the main level.
@@ -58,4 +59,9 @@ pub fn spawn_level(
         attack_range: 200.0,
         last_shot_time: 0.0,
     });
+}
+
+fn remove_level_resources(mut commands: Commands) {
+    commands.remove_resource::<EnemySpawner>();
+    commands.remove_resource::<LevelEntity>();
 }

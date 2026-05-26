@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::{
     AppSystems, PausableSystems,
     components::{Enemy, Player},
+    config,
     game::{
         spatial::{Collidable, KDTree2},
         weapon::Bullet,
@@ -10,8 +11,6 @@ use crate::{
     messages::{CollisionKind, CollisionMessage},
     screens::Screen,
 };
-
-use super::config;
 
 pub struct CollisionPlugin;
 

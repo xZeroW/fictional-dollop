@@ -7,7 +7,7 @@ use bevy::time::common_conditions::on_timer;
 use std::time::Duration;
 
 use crate::components::AttackCooldown;
-use crate::game::config;
+use crate::config;
 use crate::{AppSystems, PausableSystems, screens::Screen};
 
 pub use behavior::behavior;

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::assets::EnemyAssets;
-use crate::game::config::{GameConfig, MAP_HEIGHT_TILES, MAP_MARGIN, MAP_WIDTH_TILES, TILE_SIZE};
+use crate::config::{GameConfig, MAP_HEIGHT_TILES, MAP_MARGIN, MAP_WIDTH_TILES, TILE_SIZE};
 use crate::game::level::LevelEntity;
 
 use crate::enemies::{Enemies, EnemiesDataHandle, EnemySpawner};

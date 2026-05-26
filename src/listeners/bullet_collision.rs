@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::messages::{ApplyDamageMessage, CollisionKind, CollisionMessage};
 
-use crate::game::config;
+use crate::config;
 
 pub struct BulletCollisionListener;
 

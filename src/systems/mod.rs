@@ -3,6 +3,7 @@ mod bullet;
 mod collision;
 mod flip_sprite;
 mod health;
+mod movement;
 mod wave;
 
 use bevy::prelude::*;
@@ -16,6 +17,7 @@ impl Plugin for SystemsPlugin {
             bullet::BulletSystemsPlugin,
             collision::CollisionSystemsPlugin,
             health::HealthSystemsPlugin,
+            movement::MovementSystemsPlugin,
             wave::WaveSystemsPlugin,
         ));
         app.add_systems(

@@ -11,7 +11,6 @@ mod animation;
 pub mod camera;
 pub mod level;
 mod map;
-pub mod movement;
 pub mod player;
 pub(crate) mod weapon_data;
 
@@ -24,7 +23,6 @@ pub(super) fn plugin(app: &mut App) {
         animation::plugin,
         camera::CameraPlugin,
         level::plugin,
-        movement::plugin,
         player::plugin,
         weapon_data::plugin,
         map::MapPlugin,

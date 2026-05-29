@@ -6,7 +6,7 @@ use crate::{
     AppSystems, PausableSystems,
     components::{Bullet, Enemy, Player},
     config,
-    messages::{CollisionKind, CollisionMessage},
+    messages::{BulletHitEnemyMessage, CollisionKind, CollisionMessage},
     screens::Screen,
 };
 
@@ -133,23 +133,21 @@ fn check_bullet_enemy_collisions(
     mut commands: Commands,
     bullet_query: Query<(Entity, &Transform, &Bullet)>,
     tree: Res<KDTree2>,
-    mut writer: MessageWriter<CollisionMessage>,
+    mut writer: MessageWriter<BulletHitEnemyMessage>,
 ) {
     if bullet_query.is_empty() {
         return;
     }
 
-    for (bullet_entity, bullet_transform, _) in bullet_query.iter() {
+    for (bullet_entity, bullet_transform, bullet) in bullet_query.iter() {
         let bullet_pos = bullet_transform.translation.truncate();
 
         if let Some((nearest_pos, enemy_entity)) = tree.nearest_neighbour(bullet_pos)
             && bullet_pos.distance(nearest_pos) <= config::COLLISION_RADIUS
         {
-            writer.write(CollisionMessage {
-                entity_a: bullet_entity,
-                entity_b: enemy_entity,
-                position: bullet_pos,
-                kind: CollisionKind::DamageEnemy,
+            writer.write(BulletHitEnemyMessage {
+                enemy: enemy_entity,
+                damage: bullet.damage,
             });
             commands.entity(bullet_entity).despawn();
         }

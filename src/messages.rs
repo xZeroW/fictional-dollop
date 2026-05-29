@@ -8,10 +8,15 @@ pub struct CollisionMessage {
     pub kind: CollisionKind,
 }
 
+#[derive(Message, Debug, Clone)]
+pub struct BulletHitEnemyMessage {
+    pub enemy: Entity,
+    pub damage: f32,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum CollisionKind {
     DamagePlayer,
-    DamageEnemy,
 }
 
 #[derive(Message, Debug, Clone)]

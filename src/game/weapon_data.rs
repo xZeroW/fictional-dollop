@@ -12,7 +12,7 @@ pub struct Weapons(pub HashMap<String, WeaponData>);
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct WeaponData {
     pub name: String,
-    pub damage: i32,
+    pub damage: f32,
     pub velocity: f32,
     pub cooldown: f32,
     pub scale: f32,

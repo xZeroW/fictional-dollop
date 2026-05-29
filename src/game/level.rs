@@ -5,7 +5,6 @@ use bevy::prelude::*;
 use crate::{
     assets::{AudioAssets, CharacterAssets},
     audio::music,
-    components::Player,
     enemies::EnemySpawner,
     game::player::player,
     screens::Screen,
@@ -56,12 +55,6 @@ pub fn spawn_level(
             Name::new("Gameplay Music"),
             music(audio_assets.background.clone()),
         ));
-    });
-
-    commands.entity(player_entity).insert(Player {
-        weapon: "dagger".to_string(),
-        attack_range: 200.0,
-        last_shot_time: 0.0,
     });
 }
 

@@ -1,7 +1,7 @@
 ({
     "dagger": (
         name: "Dagger",
-        damage: 10,
+        damage: 10.0,
         velocity: 600.0,
         cooldown: 0.2,
         scale: 2.0,
@@ -11,7 +11,7 @@
     ),
     "sword": (
         name: "Sword",
-        damage: 20,
+        damage: 20.0,
         velocity: 800.0,
         cooldown: 0.5,
         scale: 2.0,

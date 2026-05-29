@@ -50,11 +50,8 @@ fn auto_attack(
     let weapon_data = match weapons.0.get(&player.weapon) {
         Some(data) => data,
         None => {
-            let default = weapons.0.get("dagger");
-            match default {
-                Some(d) => d,
-                None => return,
-            }
+            warn!("Missing weapon data for '{}'", player.weapon);
+            return;
         }
     };
 
@@ -98,7 +95,8 @@ fn bullet(
 ) -> impl Bundle {
     (
         Name::new("Bullet"),
-        Bullet::new(direction, weapon_data.velocity),
+        Bullet::new(direction, weapon_data.velocity, weapon_data.damage),
+        DespawnOnExit(Screen::Gameplay),
         Sprite::from_atlas_image(
             weapon_assets.sprite.clone(),
             TextureAtlas {

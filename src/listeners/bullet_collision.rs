@@ -1,8 +1,6 @@
 use bevy::prelude::*;
 
-use crate::messages::{ApplyDamageMessage, CollisionKind, CollisionMessage};
-
-use crate::config;
+use crate::messages::{ApplyDamageMessage, BulletHitEnemyMessage};
 
 pub struct BulletCollisionListener;
 
@@ -13,19 +11,13 @@ impl Plugin for BulletCollisionListener {
 }
 
 fn handle_bullet_enemy_collision(
-    mut collision_reader: MessageReader<CollisionMessage>,
+    mut hit_reader: MessageReader<BulletHitEnemyMessage>,
     mut damage_writer: MessageWriter<ApplyDamageMessage>,
 ) {
-    for collision in collision_reader.read() {
-        if collision.kind != CollisionKind::DamageEnemy {
-            continue;
-        }
-
-        let enemy_entity = collision.entity_b;
-
+    for hit in hit_reader.read() {
         damage_writer.write(ApplyDamageMessage {
-            target: enemy_entity,
-            damage: config::BULLET_DAMAGE,
+            target: hit.enemy,
+            damage: hit.damage,
         });
     }
 }

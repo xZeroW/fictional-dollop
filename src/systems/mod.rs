@@ -1,5 +1,6 @@
 mod auto_attack;
 mod bullet;
+mod collision;
 mod flip_sprite;
 mod health;
 mod wave;
@@ -13,6 +14,7 @@ impl Plugin for SystemsPlugin {
         app.add_plugins((
             auto_attack::AutoAttackSystemsPlugin,
             bullet::BulletSystemsPlugin,
+            collision::CollisionSystemsPlugin,
             health::HealthSystemsPlugin,
             wave::WaveSystemsPlugin,
         ));

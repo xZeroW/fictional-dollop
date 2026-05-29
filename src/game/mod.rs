@@ -9,12 +9,10 @@ use leafwing_input_manager::prelude::*;
 
 mod animation;
 pub mod camera;
-pub mod collision;
 pub mod level;
 mod map;
 pub mod movement;
 pub mod player;
-mod spatial;
 pub(crate) mod weapon_data;
 
 use player::PlayerAction;
@@ -25,7 +23,6 @@ pub(super) fn plugin(app: &mut App) {
         InputManagerPlugin::<PlayerAction>::default(),
         animation::plugin,
         camera::CameraPlugin,
-        collision::CollisionPlugin,
         level::plugin,
         movement::plugin,
         player::plugin,

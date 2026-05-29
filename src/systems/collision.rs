@@ -1,17 +1,78 @@
 use bevy::prelude::*;
+use kd_tree::{KdPoint, KdTree};
+use typenum::U2;
 
 use crate::{
     AppSystems, PausableSystems,
     components::{Bullet, Enemy, Player},
     config,
-    game::spatial::{Collidable, KDTree2},
     messages::{CollisionKind, CollisionMessage},
     screens::Screen,
 };
 
-pub struct CollisionPlugin;
+#[derive(Clone)]
+struct Collidable {
+    pos: [f32; 2],
+    entity: Entity,
+}
 
-impl Plugin for CollisionPlugin {
+impl KdPoint for Collidable {
+    type Scalar = f32;
+    type Dim = U2;
+
+    fn at(&self, k: usize) -> f32 {
+        self.pos[k]
+    }
+}
+
+#[derive(Resource)]
+struct KDTree2 {
+    tree: KdTree<Collidable>,
+}
+
+impl Default for KDTree2 {
+    fn default() -> Self {
+        Self {
+            tree: KdTree::build_by_ordered_float(vec![]),
+        }
+    }
+}
+
+impl KDTree2 {
+    fn rebuild(&mut self, items: Vec<Collidable>) {
+        self.tree = KdTree::build_by_ordered_float(items);
+    }
+
+    fn nearest_neighbour(&self, loc: Vec2) -> Option<(Vec2, Entity)> {
+        if self.tree.is_empty() {
+            return None;
+        }
+        let key = [loc.x, loc.y];
+        if let Some(found) = self.tree.nearest(&key) {
+            let item = found.item;
+            let pos = Vec2::new(item.pos[0], item.pos[1]);
+            return Some((pos, item.entity));
+        }
+        None
+    }
+
+    #[allow(dead_code)]
+    fn within_distance(&self, loc: Vec2, distance: f32) -> Vec<(Vec2, Entity)> {
+        if self.tree.is_empty() {
+            return vec![];
+        }
+        let key = [loc.x, loc.y];
+        let found = self.tree.within_radius(&key, distance);
+        found
+            .into_iter()
+            .map(|c| (Vec2::new(c.pos[0], c.pos[1]), c.entity))
+            .collect()
+    }
+}
+
+pub(super) struct CollisionSystemsPlugin;
+
+impl Plugin for CollisionSystemsPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(KDTree2::default()).add_systems(
             Update,

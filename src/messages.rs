@@ -28,7 +28,10 @@ pub struct ApplyDamageMessage {
 #[derive(Message, Debug, Clone)]
 pub struct DamageMessage {
     pub target: Entity,
+    /// Damage that was actually applied after clamping to remaining health.
     pub damage: f32,
+    pub remaining_health: f32,
+    pub killed: bool,
 }
 
 #[derive(Message, Debug, Clone)]

@@ -1,15 +1,23 @@
 use bevy::prelude::*;
 
 use crate::{
+    AppSystems, PausableSystems,
     components::{AttackCooldown, Damage, Enemy},
     messages::{ApplyDamageMessage, CollisionKind, CollisionMessage},
+    screens::Screen,
 };
 
 pub struct PlayerCollisionListener;
 
 impl Plugin for PlayerCollisionListener {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, handle_enemy_player_collision);
+        app.add_systems(
+            Update,
+            handle_enemy_player_collision
+                .in_set(AppSystems::CollisionEvents)
+                .in_set(PausableSystems)
+                .run_if(in_state(Screen::Gameplay)),
+        );
     }
 }
 

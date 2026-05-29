@@ -24,15 +24,14 @@ impl Health {
         self.current <= 0.0
     }
 
-    pub fn apply_damage(&mut self, damage: f32) {
-        if self.current <= 0.0 {
-            return;
+    pub fn apply_damage(&mut self, damage: f32) -> f32 {
+        if self.current <= 0.0 || damage <= 0.0 {
+            return 0.0;
         }
 
-        self.current -= damage;
-        if self.current < 0.0 {
-            self.current = 0.0;
-        }
+        let applied = damage.min(self.current);
+        self.current -= applied;
+        applied
     }
 
     pub fn heal(&mut self, amount: f32) {

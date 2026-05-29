@@ -1,12 +1,22 @@
 use bevy::prelude::*;
 
-use crate::messages::{ApplyDamageMessage, BulletHitEnemyMessage};
+use crate::{
+    AppSystems, PausableSystems,
+    messages::{ApplyDamageMessage, BulletHitEnemyMessage},
+    screens::Screen,
+};
 
 pub struct BulletCollisionListener;
 
 impl Plugin for BulletCollisionListener {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, handle_bullet_enemy_collision);
+        app.add_systems(
+            Update,
+            handle_bullet_enemy_collision
+                .in_set(AppSystems::CollisionEvents)
+                .in_set(PausableSystems)
+                .run_if(in_state(Screen::Gameplay)),
+        );
     }
 }
 

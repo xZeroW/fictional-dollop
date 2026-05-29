@@ -1,12 +1,18 @@
 use bevy::prelude::*;
 
-use crate::messages::EntityDiedMessage;
+use crate::{AppSystems, PausableSystems, messages::EntityDiedMessage, screens::Screen};
 
 pub struct DeathListener;
 
 impl Plugin for DeathListener {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, handle_death);
+        app.add_systems(
+            Update,
+            handle_death
+                .in_set(AppSystems::DeathEvents)
+                .in_set(PausableSystems)
+                .run_if(in_state(Screen::Gameplay)),
+        );
     }
 }
 

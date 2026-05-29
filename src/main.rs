@@ -77,6 +77,10 @@ impl Plugin for AppPlugin {
                 AppSystems::Update,
                 AppSystems::SpatialIndex,
                 AppSystems::SpatialQueries,
+                AppSystems::CollisionEvents,
+                AppSystems::ApplyDamage,
+                AppSystems::DamageEvents,
+                AppSystems::DeathEvents,
                 AppSystems::WaveTransitions,
             )
                 .chain(),
@@ -104,6 +108,14 @@ enum AppSystems {
     SpatialIndex,
     /// Run systems that query shared spatial indexes.
     SpatialQueries,
+    /// Convert collision and hit messages into gameplay effects.
+    CollisionEvents,
+    /// Apply pending damage to health components.
+    ApplyDamage,
+    /// Run reactions to applied damage.
+    DamageEvents,
+    /// Run reactions to entity deaths.
+    DeathEvents,
     /// Process wave transitions after gameplay updates.
     WaveTransitions,
 }

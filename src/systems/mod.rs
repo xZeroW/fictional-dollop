@@ -1,3 +1,4 @@
+mod animation;
 mod auto_attack;
 mod bullet;
 mod collision;
@@ -8,11 +9,14 @@ mod wave;
 
 use bevy::prelude::*;
 
+pub(crate) use animation::PlayerAnimation;
+
 pub struct SystemsPlugin;
 
 impl Plugin for SystemsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
+            animation::AnimationSystemsPlugin,
             auto_attack::AutoAttackSystemsPlugin,
             bullet::BulletSystemsPlugin,
             collision::CollisionSystemsPlugin,

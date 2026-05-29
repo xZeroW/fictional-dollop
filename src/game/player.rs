@@ -8,7 +8,7 @@ use crate::{
     AppSystems, PausableSystems,
     assets::CharacterAssets,
     components::{Health, Movement, Player},
-    game::animation::PlayerAnimation,
+    systems::PlayerAnimation,
 };
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]

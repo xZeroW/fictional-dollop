@@ -7,7 +7,6 @@ use bevy::prelude::*;
 use bevy_gauge::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-mod animation;
 pub mod camera;
 pub mod level;
 mod map;
@@ -20,7 +19,6 @@ pub(super) fn plugin(app: &mut App) {
     app.init_resource::<crate::config::GameConfig>();
     app.add_plugins((
         InputManagerPlugin::<PlayerAction>::default(),
-        animation::plugin,
         camera::CameraPlugin,
         level::plugin,
         player::plugin,

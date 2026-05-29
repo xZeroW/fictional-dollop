@@ -57,17 +57,21 @@ impl EnemySpawner {
 #[derive(Resource)]
 pub struct EnemiesDataHandle(pub Handle<Enemies>);
 
-pub(super) fn plugin(app: &mut App) {
-    app.add_plugins((
-        data::EnemyDataPlugin,
-        assets::EnemyAssetsPlugin,
-        systems::SystemsPlugin,
-    ));
-    app.add_systems(OnEnter(crate::screens::Screen::Loading), load_enemies_data);
-    app.add_systems(
-        OnEnter(crate::screens::Screen::Loading),
-        load_enemy_visuals_data,
-    );
+pub(super) struct EnemiesPlugin;
+
+impl Plugin for EnemiesPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins((
+            data::EnemyDataPlugin,
+            assets::EnemyAssetsPlugin,
+            systems::SystemsPlugin,
+        ));
+        app.add_systems(OnEnter(crate::screens::Screen::Loading), load_enemies_data);
+        app.add_systems(
+            OnEnter(crate::screens::Screen::Loading),
+            load_enemy_visuals_data,
+        );
+    }
 }
 
 fn load_enemies_data(mut commands: Commands, server: Res<AssetServer>) {

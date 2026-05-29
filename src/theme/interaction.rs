@@ -11,21 +11,25 @@ struct InteractionAssets {
     click: Handle<AudioSource>,
 }
 
-pub(super) fn plugin(app: &mut App) {
-    app.add_loading_state(
-        LoadingState::new(Screen::Splash)
-            .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
-                "data/interaction.assets.ron",
-            )
-            .load_collection::<InteractionAssets>(),
-    );
+pub(super) struct InteractionPlugin;
 
-    app.add_observer(apply_interaction_palette_on_click);
-    app.add_observer(apply_interaction_palette_on_over);
-    app.add_observer(apply_interaction_palette_on_out);
+impl Plugin for InteractionPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_loading_state(
+            LoadingState::new(Screen::Splash)
+                .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
+                    "data/interaction.assets.ron",
+                )
+                .load_collection::<InteractionAssets>(),
+        );
 
-    app.add_observer(play_sound_effect_on_click);
-    app.add_observer(play_sound_effect_on_over);
+        app.add_observer(apply_interaction_palette_on_click);
+        app.add_observer(apply_interaction_palette_on_over);
+        app.add_observer(apply_interaction_palette_on_out);
+
+        app.add_observer(play_sound_effect_on_click);
+        app.add_observer(play_sound_effect_on_over);
+    }
 }
 
 /// Palette for widget interactions. Add this to an entity that supports

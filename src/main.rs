@@ -47,21 +47,21 @@ impl Plugin for AppPlugin {
 
         // Add other plugins.
         app.add_plugins((
-            assets::plugin,
-            audio::plugin,
-            game::plugin,
-            hud::plugin,
+            assets::AssetsPlugin,
+            audio::AudioPlugin,
+            game::GamePlugin,
+            hud::HudPlugin,
             SystemsPlugin,
             ListenersPlugin,
-            menus::plugin,
-            screens::plugin,
-            theme::plugin,
-            enemies::plugin,
+            menus::MenusPlugin,
+            screens::ScreensPlugin,
+            theme::ThemePlugin,
+            enemies::EnemiesPlugin,
         ));
 
         app.add_plugins((
             #[cfg(feature = "dev")]
-            dev_tools::plugin,
+            dev_tools::DevToolsPlugin,
         ));
 
         // Order new `AppSystems` variants by adding them here:

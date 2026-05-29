@@ -14,6 +14,10 @@ pub mod prelude {
 
 use bevy::prelude::*;
 
-pub(super) fn plugin(app: &mut App) {
-    app.add_plugins(interaction::plugin);
+pub(super) struct ThemePlugin;
+
+impl Plugin for ThemePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(interaction::InteractionPlugin);
+    }
 }

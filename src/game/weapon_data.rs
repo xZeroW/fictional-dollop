@@ -21,9 +21,13 @@ pub struct WeaponData {
     pub fire_sound_key: String,
 }
 
-pub(super) fn plugin(app: &mut App) {
-    app.add_plugins(RonAssetPlugin::<Weapons>::new(&["weapon_data.ron"]));
-    app.add_systems(OnEnter(Screen::Loading), load_weapon_data);
+pub(super) struct WeaponDataPlugin;
+
+impl Plugin for WeaponDataPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(RonAssetPlugin::<Weapons>::new(&["weapon_data.ron"]));
+        app.add_systems(OnEnter(Screen::Loading), load_weapon_data);
+    }
 }
 
 #[derive(Resource)]

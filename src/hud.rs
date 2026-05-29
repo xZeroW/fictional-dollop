@@ -25,16 +25,20 @@ struct PlayerHealthFill {
 #[derive(Component)]
 struct PlayerHealthText;
 
-pub(super) fn plugin(app: &mut App) {
-    app.add_plugins(UiLunexPlugins);
-    app.add_systems(Startup, spawn_hud_camera);
-    app.add_systems(OnEnter(Screen::Gameplay), spawn_hud);
-    app.add_systems(
-        Update,
-        update_player_health_hud
-            .in_set(AppSystems::Update)
-            .run_if(in_state(Screen::Gameplay)),
-    );
+pub(super) struct HudPlugin;
+
+impl Plugin for HudPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(UiLunexPlugins);
+        app.add_systems(Startup, spawn_hud_camera);
+        app.add_systems(OnEnter(Screen::Gameplay), spawn_hud);
+        app.add_systems(
+            Update,
+            update_player_health_hud
+                .in_set(AppSystems::Update)
+                .run_if(in_state(Screen::Gameplay)),
+        );
+    }
 }
 
 fn spawn_hud_camera(mut commands: Commands) {

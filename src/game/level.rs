@@ -17,9 +17,13 @@ pub struct Level;
 #[derive(Resource)]
 pub struct LevelEntity(pub Entity);
 
-pub(super) fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(Screen::Gameplay), spawn_level);
-    app.add_systems(OnExit(Screen::Gameplay), remove_level_resources);
+pub(super) struct LevelPlugin;
+
+impl Plugin for LevelPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(Screen::Gameplay), spawn_level);
+        app.add_systems(OnExit(Screen::Gameplay), remove_level_resources);
+    }
 }
 
 /// A system that spawns the main level.

@@ -4,8 +4,12 @@ use bevy::prelude::*;
 
 use crate::{menus::Menu, screens::Screen, theme::widget};
 
-pub(super) fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(Menu::Main), spawn_main_menu);
+pub(super) struct MainMenuPlugin;
+
+impl Plugin for MainMenuPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(Menu::Main), spawn_main_menu);
+    }
 }
 
 fn spawn_main_menu(mut commands: Commands) {

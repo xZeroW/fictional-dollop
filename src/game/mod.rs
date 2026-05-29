@@ -15,15 +15,19 @@ pub(crate) mod weapon_data;
 
 use player::PlayerAction;
 
-pub(super) fn plugin(app: &mut App) {
-    app.init_resource::<crate::config::GameConfig>();
-    app.add_plugins((
-        InputManagerPlugin::<PlayerAction>::default(),
-        camera::CameraPlugin,
-        level::plugin,
-        player::plugin,
-        weapon_data::plugin,
-        map::MapPlugin,
-        AttributesPlugin,
-    ));
+pub(super) struct GamePlugin;
+
+impl Plugin for GamePlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<crate::config::GameConfig>();
+        app.add_plugins((
+            InputManagerPlugin::<PlayerAction>::default(),
+            camera::CameraPlugin,
+            level::LevelPlugin,
+            player::PlayerPlugin,
+            weapon_data::WeaponDataPlugin,
+            map::MapPlugin,
+            AttributesPlugin,
+        ));
+    }
 }

@@ -7,18 +7,22 @@ use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
 use crate::screens::Screen;
 
-pub(super) fn plugin(app: &mut App) {
-    // Log `Screen` state transitions.
-    app.add_systems(Update, log_transitions::<Screen>);
+pub(super) struct DevToolsPlugin;
 
-    // Toggle the debug overlay for UI.
-    app.add_systems(
-        Update,
-        toggle_debug_ui.run_if(input_just_pressed(TOGGLE_KEY)),
-    );
+impl Plugin for DevToolsPlugin {
+    fn build(&self, app: &mut App) {
+        // Log `Screen` state transitions.
+        app.add_systems(Update, log_transitions::<Screen>);
 
-    // Add the world inspector, which allows inspecting and editing the world at runtime.
-    app.add_plugins((EguiPlugin::default(), WorldInspectorPlugin::new()));
+        // Toggle the debug overlay for UI.
+        app.add_systems(
+            Update,
+            toggle_debug_ui.run_if(input_just_pressed(TOGGLE_KEY)),
+        );
+
+        // Add the world inspector, which allows inspecting and editing the world at runtime.
+        app.add_plugins((EguiPlugin::default(), WorldInspectorPlugin::new()));
+    }
 }
 
 const TOGGLE_KEY: KeyCode = KeyCode::Backquote;

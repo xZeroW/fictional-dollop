@@ -19,16 +19,20 @@ pub enum PlayerAction {
     Right,
 }
 
-pub(super) fn plugin(app: &mut App) {
-    app.add_systems(
-        Update,
-        (
-            record_player_input
-                .in_set(AppSystems::RecordInput)
-                .in_set(PausableSystems),
-            init_player_health_from_vitality,
-        ),
-    );
+pub(super) struct PlayerPlugin;
+
+impl Plugin for PlayerPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (
+                record_player_input
+                    .in_set(AppSystems::RecordInput)
+                    .in_set(PausableSystems),
+                init_player_health_from_vitality,
+            ),
+        );
+    }
 }
 
 fn init_player_health_from_vitality(

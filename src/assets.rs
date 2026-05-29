@@ -36,20 +36,26 @@ pub struct EnemyAssets {
     pub layouts: HashMap<String, Handle<TextureAtlasLayout>>,
 }
 
-pub fn plugin(app: &mut App) {
-    app.init_resource::<EnemyAssets>();
-    app.add_loading_state(
-        LoadingState::new(Screen::Loading)
-            .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
-                "data/characters.assets.ron",
-            )
-            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/audio.assets.ron")
-            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/weapon.assets.ron")
-            .load_collection::<CharacterAssets>()
-            .load_collection::<AudioAssets>()
-            .load_collection::<WeaponAssets>()
-            .continue_to_state(Screen::Gameplay),
-    );
+pub(super) struct AssetsPlugin;
+
+impl Plugin for AssetsPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<EnemyAssets>();
+        app.add_loading_state(
+            LoadingState::new(Screen::Loading)
+                .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
+                    "data/characters.assets.ron",
+                )
+                .with_dynamic_assets_file::<StandardDynamicAssetCollection>("data/audio.assets.ron")
+                .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
+                    "data/weapon.assets.ron",
+                )
+                .load_collection::<CharacterAssets>()
+                .load_collection::<AudioAssets>()
+                .load_collection::<WeaponAssets>()
+                .continue_to_state(Screen::Gameplay),
+        );
+    }
 }
 
 impl EnemyAssets {

@@ -3,11 +3,8 @@ use bevy::prelude::*;
 use crate::{
     AppSystems, PausableSystems,
     assets::WeaponAssets,
-    components::{Enemy, Player},
-    game::{
-        weapon::bullet,
-        weapon_data::{Weapons, WeaponsHandle},
-    },
+    components::{Bullet, Enemy, Player},
+    game::weapon_data::{WeaponData, Weapons, WeaponsHandle},
     screens::Screen,
 };
 
@@ -91,4 +88,25 @@ fn auto_attack(
     player.last_shot_time = current_time;
 
     commands.spawn(bullet(&weapon_assets, weapon_data, player_pos, direction));
+}
+
+fn bullet(
+    weapon_assets: &WeaponAssets,
+    weapon_data: &WeaponData,
+    position: Vec2,
+    direction: Vec2,
+) -> impl Bundle {
+    (
+        Name::new("Bullet"),
+        Bullet::new(direction, weapon_data.velocity),
+        Sprite::from_atlas_image(
+            weapon_assets.sprite.clone(),
+            TextureAtlas {
+                layout: weapon_assets.layout.clone(),
+                index: weapon_data.bullet_sprite_index,
+            },
+        ),
+        Transform::from_translation(position.extend(10.0))
+            .with_scale(Vec3::splat(weapon_data.scale)),
+    )
 }

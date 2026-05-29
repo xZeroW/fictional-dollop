@@ -15,7 +15,6 @@ mod map;
 pub mod movement;
 pub mod player;
 mod spatial;
-pub mod weapon;
 pub(crate) mod weapon_data;
 
 use player::PlayerAction;

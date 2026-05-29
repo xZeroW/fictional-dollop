@@ -2,12 +2,9 @@ use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
-    components::{Enemy, Player},
+    components::{Bullet, Enemy, Player},
     config,
-    game::{
-        spatial::{Collidable, KDTree2},
-        weapon::Bullet,
-    },
+    game::spatial::{Collidable, KDTree2},
     messages::{CollisionKind, CollisionMessage},
     screens::Screen,
 };

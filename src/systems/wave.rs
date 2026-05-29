@@ -68,4 +68,5 @@ fn advance_wave_timer(
     }
 
     wave_state.current_wave += 1;
+    println!("Wave {:?} started!", wave_state.current_wave)
 }

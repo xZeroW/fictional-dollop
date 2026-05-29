@@ -84,6 +84,7 @@ use crate::{
 | Variables | snake_case | `let max_speed` |
 | Constants | SCREAMING_SNAKE_CASE | `const MAX_SPEED: f32 = 400.0;` |
 | Component markers | PascalCase + descriptive | `struct Player;` |
+| Component files | snake_case | `c_player.rs`|
 | System sets | PascalCase | `enum AppSystems` |
 
 ### Types and Bevy Patterns

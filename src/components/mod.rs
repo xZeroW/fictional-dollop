@@ -5,8 +5,6 @@ mod c_player;
 mod char_state;
 mod damage;
 mod health;
-mod position;
-mod stats;
 
 pub use c_bullet::Bullet;
 pub use c_enemy::{Behavior, Enemy, WanderState};

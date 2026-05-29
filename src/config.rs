@@ -31,5 +31,4 @@ pub const TILE_SIZE: f32 = 64.0;
 pub const MAP_MARGIN: f32 = 64.0;
 
 pub const COLLISION_RADIUS: f32 = 20.0;
-pub const ENEMY_DAMAGE: f32 = 10.0;
 pub const KD_TREE_REFRESH_RATE: f32 = 0.1;

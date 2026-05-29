@@ -9,6 +9,7 @@ use crate::screens::Screen;
 #[derive(serde::Deserialize, Asset, TypePath)]
 pub struct Weapons(pub HashMap<String, WeaponData>);
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct WeaponData {
     pub name: String,

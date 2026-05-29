@@ -27,6 +27,7 @@ pub struct WeaponAssets {
     #[asset(key = "weapon.layout")]
     pub layout: Handle<TextureAtlasLayout>,
     #[asset(key = "weapon.fire_sound")]
+    #[allow(dead_code)]
     pub fire_sound: Handle<AudioSource>,
 }
 

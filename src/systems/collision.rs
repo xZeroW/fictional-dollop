@@ -45,7 +45,6 @@ fn check_player_enemy_collisions(
         writer.write(CollisionMessage {
             entity_a: player_entity,
             entity_b: enemy_entity,
-            position: player_pos,
             kind: CollisionKind::DamagePlayer,
         });
     }

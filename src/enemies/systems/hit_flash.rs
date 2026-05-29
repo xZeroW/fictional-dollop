@@ -41,7 +41,7 @@ pub fn update_hit_flash(
         }
 
         let phase = (flash.timer.elapsed_secs() / HitFlash::FLASH_INTERVAL) as usize;
-        sprite.color = if phase % 2 == 0 {
+        sprite.color = if phase.is_multiple_of(2) {
             HitFlash::FLASH_COLOR
         } else {
             let mut transparent_white = HitFlash::FLASH_COLOR;

@@ -5,9 +5,9 @@ use crate::{
     screens::Screen,
 };
 
-pub struct DamageListener;
+pub struct DamageListenerPlugin;
 
-impl Plugin for DamageListener {
+impl Plugin for DamageListenerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

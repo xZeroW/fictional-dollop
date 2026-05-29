@@ -13,10 +13,10 @@ impl Plugin for ListenersPlugin {
         app.init_resource::<Messages<CollisionMessage>>();
         app.init_resource::<Messages<BulletHitEnemyMessage>>();
         app.add_plugins((
-            damage::DamageListener,
-            death::DeathListener,
-            bullet_collision::BulletCollisionListener,
-            player_collision::PlayerCollisionListener,
+            damage::DamageListenerPlugin,
+            death::DeathListenerPlugin,
+            bullet_collision::BulletCollisionListenerPlugin,
+            player_collision::PlayerCollisionListenerPlugin,
         ));
     }
 }

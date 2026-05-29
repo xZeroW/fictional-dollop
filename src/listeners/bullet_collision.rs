@@ -6,9 +6,9 @@ use crate::{
     screens::Screen,
 };
 
-pub struct BulletCollisionListener;
+pub struct BulletCollisionListenerPlugin;
 
-impl Plugin for BulletCollisionListener {
+impl Plugin for BulletCollisionListenerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

@@ -2,9 +2,9 @@ use bevy::prelude::*;
 
 use crate::{AppSystems, PausableSystems, messages::EntityDiedMessage, screens::Screen};
 
-pub struct DeathListener;
+pub struct DeathListenerPlugin;
 
-impl Plugin for DeathListener {
+impl Plugin for DeathListenerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

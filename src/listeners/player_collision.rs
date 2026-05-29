@@ -7,9 +7,9 @@ use crate::{
     screens::Screen,
 };
 
-pub struct PlayerCollisionListener;
+pub struct PlayerCollisionListenerPlugin;
 
-impl Plugin for PlayerCollisionListener {
+impl Plugin for PlayerCollisionListenerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

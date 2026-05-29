@@ -16,7 +16,7 @@ pub mod movement;
 pub mod player;
 mod spatial;
 pub mod weapon;
-mod weapon_data;
+pub(crate) mod weapon_data;
 
 use player::PlayerAction;
 
@@ -30,7 +30,6 @@ pub(super) fn plugin(app: &mut App) {
         level::plugin,
         movement::plugin,
         player::plugin,
-        weapon::plugin,
         weapon_data::plugin,
         map::MapPlugin,
         AttributesPlugin,

@@ -36,34 +36,6 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
 
-  # Check documentation.
-  docs:
-    name: Docs
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ env.toolchain }}
-
-      - name: Restore Rust cache
-        id: cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: ci
-          save-if: false
-
-      - name: Install build dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
-
-      - name: Check documentation
-        run: cargo doc --locked --workspace --profile ci --all-features --document-private-items --no-deps
-
   # Run Clippy lints.
   clippy-lints:
     name: Clippy lints
@@ -152,3 +124,62 @@ jobs:
 
       - name: Run tests
         run: cargo test --locked --workspace --all-targets --profile ci --no-fail-fast
+
+  # Build documentation after the other checks and publish it from main.
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs:
+      - format
+      - clippy-lints
+      - bevy-lints
+      - tests
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.toolchain }}
+
+      - name: Restore Rust cache
+        id: cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ci
+          save-if: false
+
+      - name: Install build dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
+
+      - name: Build documentation
+        run: cargo doc --locked --workspace --profile ci --all-features --document-private-items --no-deps
+
+      - name: Add documentation redirect
+        run: printf '<meta http-equiv="refresh" content="0; url=my_game/index.html">\n' > target/doc/index.html
+
+      - name: Upload documentation to Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/doc
+
+  # Publish documentation after it has been built on main.
+  deploy-docs:
+    name: Deploy docs
+    runs-on: ubuntu-latest
+    needs: docs
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy documentation to Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

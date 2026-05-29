@@ -1,9 +1,11 @@
 use bevy::prelude::*;
 
+use super::enemy_spatial::EnemySpatialIndex;
+
 use crate::{
     AppSystems, PausableSystems,
     assets::WeaponAssets,
-    components::{Bullet, Enemy, Player},
+    components::{Bullet, Player},
     game::weapon_data::{WeaponData, Weapons, WeaponsHandle},
     screens::Screen,
 };
@@ -15,7 +17,7 @@ impl Plugin for AutoAttackSystemsPlugin {
         app.add_systems(
             Update,
             auto_attack
-                .in_set(AppSystems::Update)
+                .in_set(AppSystems::SpatialQueries)
                 .in_set(PausableSystems)
                 .run_if(in_state(Screen::Gameplay)),
         );
@@ -25,7 +27,7 @@ impl Plugin for AutoAttackSystemsPlugin {
 fn auto_attack(
     mut commands: Commands,
     mut player_query: Query<(&GlobalTransform, &mut Player)>,
-    enemy_query: Query<(Entity, &GlobalTransform), With<Enemy>>,
+    spatial_index: Res<EnemySpatialIndex>,
     time: Res<Time>,
     weapon_assets: Res<WeaponAssets>,
     weapons_handle: Res<WeaponsHandle>,
@@ -60,20 +62,7 @@ fn auto_attack(
         return;
     }
 
-    let mut nearest_enemy: Option<(Entity, Vec2)> = None;
-    let mut nearest_distance_sq = player.attack_range * player.attack_range;
-
-    for (enemy_entity, enemy_gt) in enemy_query.iter() {
-        let enemy_pos = enemy_gt.translation().truncate();
-        let dist_sq = player_pos.distance_squared(enemy_pos);
-
-        if dist_sq <= nearest_distance_sq {
-            nearest_distance_sq = dist_sq;
-            nearest_enemy = Some((enemy_entity, enemy_pos));
-        }
-    }
-
-    let Some((_, enemy_pos)) = nearest_enemy else {
+    let Some((_, enemy_pos)) = spatial_index.nearest_enemy(player_pos, player.attack_range) else {
         return;
     };
 

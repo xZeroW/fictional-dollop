@@ -12,10 +12,10 @@ impl Plugin for DeathListener {
 
 fn handle_death(mut reader: MessageReader<EntityDiedMessage>) {
     for msg in reader.read() {
+        let _ = msg.entity;
+
         if msg.is_player {
             println!("Player died!");
-        } else {
-            println!("Enemy died!");
         }
     }
 }

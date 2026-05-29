@@ -12,6 +12,6 @@ impl Plugin for DamageListener {
 
 fn handle_damage(mut reader: MessageReader<DamageMessage>) {
     for msg in reader.read() {
-        println!("Entity {:?} took {} damage", msg.target, msg.damage);
+        let _ = (msg.target, msg.damage);
     }
 }

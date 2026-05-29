@@ -2,6 +2,7 @@ mod animation;
 mod auto_attack;
 mod bullet;
 mod collision;
+mod enemy_spatial;
 mod flip_sprite;
 mod health;
 mod movement;
@@ -20,6 +21,7 @@ impl Plugin for SystemsPlugin {
             auto_attack::AutoAttackSystemsPlugin,
             bullet::BulletSystemsPlugin,
             collision::CollisionSystemsPlugin,
+            enemy_spatial::EnemySpatialPlugin,
             health::HealthSystemsPlugin,
             movement::MovementSystemsPlugin,
             wave::WaveSystemsPlugin,

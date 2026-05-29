@@ -1,7 +1,10 @@
 // Support configuring Bevy lints within code.
 #![cfg_attr(bevy_lint, feature(register_tool), register_tool(bevy))]
 // Disable console on Windows outside debug dev builds.
-#![cfg_attr(not(all(feature = "dev", debug_assertions)), windows_subsystem = "windows")]
+#![cfg_attr(
+    not(all(feature = "dev", debug_assertions)),
+    windows_subsystem = "windows"
+)]
 
 mod assets;
 mod audio;
@@ -22,7 +25,7 @@ mod theme;
 use listeners::ListenersPlugin;
 use systems::SystemsPlugin;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, window::PresentMode};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -38,6 +41,7 @@ impl Plugin for AppPlugin {
                 primary_window: Window {
                     title: "My game".to_string(),
                     fit_canvas_to_parent: true,
+                    present_mode: PresentMode::AutoNoVsync,
                     ..default()
                 }
                 .into(),
@@ -71,6 +75,8 @@ impl Plugin for AppPlugin {
                 AppSystems::TickTimers,
                 AppSystems::RecordInput,
                 AppSystems::Update,
+                AppSystems::SpatialIndex,
+                AppSystems::SpatialQueries,
                 AppSystems::WaveTransitions,
             )
                 .chain(),
@@ -94,6 +100,10 @@ enum AppSystems {
     RecordInput,
     /// Do everything else (consider splitting this into further variants).
     Update,
+    /// Rebuild shared spatial indexes after normal gameplay updates.
+    SpatialIndex,
+    /// Run systems that query shared spatial indexes.
+    SpatialQueries,
     /// Process wave transitions after gameplay updates.
     WaveTransitions,
 }

@@ -5,12 +5,14 @@ use crate::{
     AppSystems,
     components::{Health, Player},
     screens::Screen,
+    systems::{MonsterProgression, WaveState},
 };
 
 const HEALTH_FILL_COLOR: Color = Color::srgb(0.82, 0.13, 0.16);
 const HEALTH_BACK_COLOR: Color = Color::srgba(0.07, 0.05, 0.06, 0.92);
 const HEALTH_FRAME_COLOR: Color = Color::srgba(0.02, 0.018, 0.02, 0.88);
 const HEALTH_TEXT_COLOR: Color = Color::srgb(0.96, 0.88, 0.78);
+const RUN_TEXT_COLOR: Color = Color::srgb(0.84, 0.92, 0.96);
 const HUD_CAMERA_ORDER: isize = 10;
 const HUD_RENDER_LAYER: usize = 1;
 
@@ -24,6 +26,9 @@ struct PlayerHealthFill {
 
 #[derive(Component)]
 struct PlayerHealthText;
+
+#[derive(Component)]
+struct RunStatsText;
 
 pub(super) struct HudPlugin;
 
@@ -84,6 +89,23 @@ fn spawn_hud(mut commands: Commands, camera: Query<Entity, With<HudCamera>>) {
                 Pickable::IGNORE,
             ))
             .with_children(|ui| {
+                ui.spawn((
+                    Name::new("Run Stats Text"),
+                    RunStatsText,
+                    UiLayout::window()
+                        .pos((Rl(0.0), Rl(0.0)))
+                        .anchor(Anchor::TOP_LEFT)
+                        .pack(),
+                    UiTextSize::from(Rh(3.0)),
+                    UiDepth::Set(20.0),
+                    NoLunexPicking,
+                    Text2d::new(""),
+                    TextFont::from_font_size(48.0),
+                    TextColor(RUN_TEXT_COLOR),
+                    RenderLayers::layer(HUD_RENDER_LAYER),
+                    Pickable::IGNORE,
+                ));
+
                 ui.spawn((
                     Name::new("Player Health Panel"),
                     UiLayout::window()
@@ -156,6 +178,9 @@ fn update_player_health_hud(
     player_health: Query<&Health, With<Player>>,
     mut fill: Query<(&mut UiLayout, &mut PlayerHealthFill)>,
     mut text: Query<&mut Text2d, With<PlayerHealthText>>,
+    mut run_stats_text: Query<&mut Text2d, (With<RunStatsText>, Without<PlayerHealthText>)>,
+    wave_state: Res<WaveState>,
+    progression: Res<MonsterProgression>,
 ) {
     let health = player_health.single().ok();
     let (current, max, health_fraction) = health
@@ -179,6 +204,28 @@ fn update_player_health_hud(
 
     if let Ok(mut text) = text.single_mut() {
         let next_text = format!("{current:.0} / {max:.0}");
+        if text.as_str() != next_text {
+            text.0 = next_text;
+        }
+    }
+
+    if let Ok(mut text) = run_stats_text.single_mut() {
+        let time_remaining = (wave_state.timer.duration().as_secs_f32()
+            - wave_state.timer.elapsed_secs())
+        .max(0.0)
+        .ceil();
+        let next_text = format!(
+            "Wave {}  Time {:.0}s\nCorruption {}\nEnemy: HP x{:.2}  DMG x{:.2}  SPD x{:.2}\nRewards: Quantity x{:.2}  Rarity x{:.2}",
+            wave_state.current_wave,
+            time_remaining,
+            progression.corruption,
+            progression.enemy_health_mult,
+            progression.enemy_damage_mult,
+            progression.enemy_speed_mult,
+            progression.reward_quantity_mult,
+            progression.reward_rarity_mult,
+        );
+
         if text.as_str() != next_text {
             text.0 = next_text;
         }

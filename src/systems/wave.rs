@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
-    AppSystems, PausableSystems, components::Enemy, config::WAVE_DURATION, enemies::EnemySpawner,
-    screens::Screen,
+    AppSystems, PausableSystems, Pause, components::Enemy, config::WAVE_DURATION,
+    enemies::EnemySpawner, menus::Menu, screens::Screen,
 };
 
 #[derive(Resource, Reflect)]
@@ -52,6 +52,8 @@ fn advance_wave_timer(
     mut wave_state: ResMut<WaveState>,
     mut spawner: Option<ResMut<EnemySpawner>>,
     enemies: Query<Entity, With<Enemy>>,
+    mut next_menu: ResMut<NextState<Menu>>,
+    mut next_pause: ResMut<NextState<Pause>>,
 ) {
     wave_state.timer.tick(time.delta());
 
@@ -68,5 +70,10 @@ fn advance_wave_timer(
     }
 
     wave_state.current_wave += 1;
-    println!("Wave {:?} started!", wave_state.current_wave)
+    next_pause.set(Pause(true));
+    next_menu.set(Menu::MonsterBuff);
+    info!(
+        "Wave {:?} ready after monster evolution.",
+        wave_state.current_wave
+    );
 }

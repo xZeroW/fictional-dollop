@@ -4,7 +4,10 @@ use bevy::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
 use std::collections::HashMap;
 
-use crate::components::{AttackCooldown, Behavior, Damage, Enemy, Health, Movement, WanderState};
+use crate::{
+    components::{AttackCooldown, Behavior, Damage, Enemy, Health, Movement, WanderState},
+    systems::MonsterProgression,
+};
 
 #[derive(serde::Deserialize, Asset, TypePath)]
 pub struct Enemies(pub HashMap<String, EnemyData>);
@@ -38,6 +41,7 @@ impl EnemyData {
         position: Vec3,
         image: Handle<Image>,
         layout: Handle<TextureAtlasLayout>,
+        progression: &MonsterProgression,
     ) -> impl Bundle {
         let behavior = match self.behavior.as_str() {
             "Wandering" => Behavior::Wandering,
@@ -45,17 +49,20 @@ impl EnemyData {
             "Coward" => Behavior::Coward,
             _ => Behavior::Wandering,
         };
+        let health = self.health * progression.enemy_health_mult;
+        let damage = self.damage * progression.enemy_damage_mult;
+        let speed = self.speed * progression.enemy_speed_mult;
 
         (
             Name::new(self.name.clone()),
             Enemy::new(key.to_string()),
             Health {
-                max: self.health,
-                current: self.health,
+                max: health,
+                current: health,
             },
-            Movement::new(self.speed),
+            Movement::new(speed),
             WanderState::default(),
-            Damage::new(self.damage),
+            Damage::new(damage),
             AttackCooldown::new(self.attack_speed),
             behavior,
             Sprite::from_atlas_image(

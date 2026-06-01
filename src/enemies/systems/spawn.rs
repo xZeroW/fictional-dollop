@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::assets::EnemyAssets;
 use crate::config::{GameConfig, MAP_HEIGHT_TILES, MAP_MARGIN, MAP_WIDTH_TILES, TILE_SIZE};
 use crate::game::level::LevelEntity;
+use crate::systems::MonsterProgression;
 
 use crate::enemies::{Enemies, EnemiesDataHandle, EnemySpawner};
 
@@ -14,6 +15,7 @@ pub fn spawn_enemies(
     enemies_data_assets: Res<Assets<Enemies>>,
     config: Res<GameConfig>,
     enemy_assets: Res<EnemyAssets>,
+    progression: Res<MonsterProgression>,
 ) {
     let enemies_data = enemies_data_assets
         .get(enemies_data_handle.0.id())
@@ -50,7 +52,13 @@ pub fn spawn_enemies(
             let y = min_y + rand::random::<f32>() * (max_y - min_y);
             let spawn_pos = Vec3::new(x, y, 0.0);
 
-            parent.spawn(enemy_data.bundle(enemy_key, spawn_pos, image.clone(), layout.clone()));
+            parent.spawn(enemy_data.bundle(
+                enemy_key,
+                spawn_pos,
+                image.clone(),
+                layout.clone(),
+                &progression,
+            ));
             spawner.spawned_count += 1;
         }
     });

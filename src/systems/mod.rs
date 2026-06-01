@@ -5,12 +5,15 @@ mod collision;
 mod enemy_spatial;
 mod flip_sprite;
 mod health;
+mod monster_progression;
 mod movement;
 mod wave;
 
 use bevy::prelude::*;
 
 pub(crate) use animation::PlayerAnimation;
+pub(crate) use monster_progression::{MONSTER_BUFF_CHOICES, MonsterBuff, MonsterProgression};
+pub(crate) use wave::WaveState;
 
 pub struct SystemsPlugin;
 
@@ -23,6 +26,7 @@ impl Plugin for SystemsPlugin {
             collision::CollisionSystemsPlugin,
             enemy_spatial::EnemySpatialPlugin,
             health::HealthSystemsPlugin,
+            monster_progression::MonsterProgressionPlugin,
             movement::MovementSystemsPlugin,
             wave::WaveSystemsPlugin,
         ));

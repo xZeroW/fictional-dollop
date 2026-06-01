@@ -19,9 +19,10 @@
 
 - Single binary crate `my_game`; app wiring is in `src/main.rs` via `AppPlugin`.
 - Top-level plugins registered in `main.rs`: `AssetsPlugin`, `AudioPlugin`, `GamePlugin`, `HudPlugin`, `SystemsPlugin`, `ListenersPlugin`, `MenusPlugin`, `ScreensPlugin`, `ThemePlugin`, `EnemiesPlugin`, and `DevToolsPlugin` only behind `feature = "dev"`.
-- `src/game/` owns gameplay setup (`level`, `map`, `player`, `weapon_data`); `src/systems/` owns frame systems; `src/listeners/` owns message listeners; `src/enemies/` owns enemy data/assets/systems.
+- `src/game/` owns gameplay setup and templates (`level`, `map`, `player`, `weapon_data`); `src/systems/` owns frame systems, gameplay lifecycle systems, and their run-scoped resources; `src/listeners/` owns message listeners; `src/enemies/` owns enemy data/assets/systems.
 - `Screen` lives in `src/screens/mod.rs`; `Menu` lives in `src/menus/mod.rs`; `Pause(pub bool)` and `AppSystems` live in `src/main.rs`.
 - If adding an `AppSystems` variant, add it to the chained `configure_sets(Update, ...)` order in `main.rs` in the same change.
+- Put gameplay resources with `OnEnter`/`OnExit` lifecycle systems in `src/systems/` (for example wave state or monster progression), not in `src/game/`, unless the module is only setup/template code.
 - Gameplay systems that should pause must be in `PausableSystems`; most should also gate with `run_if(in_state(Screen::Gameplay))`.
 - Level-owned gameplay entities should be parented under `LevelEntity` from `src/game/level.rs`; `Level` has `DespawnOnExit(Screen::Gameplay)` and resources are cleaned up on exit.
 

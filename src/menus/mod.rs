@@ -2,6 +2,7 @@
 
 mod credits;
 mod main;
+mod monster_buff;
 mod pause;
 mod settings;
 
@@ -16,6 +17,7 @@ impl Plugin for MenusPlugin {
         app.add_plugins((
             credits::CreditsMenuPlugin,
             main::MainMenuPlugin,
+            monster_buff::MonsterBuffMenuPlugin,
             settings::SettingsMenuPlugin,
             pause::PauseMenuPlugin,
         ));
@@ -30,4 +32,5 @@ pub enum Menu {
     Credits,
     Settings,
     Pause,
+    MonsterBuff,
 }

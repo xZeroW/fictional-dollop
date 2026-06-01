@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 
-use crate::{AppSystems, PausableSystems, messages::EntityDiedMessage, screens::Screen};
+use crate::{
+    AppSystems, PausableSystems, Pause, menus::Menu, messages::EntityDiedMessage, screens::Screen,
+};
 
 pub struct DeathListenerPlugin;
 
@@ -16,12 +18,17 @@ impl Plugin for DeathListenerPlugin {
     }
 }
 
-fn handle_death(mut reader: MessageReader<EntityDiedMessage>) {
+fn handle_death(
+    mut reader: MessageReader<EntityDiedMessage>,
+    mut next_menu: ResMut<NextState<Menu>>,
+    mut next_pause: ResMut<NextState<Pause>>,
+) {
     for msg in reader.read() {
         let _ = msg.entity;
 
         if msg.is_player {
-            println!("Player died!");
+            next_pause.set(Pause(true));
+            next_menu.set(Menu::GameOver);
         }
     }
 }

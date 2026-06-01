@@ -28,6 +28,20 @@ pub fn ui_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
     )
 }
 
+/// A full-screen overlay used behind modal menus.
+pub fn full_screen_overlay(name: impl Into<Cow<'static, str>>, color: Color) -> impl Bundle {
+    (
+        Name::new(name),
+        Node {
+            width: percent(100),
+            height: percent(100),
+            ..default()
+        },
+        GlobalZIndex(1),
+        BackgroundColor(color),
+    )
+}
+
 /// A simple header label. Bigger than [`label`].
 pub fn header(text: impl Into<String>) -> impl Bundle {
     (

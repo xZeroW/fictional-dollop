@@ -19,6 +19,11 @@ impl Plugin for MonsterBuffMenuPlugin {
 
 fn spawn_monster_buff_menu(mut commands: Commands) {
     commands.spawn((
+        widget::full_screen_overlay("Monster Buff Overlay", Color::srgba(0.02, 0.0, 0.01, 0.86)),
+        DespawnOnExit(Menu::MonsterBuff),
+    ));
+
+    commands.spawn((
         widget::ui_root("Monster Buff Menu"),
         GlobalZIndex(2),
         DespawnOnExit(Menu::MonsterBuff),

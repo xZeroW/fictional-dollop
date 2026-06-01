@@ -25,7 +25,7 @@ mod theme;
 use listeners::ListenersPlugin;
 use systems::SystemsPlugin;
 
-use bevy::{prelude::*, window::PresentMode};
+use bevy::prelude::*;
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -41,7 +41,6 @@ impl Plugin for AppPlugin {
                 primary_window: Window {
                     title: "My game".to_string(),
                     fit_canvas_to_parent: true,
-                    present_mode: PresentMode::AutoNoVsync,
                     ..default()
                 }
                 .into(),

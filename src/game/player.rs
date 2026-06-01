@@ -7,7 +7,7 @@ use leafwing_input_manager::prelude::*;
 use crate::{
     AppSystems, PausableSystems,
     assets::CharacterAssets,
-    components::{Health, Movement, Player},
+    components::{Health, Movement, Player, Weapon},
     systems::PlayerAnimation,
 };
 
@@ -55,10 +55,8 @@ pub fn player(player_assets: &CharacterAssets, weapon: String) -> impl Bundle {
 
     (
         Name::new("Player"),
-        Player {
-            weapon,
-            ..default()
-        },
+        Player,
+        Weapon::new(weapon),
         Attributes::new(),
         attributes! {
             "Vitality" => 10.0,

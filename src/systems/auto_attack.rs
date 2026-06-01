@@ -5,7 +5,7 @@ use super::enemy_spatial::EnemySpatialIndex;
 use crate::{
     AppSystems, PausableSystems,
     assets::WeaponAssets,
-    components::{Bullet, Player},
+    components::{Bullet, Player, Weapon},
     game::weapon_data::{WeaponData, Weapons, WeaponsHandle},
     screens::Screen,
 };
@@ -26,43 +26,41 @@ impl Plugin for AutoAttackSystemsPlugin {
 
 fn auto_attack(
     mut commands: Commands,
-    mut player_query: Query<(&GlobalTransform, &mut Player)>,
+    mut player_query: Query<(&GlobalTransform, &mut Weapon), With<Player>>,
     spatial_index: Res<EnemySpatialIndex>,
     time: Res<Time>,
     weapon_assets: Res<WeaponAssets>,
     weapons_handle: Res<WeaponsHandle>,
     weapons_assets: Res<Assets<Weapons>>,
 ) {
-    let (player_gt, mut player) = match player_query.single_mut() {
+    let (player_gt, mut weapon) = match player_query.single_mut() {
         Ok(v) => v,
         Err(_) => return,
     };
 
     let player_pos = player_gt.translation().truncate();
 
-    if player.weapon.is_empty() {
-        return;
-    }
-
     let weapons = match weapons_assets.get(&weapons_handle.0) {
         Some(w) => w,
         None => return,
     };
 
-    let weapon_data = match weapons.0.get(&player.weapon) {
+    let weapon_data = match weapons.0.get(&weapon.key) {
         Some(data) => data,
         None => {
-            warn!("Missing weapon data for '{}'", player.weapon);
+            warn!("Missing weapon data for '{}'", weapon.key);
             return;
         }
     };
 
-    let current_time = time.elapsed_secs();
-    if current_time - player.last_shot_time < weapon_data.cooldown {
+    weapon.set_attack_speed(weapon_data.attack_speed);
+    weapon.attack_timer.tick(time.delta());
+    if !weapon.attack_timer.is_finished() {
         return;
     }
 
-    let Some((_, enemy_pos)) = spatial_index.nearest_enemy(player_pos, player.attack_range) else {
+    let Some((_, enemy_pos)) = spatial_index.nearest_enemy(player_pos, weapon_data.attack_range)
+    else {
         return;
     };
 
@@ -71,7 +69,7 @@ fn auto_attack(
         return;
     }
 
-    player.last_shot_time = current_time;
+    weapon.attack_timer.reset();
 
     commands.spawn(bullet(&weapon_assets, weapon_data, player_pos, direction));
 }
@@ -93,7 +91,6 @@ fn bullet(
                 index: weapon_data.bullet_sprite_index,
             },
         ),
-        Transform::from_translation(position.extend(10.0))
-            .with_scale(Vec3::splat(weapon_data.scale)),
+        Transform::from_translation(position.extend(10.0)).with_scale(Vec3::splat(2.0)),
     )
 }

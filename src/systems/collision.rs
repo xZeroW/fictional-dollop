@@ -39,9 +39,7 @@ fn check_player_enemy_collisions(
     };
     let player_pos = player_transform.translation.truncate();
 
-    if let Some((enemy_entity, _)) =
-        spatial_index.nearest_enemy(player_pos, config::COLLISION_RADIUS)
-    {
+    for (enemy_entity, _) in spatial_index.enemies_within(player_pos, config::COLLISION_RADIUS) {
         writer.write(CollisionMessage {
             entity_a: player_entity,
             entity_b: enemy_entity,

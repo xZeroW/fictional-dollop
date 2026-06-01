@@ -61,7 +61,6 @@ impl EnemySpatialIndex {
         }
     }
 
-    #[allow(dead_code)]
     pub(crate) fn enemies_within(&self, loc: Vec2, radius: f32) -> Vec<(Entity, Vec2)> {
         if self.tree.is_empty() {
             return vec![];

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::assets::EnemyAssets;
-use crate::config::{GameConfig, MAP_HEIGHT_TILES, MAP_MARGIN, MAP_WIDTH_TILES, TILE_SIZE};
+use crate::config::{GameConfig, map_bounds};
 use crate::game::level::LevelEntity;
 use crate::systems::MonsterProgression;
 
@@ -32,6 +32,8 @@ pub fn spawn_enemies(
         spawner.init_weights(enemies_data);
     }
 
+    let (min_x, max_x, min_y, max_y) = map_bounds();
+
     commands.entity(level_entity.0).with_children(|parent| {
         for _ in 0..spawn_count {
             let Some(enemy_key) = spawner.select_enemy_key() else {
@@ -45,8 +47,6 @@ pub fn spawn_enemies(
             let Some((image, layout)) = enemy_assets.get(&enemy_data.asset_key) else {
                 continue;
             };
-
-            let (min_x, max_x, min_y, max_y) = get_map_bounds();
 
             let x = min_x + rand::random::<f32>() * (max_x - min_x);
             let y = min_y + rand::random::<f32>() * (max_y - min_y);
@@ -62,17 +62,4 @@ pub fn spawn_enemies(
             spawner.spawned_count += 1;
         }
     });
-}
-
-fn get_map_bounds() -> (f32, f32, f32, f32) {
-    let half_width = (MAP_WIDTH_TILES as f32 * TILE_SIZE) / 2.0;
-    let half_height = (MAP_HEIGHT_TILES as f32 * TILE_SIZE) / 2.0;
-    let margin = MAP_MARGIN;
-
-    let min_x = -half_width + margin;
-    let max_x = half_width - margin;
-    let min_y = -half_height + margin;
-    let max_y = half_height - margin;
-
-    (min_x, max_x, min_y, max_y)
 }

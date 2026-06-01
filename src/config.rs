@@ -32,3 +32,15 @@ pub const MAP_MARGIN: f32 = 64.0;
 
 pub const COLLISION_RADIUS: f32 = 20.0;
 pub const KD_TREE_REFRESH_RATE: f32 = 0.1;
+
+pub(crate) fn map_bounds() -> (f32, f32, f32, f32) {
+    let half_width = (MAP_WIDTH_TILES as f32 * TILE_SIZE) / 2.0;
+    let half_height = (MAP_HEIGHT_TILES as f32 * TILE_SIZE) / 2.0;
+
+    (
+        -half_width + MAP_MARGIN,
+        half_width - MAP_MARGIN,
+        -half_height + MAP_MARGIN,
+        half_height - MAP_MARGIN,
+    )
+}

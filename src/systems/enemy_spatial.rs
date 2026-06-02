@@ -67,12 +67,13 @@ impl EnemySpatialIndex {
         }
 
         let key = [loc.x, loc.y];
+        let radius_squared = radius * radius;
         self.tree
             .within_radius(&key, radius)
             .into_iter()
-            .map(|entry| {
+            .filter_map(|entry| {
                 let pos = Vec2::new(entry.pos[0], entry.pos[1]);
-                (entry.entity, pos)
+                (loc.distance_squared(pos) <= radius_squared).then_some((entry.entity, pos))
             })
             .collect()
     }
@@ -96,7 +97,7 @@ impl Plugin for EnemySpatialPlugin {
 fn rebuild_enemy_spatial_index(
     time: Res<Time>,
     mut index: ResMut<EnemySpatialIndex>,
-    enemy_query: Query<(&GlobalTransform, Entity), With<Enemy>>,
+    enemy_query: Query<(&Transform, Entity), With<Enemy>>,
 ) {
     index.rebuild_timer.tick(time.delta());
 
@@ -106,7 +107,7 @@ fn rebuild_enemy_spatial_index(
 
     let mut items = Vec::with_capacity(enemy_query.iter().len());
     for (transform, entity) in enemy_query.iter() {
-        let pos = transform.translation().truncate();
+        let pos = transform.translation.truncate();
         items.push(EnemySpatialEntry {
             pos: [pos.x, pos.y],
             entity,

@@ -23,8 +23,7 @@ impl Plugin for PlayerCollisionListenerPlugin {
 
 fn handle_enemy_player_collision(
     mut collision_reader: MessageReader<CollisionMessage>,
-    enemy_damage_query: Query<&Damage, With<Enemy>>,
-    enemy_cooldown_query: Query<&AttackCooldown, With<Enemy>>,
+    enemy_query: Query<(&Damage, &AttackCooldown), With<Enemy>>,
     mut damage_writer: MessageWriter<ApplyDamageMessage>,
 ) {
     for collision in collision_reader.read() {
@@ -35,11 +34,7 @@ fn handle_enemy_player_collision(
         let player_entity = collision.entity_a;
         let enemy_entity = collision.entity_b;
 
-        let Ok(damage) = enemy_damage_query.get(enemy_entity) else {
-            continue;
-        };
-
-        let Ok(cooldown) = enemy_cooldown_query.get(enemy_entity) else {
+        let Ok((damage, cooldown)) = enemy_query.get(enemy_entity) else {
             continue;
         };
 

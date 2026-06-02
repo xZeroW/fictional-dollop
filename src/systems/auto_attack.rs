@@ -26,7 +26,7 @@ impl Plugin for AutoAttackSystemsPlugin {
 
 fn auto_attack(
     mut commands: Commands,
-    mut player_query: Query<(&GlobalTransform, &mut Weapon), With<Player>>,
+    mut player_query: Query<(&Transform, &mut Weapon), With<Player>>,
     spatial_index: Res<EnemySpatialIndex>,
     time: Res<Time>,
     weapon_assets: Res<WeaponAssets>,
@@ -38,7 +38,7 @@ fn auto_attack(
         Err(_) => return,
     };
 
-    let player_pos = player_gt.translation().truncate();
+    let player_pos = player_gt.translation.truncate();
 
     let weapons = match weapons_assets.get(&weapons_handle.0) {
         Some(w) => w,

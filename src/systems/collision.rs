@@ -4,7 +4,7 @@ use super::enemy_spatial::EnemySpatialIndex;
 
 use crate::{
     AppSystems, PausableSystems,
-    components::{Bullet, Player},
+    components::{Bullet, Enemy, Player},
     config,
     messages::{BulletHitEnemyMessage, CollisionKind, CollisionMessage},
     screens::Screen,
@@ -26,6 +26,7 @@ impl Plugin for CollisionSystemsPlugin {
 
 fn check_player_enemy_collisions(
     player_query: Query<(Entity, &Transform), With<Player>>,
+    enemy_query: Query<&Transform, (With<Enemy>, Without<Player>)>,
     spatial_index: Res<EnemySpatialIndex>,
     mut writer: MessageWriter<CollisionMessage>,
 ) {
@@ -38,10 +39,20 @@ fn check_player_enemy_collisions(
         Err(_) => return,
     };
     let player_pos = player_transform.translation.truncate();
+    let contact_radius = config::PLAYER_ENEMY_CONTACT_RADIUS;
+    let contact_radius_squared = contact_radius * contact_radius;
 
-    for (enemy_entity, _) in
-        spatial_index.enemies_within(player_pos, config::PLAYER_ENEMY_CONTACT_RADIUS)
-    {
+    for (enemy_entity, _) in spatial_index.enemies_within(player_pos, contact_radius) {
+        let Ok(enemy_transform) = enemy_query.get(enemy_entity) else {
+            continue;
+        };
+
+        let enemy_pos = enemy_transform.translation.truncate();
+        let distance_squared = player_pos.distance_squared(enemy_pos);
+        if distance_squared > contact_radius_squared {
+            continue;
+        }
+
         writer.write(CollisionMessage {
             entity_a: player_entity,
             entity_b: enemy_entity,

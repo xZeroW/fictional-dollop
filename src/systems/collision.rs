@@ -39,7 +39,9 @@ fn check_player_enemy_collisions(
     };
     let player_pos = player_transform.translation.truncate();
 
-    for (enemy_entity, _) in spatial_index.enemies_within(player_pos, config::COLLISION_RADIUS) {
+    for (enemy_entity, _) in
+        spatial_index.enemies_within(player_pos, config::PLAYER_ENEMY_CONTACT_RADIUS)
+    {
         writer.write(CollisionMessage {
             entity_a: player_entity,
             entity_b: enemy_entity,
@@ -62,7 +64,7 @@ fn check_bullet_enemy_collisions(
         let bullet_pos = bullet_transform.translation.truncate();
 
         if let Some((enemy_entity, _)) =
-            spatial_index.nearest_enemy(bullet_pos, config::COLLISION_RADIUS)
+            spatial_index.nearest_enemy(bullet_pos, config::BULLET_ENEMY_COLLISION_RADIUS)
         {
             writer.write(BulletHitEnemyMessage {
                 enemy: enemy_entity,

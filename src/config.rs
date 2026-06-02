@@ -30,7 +30,8 @@ pub const MAP_HEIGHT_TILES: u32 = 30;
 pub const TILE_SIZE: f32 = 64.0;
 pub const MAP_MARGIN: f32 = 64.0;
 
-pub const COLLISION_RADIUS: f32 = 20.0;
+pub const BULLET_ENEMY_COLLISION_RADIUS: f32 = 20.0;
+pub const PLAYER_ENEMY_CONTACT_RADIUS: f32 = 39.0;
 pub const KD_TREE_REFRESH_RATE: f32 = 0.1;
 
 pub(crate) fn map_bounds() -> (f32, f32, f32, f32) {

@@ -74,6 +74,7 @@ impl Plugin for AppPlugin {
                 AppSystems::TickTimers,
                 AppSystems::RecordInput,
                 AppSystems::Update,
+                AppSystems::ResolveContacts,
                 AppSystems::SpatialIndex,
                 AppSystems::SpatialQueries,
                 AppSystems::CollisionEvents,
@@ -103,6 +104,8 @@ enum AppSystems {
     RecordInput,
     /// Do everything else (consider splitting this into further variants).
     Update,
+    /// Resolve body contacts after movement and before spatial indexes update.
+    ResolveContacts,
     /// Rebuild shared spatial indexes after normal gameplay updates.
     SpatialIndex,
     /// Run systems that query shared spatial indexes.

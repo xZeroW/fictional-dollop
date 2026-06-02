@@ -31,6 +31,13 @@ impl Plugin for SystemsPlugin {
                 .in_set(AppSystems::Update)
                 .run_if(in_state(Screen::Gameplay)),
         );
+        app.add_systems(
+            Update,
+            behavior::prevent_enemy_player_overlap
+                .in_set(PausableSystems)
+                .in_set(AppSystems::ResolveContacts)
+                .run_if(in_state(Screen::Gameplay)),
+        );
     }
 }
 

@@ -15,7 +15,8 @@ use bevy_inspector_egui::{
 };
 
 use crate::{
-    components::{Player, Weapon},
+    components::{Bullet, Enemy, Player, Weapon},
+    config,
     game::weapon_data::{Weapons, WeaponsHandle},
     screens::Screen,
 };
@@ -26,6 +27,7 @@ impl Plugin for DevToolsPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<WeaponSelectorVisible>();
         app.init_resource::<WorldInspectorVisible>();
+        app.init_resource::<CollisionGizmosVisible>();
 
         // Log `Screen` state transitions.
         app.add_systems(Update, log_transitions::<Screen>);
@@ -42,6 +44,16 @@ impl Plugin for DevToolsPlugin {
         app.add_systems(
             Update,
             toggle_weapon_selector.run_if(input_just_pressed(TOGGLE_WEAPON_SELECTOR_KEY)),
+        );
+        app.add_systems(
+            Update,
+            toggle_collision_gizmos.run_if(input_just_pressed(TOGGLE_COLLISION_GIZMOS_KEY)),
+        );
+        app.add_systems(
+            Update,
+            draw_collision_gizmos
+                .run_if(in_state(Screen::Gameplay))
+                .run_if(collision_gizmos_visible),
         );
 
         // Add the world inspector, which allows inspecting and editing the world at runtime.
@@ -77,12 +89,17 @@ impl Plugin for DevToolsPlugin {
 const TOGGLE_UI_DEBUG_KEY: KeyCode = KeyCode::Backquote;
 const TOGGLE_DEBUG_TOOLS_KEY: KeyCode = KeyCode::F1;
 const TOGGLE_WEAPON_SELECTOR_KEY: KeyCode = KeyCode::F2;
+const TOGGLE_COLLISION_GIZMOS_KEY: KeyCode = KeyCode::F3;
+const COLLISION_GIZMO_VIEW_RADIUS: f32 = 500.0;
 
 #[derive(Resource, Default)]
 struct WeaponSelectorVisible(bool);
 
 #[derive(Resource, Default)]
 struct WorldInspectorVisible(bool);
+
+#[derive(Resource, Default)]
+struct CollisionGizmosVisible(bool);
 
 fn toggle_debug_ui(mut options: ResMut<UiDebugOptions>) {
     options.toggle();
@@ -105,8 +122,63 @@ fn toggle_weapon_selector(mut visible: ResMut<WeaponSelectorVisible>) {
     visible.0 = !visible.0;
 }
 
+fn toggle_collision_gizmos(mut visible: ResMut<CollisionGizmosVisible>) {
+    visible.0 = !visible.0;
+}
+
 fn weapon_selector_visible(visible: Res<WeaponSelectorVisible>) -> bool {
     visible.0
+}
+
+fn collision_gizmos_visible(visible: Res<CollisionGizmosVisible>) -> bool {
+    visible.0
+}
+
+fn draw_collision_gizmos(
+    mut gizmos: Gizmos,
+    player_query: Query<&GlobalTransform, With<Player>>,
+    enemy_query: Query<&GlobalTransform, With<Enemy>>,
+    bullet_query: Query<&GlobalTransform, With<Bullet>>,
+) {
+    let Ok(player_transform) = player_query.single() else {
+        return;
+    };
+
+    let player_pos = player_transform.translation().truncate();
+    let view_radius_squared = COLLISION_GIZMO_VIEW_RADIUS * COLLISION_GIZMO_VIEW_RADIUS;
+
+    gizmos.circle_2d(
+        player_pos,
+        config::PLAYER_BODY_RADIUS,
+        Color::srgb(0.2, 0.8, 1.0),
+    );
+    gizmos.circle_2d(
+        player_pos,
+        config::PLAYER_ENEMY_CONTACT_RADIUS,
+        Color::srgb(1.0, 0.9, 0.1),
+    );
+
+    for enemy_transform in &enemy_query {
+        let enemy_pos = enemy_transform.translation().truncate();
+        if player_pos.distance_squared(enemy_pos) > view_radius_squared {
+            continue;
+        }
+
+        gizmos.circle_2d(
+            enemy_pos,
+            config::ENEMY_BODY_RADIUS,
+            Color::srgb(1.0, 0.2, 0.2),
+        );
+    }
+
+    for bullet_transform in &bullet_query {
+        let bullet_pos = bullet_transform.translation().truncate();
+        gizmos.circle_2d(
+            bullet_pos,
+            config::BULLET_ENEMY_COLLISION_RADIUS,
+            Color::srgb(0.4, 1.0, 0.4),
+        );
+    }
 }
 
 fn weapon_selector_ui(

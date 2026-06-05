@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
-    components::{Health, Player},
+    components::{Enemy, Health, Player},
     messages::{ApplyDamageMessage, DamageMessage, EntityDiedMessage},
     screens::Screen,
 };
@@ -56,24 +56,35 @@ fn apply_damage(
 
 fn despawn_dead_entities(
     mut commands: Commands,
-    query: Query<(Entity, &Health, Option<&Player>)>,
+    query: Query<(Entity, &Health, &Transform, Option<&Player>, Option<&Enemy>)>,
     mut death_writer: MessageWriter<EntityDiedMessage>,
     mut spawner: ResMut<crate::enemies::EnemySpawner>,
-    enemy_query: Query<&crate::components::Enemy>,
 ) {
     let mut to_despawn = Vec::new();
 
-    for (entity, health, maybe_player) in query.iter() {
+    for (entity, health, transform, maybe_player, maybe_enemy) in query.iter() {
         if health.is_dead() {
-            to_despawn.push((entity, maybe_player.is_some()));
+            to_despawn.push((
+                entity,
+                maybe_player.is_some(),
+                transform.translation,
+                maybe_enemy.map(|enemy| enemy.enemy_type.clone()),
+            ));
         }
     }
 
-    for (entity, is_player) in to_despawn {
-        death_writer.write(EntityDiedMessage { entity, is_player });
+    for (entity, is_player, position, enemy_type) in to_despawn {
+        let was_enemy = enemy_type.is_some();
+
+        death_writer.write(EntityDiedMessage {
+            entity,
+            is_player,
+            position,
+            enemy_type,
+        });
 
         if commands.get_entity(entity).is_ok() {
-            if enemy_query.get(entity).is_ok() {
+            if was_enemy {
                 spawner.spawned_count = spawner.spawned_count.saturating_sub(1);
             }
             commands.entity(entity).despawn();

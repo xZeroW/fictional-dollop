@@ -1,6 +1,7 @@
 pub mod bullet_collision;
 pub mod damage;
 pub mod death;
+pub mod loot;
 pub mod player_collision;
 
 pub struct ListenersPlugin;
@@ -15,6 +16,7 @@ impl Plugin for ListenersPlugin {
         app.add_plugins((
             damage::DamageListenerPlugin,
             death::DeathListenerPlugin,
+            loot::LootListenerPlugin,
             bullet_collision::BulletCollisionListenerPlugin,
             player_collision::PlayerCollisionListenerPlugin,
         ));

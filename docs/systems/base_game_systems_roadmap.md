@@ -70,14 +70,14 @@ Minimum data:
 - Display name.
 - Rarity.
 - Quantity or stack count.
-- Optional map theme tag for later filtering.
+- (Optional) Map theme tag for later filtering.
 
 Acceptance criteria:
 
-- Enemies can drop at least one collectible item.
+- Enemies don't have guaranteed loot drops.
 - Loot quantity or chance improves when reward quantity increases.
 - Rarity odds improve when reward rarity increases.
-- Picked-up loot is removed from the world and added to run inventory.
+- Picked-up loot is removed from the world and added to run inventory. // Needs Run Inventory System
 
 ## 2. Run Inventory System
 

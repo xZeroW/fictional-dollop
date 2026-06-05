@@ -5,7 +5,7 @@ use crate::{
     AppSystems,
     components::{Health, Player},
     screens::Screen,
-    systems::{MonsterProgression, WaveState},
+    systems::{MonsterProgression, RunInventory, WaveState},
 };
 
 const HEALTH_FILL_COLOR: Color = Color::srgb(0.82, 0.13, 0.16);
@@ -39,7 +39,7 @@ impl Plugin for HudPlugin {
         app.add_systems(OnEnter(Screen::Gameplay), spawn_hud);
         app.add_systems(
             Update,
-            update_player_health_hud
+            (update_player_health_hud, update_run_stats_hud)
                 .in_set(AppSystems::Update)
                 .run_if(in_state(Screen::Gameplay)),
         );
@@ -177,10 +177,7 @@ fn update_player_health_hud(
     mut commands: Commands,
     player_health: Query<&Health, With<Player>>,
     mut fill: Query<(&mut UiLayout, &mut PlayerHealthFill)>,
-    mut text: Query<&mut Text2d, With<PlayerHealthText>>,
-    mut run_stats_text: Query<&mut Text2d, (With<RunStatsText>, Without<PlayerHealthText>)>,
-    wave_state: Res<WaveState>,
-    progression: Res<MonsterProgression>,
+    mut text: Query<&mut Text2d, (With<PlayerHealthText>, Without<RunStatsText>)>,
 ) {
     let health = player_health.single().ok();
     let (current, max, health_fraction) = health
@@ -208,26 +205,36 @@ fn update_player_health_hud(
             text.0 = next_text;
         }
     }
+}
 
-    if let Ok(mut text) = run_stats_text.single_mut() {
-        let time_remaining = (wave_state.timer.duration().as_secs_f32()
-            - wave_state.timer.elapsed_secs())
-        .max(0.0)
-        .ceil();
-        let next_text = format!(
-            "Wave {}  Time {:.0}s\nCorruption {}\nEnemy: HP x{:.2}  DMG x{:.2}  SPD x{:.2}\nRewards: Quantity x{:.2}  Rarity x{:.2}",
-            wave_state.current_wave,
-            time_remaining,
-            progression.corruption,
-            progression.enemy_health_mult,
-            progression.enemy_damage_mult,
-            progression.enemy_speed_mult,
-            progression.reward_quantity_mult,
-            progression.reward_rarity_mult,
-        );
+fn update_run_stats_hud(
+    mut text: Query<&mut Text2d, (With<RunStatsText>, Without<PlayerHealthText>)>,
+    wave_state: Res<WaveState>,
+    progression: Res<MonsterProgression>,
+    inventory: Res<RunInventory>,
+) {
+    let Ok(mut text) = text.single_mut() else {
+        return;
+    };
 
-        if text.as_str() != next_text {
-            text.0 = next_text;
-        }
+    let time_remaining = (wave_state.timer.duration().as_secs_f32()
+        - wave_state.timer.elapsed_secs())
+    .max(0.0)
+    .ceil();
+    let next_text = format!(
+        "Wave {}  Time {:.0}s\nCorruption {}\nEnemy: HP x{:.2}  DMG x{:.2}  SPD x{:.2}\nRewards: Quantity x{:.2}  Rarity x{:.2}\n{}",
+        wave_state.current_wave,
+        time_remaining,
+        progression.corruption,
+        progression.enemy_health_mult,
+        progression.enemy_damage_mult,
+        progression.enemy_speed_mult,
+        progression.reward_quantity_mult,
+        progression.reward_rarity_mult,
+        inventory.summary(),
+    );
+
+    if text.as_str() != next_text {
+        text.0 = next_text;
     }
 }

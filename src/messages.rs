@@ -37,4 +37,6 @@ pub struct DamageMessage {
 pub struct EntityDiedMessage {
     pub entity: Entity,
     pub is_player: bool,
+    pub position: Vec3,
+    pub enemy_type: Option<String>,
 }

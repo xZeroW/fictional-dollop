@@ -28,16 +28,24 @@ The wave timer runs during `Update` with these constraints:
 - only while the game is not paused through `PausableSystems`
 - in `AppSystems::WaveTransitions`, after normal gameplay updates
 
-Running after gameplay updates ensures wave cleanup happens at the end of the
-frame.
+Running after gameplay updates ensures the wave transition is decided at the end
+of the gameplay frame. Entity cleanup runs when entering the between-wave monster
+buff menu, after deferred commands from that frame have been applied.
 
 ## Wave Completion
 
-When the timer finishes, the system:
+When the timer finishes, the wave transition system:
+
+1. Increments `current_wave`.
+2. Pauses gameplay.
+3. Opens the monster buff menu.
+
+When the monster buff menu opens, cleanup:
 
 1. Despawns all entities with the `Enemy` component.
-2. Resets `EnemySpawner.spawned_count` to `0`.
-3. Increments `current_wave`.
+2. Despawns all entities with the `Bullet` component.
+3. Clears the enemy spatial index.
+4. Resets `EnemySpawner.spawned_count` to `0`.
 
 Resetting `spawned_count` is required because enemy spawning uses that counter
 to enforce the enemy cap.

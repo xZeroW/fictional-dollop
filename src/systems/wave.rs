@@ -1,8 +1,14 @@
 use bevy::prelude::*;
 
+use super::enemy_spatial::EnemySpatialIndex;
+
 use crate::{
-    AppSystems, PausableSystems, Pause, components::Enemy, config::WAVE_DURATION,
-    enemies::EnemySpawner, menus::Menu, screens::Screen,
+    AppSystems, PausableSystems, Pause,
+    components::{Bullet, Enemy},
+    config::WAVE_DURATION,
+    enemies::EnemySpawner,
+    menus::Menu,
+    screens::Screen,
 };
 
 #[derive(Resource, Reflect)]
@@ -28,6 +34,7 @@ impl Plugin for WaveSystemsPlugin {
         app.register_type::<WaveState>();
         app.add_systems(OnEnter(Screen::Gameplay), reset_wave_state);
         app.add_systems(OnExit(Screen::Gameplay), remove_wave_state);
+        app.add_systems(OnEnter(Menu::MonsterBuff), cleanup_wave_entities);
         app.add_systems(
             Update,
             advance_wave_timer
@@ -47,11 +54,8 @@ fn remove_wave_state(mut commands: Commands) {
 }
 
 fn advance_wave_timer(
-    mut commands: Commands,
     time: Res<Time>,
     mut wave_state: ResMut<WaveState>,
-    mut spawner: Option<ResMut<EnemySpawner>>,
-    enemies: Query<Entity, With<Enemy>>,
     mut next_menu: ResMut<NextState<Menu>>,
     mut next_pause: ResMut<NextState<Pause>>,
 ) {
@@ -61,14 +65,6 @@ fn advance_wave_timer(
         return;
     }
 
-    for enemy in enemies.iter() {
-        commands.entity(enemy).despawn();
-    }
-
-    if let Some(ref mut spawner) = spawner {
-        spawner.spawned_count = 0;
-    }
-
     wave_state.current_wave += 1;
     next_pause.set(Pause(true));
     next_menu.set(Menu::MonsterBuff);
@@ -76,4 +72,24 @@ fn advance_wave_timer(
         "Wave {:?} ready after monster evolution.",
         wave_state.current_wave
     );
+}
+
+fn cleanup_wave_entities(
+    mut commands: Commands,
+    enemies: Query<Entity, With<Enemy>>,
+    bullets: Query<Entity, With<Bullet>>,
+    mut spawner: Option<ResMut<EnemySpawner>>,
+    mut spatial_index: ResMut<EnemySpatialIndex>,
+) {
+    for enemy in enemies.iter() {
+        commands.entity(enemy).despawn();
+    }
+    for bullet in bullets.iter() {
+        commands.entity(bullet).despawn();
+    }
+
+    if let Some(ref mut spawner) = spawner {
+        spawner.spawned_count = 0;
+    }
+    spatial_index.clear();
 }

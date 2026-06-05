@@ -39,6 +39,12 @@ impl Default for EnemySpatialIndex {
 }
 
 impl EnemySpatialIndex {
+    pub(super) fn clear(&mut self) {
+        self.tree = KdTree::build_by_ordered_float(Vec::<EnemySpatialEntry>::new());
+        self.rebuild_timer.reset();
+        self.initialized = false;
+    }
+
     fn rebuild(&mut self, items: Vec<EnemySpatialEntry>) {
         self.tree = KdTree::build_by_ordered_float(items);
         self.initialized = true;

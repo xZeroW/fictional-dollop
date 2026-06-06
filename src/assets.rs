@@ -23,9 +23,15 @@ pub struct AudioAssets {
 #[derive(AssetCollection, Resource)]
 pub struct WeaponAssets {
     #[asset(key = "weapon.sprite")]
+    #[allow(dead_code)]
     pub sprite: Handle<Image>,
     #[asset(key = "weapon.layout")]
+    #[allow(dead_code)]
     pub layout: Handle<TextureAtlasLayout>,
+    #[asset(key = "weapon.bullet_sprite")]
+    pub bullet_sprite: Handle<Image>,
+    #[asset(key = "weapon.bullet_layout")]
+    pub bullet_layout: Handle<TextureAtlasLayout>,
     #[asset(key = "weapon.fire_sound")]
     #[allow(dead_code)]
     pub fire_sound: Handle<AudioSource>,

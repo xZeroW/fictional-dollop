@@ -2,7 +2,8 @@
 
 use bevy::prelude::*;
 
-#[derive(Resource)]
+#[derive(Resource, Reflect)]
+#[reflect(Resource)]
 pub struct GameConfig {
     pub max_num_enemies: usize,
     pub spawn_rate_per_second: usize,

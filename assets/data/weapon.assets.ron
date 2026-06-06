@@ -1,9 +1,19 @@
 ({
     "weapon.sprite": Image (
-        path: "sprites/weapons/dagger.png",
+        path: "sprites/weapons/weapons.png",
         sampler: Nearest
     ),
     "weapon.layout": TextureAtlasLayout (
+        tile_size_x: 16,
+        tile_size_y: 16,
+        columns: 11,
+        rows: 13,
+    ),
+    "weapon.bullet_sprite": Image (
+        path: "sprites/weapons/dagger.png",
+        sampler: Nearest
+    ),
+    "weapon.bullet_layout": TextureAtlasLayout (
         tile_size_x: 15,
         tile_size_y: 15,
         columns: 2,

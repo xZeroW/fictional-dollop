@@ -2,16 +2,20 @@ use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
+    assets::WeaponAssets,
     components::{ItemDrop, ItemRarity, PickupRadius},
-    game::level::LevelEntity,
+    game::{
+        level::LevelEntity,
+        weapon_data::{WeaponData, Weapons, WeaponsHandle},
+    },
     messages::EntityDiedMessage,
     screens::Screen,
     systems::MonsterProgression,
 };
 
-const BASE_DROP_CHANCE: f32 = 0.01;
+const BASE_DROP_CHANCE: f32 = 0.1;
 const MAX_DROP_CHANCE: f32 = 0.85;
-const DROP_SIZE: f32 = 12.0;
+const DROP_SCALE: f32 = 2.0;
 
 pub struct LootListenerPlugin;
 
@@ -32,7 +36,14 @@ fn spawn_loot_from_enemy_deaths(
     mut deaths: MessageReader<EntityDiedMessage>,
     progression: Res<MonsterProgression>,
     level_entity: Res<LevelEntity>,
+    weapon_assets: Res<WeaponAssets>,
+    weapons_handle: Res<WeaponsHandle>,
+    weapons_assets: Res<Assets<Weapons>>,
 ) {
+    let Some(weapons) = weapons_assets.get(&weapons_handle.0) else {
+        return;
+    };
+
     let drop_chance = (BASE_DROP_CHANCE * progression.reward_quantity_mult).min(MAX_DROP_CHANCE);
 
     for death in deaths.read() {
@@ -41,23 +52,59 @@ fn spawn_loot_from_enemy_deaths(
         }
 
         let rarity = roll_rarity(progression.reward_rarity_mult);
-        let (item_id, display_name) = item_for_rarity(rarity);
+        let Some((item_id, weapon_data)) = select_weapon_drop(weapons) else {
+            continue;
+        };
         let position = death.position + Vec3::new(0.0, 0.0, 2.0);
 
         commands.entity(level_entity.0).with_children(|parent| {
-            parent.spawn((
-                Name::new(format!("{display_name} Drop")),
-                ItemDrop {
-                    item_id: item_id.to_string(),
-                    rarity,
-                    quantity: 1,
-                },
-                PickupRadius(PickupRadius::DEFAULT),
-                Sprite::from_color(rarity.color(), Vec2::splat(DROP_SIZE)),
-                Transform::from_translation(position),
+            parent.spawn(weapon_drop(
+                &weapon_assets,
+                item_id,
+                weapon_data,
+                rarity,
+                position,
             ));
         });
     }
+}
+
+fn select_weapon_drop(weapons: &Weapons) -> Option<(&str, &WeaponData)> {
+    if weapons.0.is_empty() {
+        return None;
+    }
+
+    let index = rand::random_range(0..weapons.0.len());
+    weapons
+        .0
+        .iter()
+        .nth(index)
+        .map(|(key, weapon_data)| (key.as_str(), weapon_data))
+}
+
+fn weapon_drop(
+    weapon_assets: &WeaponAssets,
+    item_id: &str,
+    weapon_data: &WeaponData,
+    rarity: ItemRarity,
+    position: Vec3,
+) -> impl Bundle {
+    (
+        Name::new(format!("{} Drop", weapon_data.name)),
+        ItemDrop {
+            item_id: item_id.to_string(),
+            rarity,
+        },
+        PickupRadius(PickupRadius::DEFAULT),
+        Sprite::from_atlas_image(
+            weapon_assets.sprite.clone(),
+            TextureAtlas {
+                layout: weapon_assets.layout.clone(),
+                index: weapon_data.weapon_sprite_index,
+            },
+        ),
+        Transform::from_translation(position).with_scale(Vec3::splat(DROP_SCALE)),
+    )
 }
 
 fn roll_rarity(rarity_mult: f32) -> ItemRarity {
@@ -82,15 +129,4 @@ fn roll_rarity(rarity_mult: f32) -> ItemRarity {
     }
 
     ItemRarity::Common
-}
-
-fn item_for_rarity(rarity: ItemRarity) -> (&'static str, &'static str) {
-    match rarity {
-        ItemRarity::Common => ("monster_remains", "Monster Remains"),
-        ItemRarity::Uncommon => ("corrupted_fang", "Corrupted Fang"),
-        ItemRarity::Rare => ("gleaming_eye", "Gleaming Eye"),
-        ItemRarity::Epic => ("void_shard", "Void Shard"),
-        ItemRarity::Legendary => ("ancient_core", "Ancient Core"),
-        ItemRarity::Mythic => ("mythic_heart", "Mythic Heart"),
-    }
 }

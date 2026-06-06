@@ -41,7 +41,7 @@ fn pickup_loot(
             continue;
         }
 
-        inventory.add_item(drop.item_id.clone(), drop.rarity, drop.quantity);
+        inventory.add_item(drop.item_id.clone(), drop.rarity);
         commands.entity(entity).despawn();
     }
 }

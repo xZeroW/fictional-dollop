@@ -8,7 +8,8 @@ pub use assets::EnemyVisualsHandle;
 pub use data::Enemies;
 pub use systems::HitFlash;
 
-#[derive(Resource)]
+#[derive(Resource, Reflect)]
+#[reflect(Resource)]
 pub struct EnemySpawner {
     pub spawned_count: usize,
     pub enemy_keys: Vec<(String, f32)>,

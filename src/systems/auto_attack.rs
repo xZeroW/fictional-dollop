@@ -85,9 +85,9 @@ fn bullet(
         Bullet::new(direction, weapon_data.velocity, weapon_data.damage),
         DespawnOnExit(Screen::Gameplay),
         Sprite::from_atlas_image(
-            weapon_assets.sprite.clone(),
+            weapon_assets.bullet_sprite.clone(),
             TextureAtlas {
-                layout: weapon_assets.layout.clone(),
+                layout: weapon_assets.bullet_layout.clone(),
                 index: weapon_data.bullet_sprite_index,
             },
         ),

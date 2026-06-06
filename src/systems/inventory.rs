@@ -1,42 +1,32 @@
 use bevy::prelude::*;
-use std::collections::HashMap;
 
 use crate::{components::ItemRarity, screens::Screen};
 
 #[derive(Debug, Clone, Reflect)]
-pub struct ItemStack {
+pub struct InventoryItem {
+    pub item_id: String,
     pub rarity: ItemRarity,
-    pub quantity: u32,
 }
 
 #[derive(Resource, Default, Debug, Clone, Reflect)]
+#[reflect(Resource)]
 pub struct RunInventory {
-    items: HashMap<String, ItemStack>,
+    items: Vec<InventoryItem>,
 }
 
 impl RunInventory {
-    pub fn add_item(&mut self, item_id: impl Into<String>, rarity: ItemRarity, quantity: u32) {
-        if quantity == 0 {
-            return;
-        }
-
-        let stack = self
-            .items
-            .entry(item_id.into())
-            .or_insert_with(|| ItemStack {
-                rarity,
-                quantity: 0,
-            });
-        stack.quantity = stack.quantity.saturating_add(quantity);
+    pub fn add_item(&mut self, item_id: impl Into<String>, rarity: ItemRarity) {
+        self.items.push(InventoryItem {
+            item_id: item_id.into(),
+            rarity,
+        });
     }
 
     pub fn summary(&self) -> String {
-        let mut total_items = 0;
         let mut rarity_totals = [0; ItemRarity::ALL.len()];
 
-        for stack in self.items.values() {
-            total_items += stack.quantity;
-            rarity_totals[stack.rarity.index()] += stack.quantity;
+        for item in &self.items {
+            rarity_totals[item.rarity.index()] += 1;
         }
 
         let rarity_summary = ItemRarity::ALL
@@ -46,7 +36,7 @@ impl RunInventory {
             .collect::<Vec<_>>()
             .join("  ");
 
-        format!("Loot {total_items} | {rarity_summary}")
+        format!("Loot {} | {rarity_summary}", self.items.len())
     }
 }
 

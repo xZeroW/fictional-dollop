@@ -5,7 +5,6 @@ use bevy::prelude::*;
 pub struct ItemDrop {
     pub item_id: String,
     pub rarity: ItemRarity,
-    pub quantity: u32,
 }
 
 #[derive(Component, Debug, Clone, Copy, Reflect)]
@@ -55,17 +54,6 @@ impl ItemRarity {
             ItemRarity::Epic => "Epic",
             ItemRarity::Legendary => "Legendary",
             ItemRarity::Mythic => "Mythic",
-        }
-    }
-
-    pub fn color(self) -> Color {
-        match self {
-            ItemRarity::Common => Color::srgb(0.90, 0.90, 0.86),
-            ItemRarity::Uncommon => Color::srgb(0.22, 0.86, 0.34),
-            ItemRarity::Rare => Color::srgb(0.22, 0.46, 0.95),
-            ItemRarity::Epic => Color::srgb(0.62, 0.25, 0.92),
-            ItemRarity::Legendary => Color::srgb(1.00, 0.55, 0.10),
-            ItemRarity::Mythic => Color::srgb(0.92, 0.08, 0.10),
         }
     }
 }

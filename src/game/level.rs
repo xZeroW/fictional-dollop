@@ -45,7 +45,7 @@ pub fn spawn_level(
 
     commands.insert_resource(LevelEntity(level));
 
-    let player_bundle = player(&player_assets, "dagger".to_string());
+    let player_bundle = player(&player_assets, "dagger_01".to_string());
     let player_entity = commands.spawn(player_bundle).id();
 
     commands.entity(level).add_child(player_entity);

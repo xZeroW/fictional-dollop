@@ -1,7 +1,13 @@
 //! The between-wave inventory menu.
 
-use bevy::{camera::ClearColorConfig, camera::visibility::RenderLayers, prelude::*};
-use bevy_lunex::{RecomputeUiLayout, prelude::*};
+use bevy::{
+    camera::{ClearColorConfig, RenderTarget, visibility::RenderLayers},
+    math::FloatExt,
+    picking::backend::prelude::*,
+    prelude::*,
+    window::PrimaryWindow,
+};
+use bevy_lunex::{NoLunexPicking, RecomputeUiLayout, prelude::*};
 
 use crate::{
     assets::WeaponAssets,
@@ -28,6 +34,7 @@ const SLOT_COLOR: Color = Color::srgba(0.08, 0.075, 0.105, 0.95);
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.86, 0.78);
 const MUTED_TEXT_COLOR: Color = Color::srgb(0.62, 0.58, 0.65);
 const BUTTON_COLOR: Color = Color::srgb(0.33, 0.21, 0.46);
+const DEBUG_BORDER_THICKNESS: f32 = 2.0;
 
 #[derive(Component)]
 struct InventoryCamera;
@@ -71,6 +78,12 @@ impl Plugin for InventoryMenuPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<InventoryDragState>();
         app.add_systems(Startup, spawn_inventory_camera);
+        app.add_systems(
+            PreUpdate,
+            inventory_lunex_picking
+                .in_set(PickingSystems::Backend)
+                .run_if(in_state(Menu::Inventory)),
+        );
         app.add_systems(OnEnter(Menu::Inventory), spawn_inventory_menu);
         app.add_systems(
             Update,
@@ -94,6 +107,138 @@ fn spawn_inventory_camera(mut commands: Commands) {
         UiSourceCamera::<1>,
         RenderLayers::layer(INVENTORY_RENDER_LAYER),
     ));
+}
+
+// Lunex's generic picking backend can choose the gameplay camera first, which
+// offsets inventory hit boxes when that camera has moved away from the UI camera.
+fn inventory_lunex_picking(
+    pointers: Query<(&PointerId, &PointerLocation)>,
+    camera: Query<
+        (
+            Entity,
+            &Camera,
+            &RenderTarget,
+            &GlobalTransform,
+            &Projection,
+        ),
+        With<InventoryCamera>,
+    >,
+    primary_window: Query<Entity, With<PrimaryWindow>>,
+    nodes: Query<
+        (
+            Entity,
+            &Dimension,
+            &GlobalTransform,
+            Option<&Pickable>,
+            &ViewVisibility,
+            &RenderLayers,
+        ),
+        Without<NoLunexPicking>,
+    >,
+    mut output: MessageWriter<PointerHits>,
+) {
+    let Ok((camera_entity, camera, target, camera_transform, Projection::Orthographic(ortho))) =
+        camera.single()
+    else {
+        return;
+    };
+
+    let primary_window = primary_window.single().ok();
+    let inventory_layers = RenderLayers::layer(INVENTORY_RENDER_LAYER);
+    let viewport_pos = camera
+        .logical_viewport_rect()
+        .map(|viewport| viewport.min)
+        .unwrap_or_default();
+
+    let mut sorted_nodes: Vec<_> = nodes
+        .iter()
+        .filter(|(_, _, _, _, visibility, layers)| {
+            visibility.get() && layers.intersects(&inventory_layers)
+        })
+        .collect();
+
+    sorted_nodes.sort_by(
+        |(_, _, a_transform, _, _, _), (_, _, b_transform, _, _, _)| {
+            b_transform
+                .translation()
+                .z
+                .total_cmp(&a_transform.translation().z)
+        },
+    );
+
+    for (pointer, location) in pointers.iter().filter_map(|(pointer, pointer_location)| {
+        pointer_location
+            .location()
+            .map(|location| (pointer, location))
+    }) {
+        if !target
+            .normalize(primary_window)
+            .is_some_and(|target| target == location.target)
+        {
+            continue;
+        }
+
+        let pos_in_viewport = location.position - viewport_pos;
+        let Ok(cursor_ray_world) = camera.viewport_to_world(camera_transform, pos_in_viewport)
+        else {
+            continue;
+        };
+
+        let cursor_ray_len = ortho.far - ortho.near;
+        let cursor_ray_end = cursor_ray_world.origin + cursor_ray_world.direction * cursor_ray_len;
+        let mut blocked = false;
+
+        let picks = sorted_nodes
+            .iter()
+            .filter_map(|(entity, dimension, node_transform, pickable, _, _)| {
+                if blocked {
+                    return None;
+                }
+
+                let world_to_node = node_transform.affine().inverse();
+                let cursor_start_node = world_to_node.transform_point3(cursor_ray_world.origin);
+                let cursor_end_node = world_to_node.transform_point3(cursor_ray_end);
+
+                if cursor_start_node.z == cursor_end_node.z {
+                    return None;
+                }
+
+                let lerp_factor = f32::inverse_lerp(cursor_start_node.z, cursor_end_node.z, 0.0);
+                if !(0.0..=1.0).contains(&lerp_factor) {
+                    return None;
+                }
+
+                let cursor_pos_node = cursor_start_node.lerp(cursor_end_node, lerp_factor).xy();
+
+                if !Rect::from_center_size(Vec2::ZERO, dimension.0).contains(cursor_pos_node) {
+                    return None;
+                }
+
+                blocked = pickable
+                    .map(|pickable| pickable.should_block_lower)
+                    .unwrap_or(true);
+
+                let hit_pos_world = node_transform.transform_point(cursor_pos_node.extend(0.0));
+                let hit_pos_camera = camera_transform
+                    .affine()
+                    .inverse()
+                    .transform_point3(hit_pos_world);
+                let depth = -ortho.near - hit_pos_camera.z;
+
+                Some((
+                    *entity,
+                    HitData::new(
+                        camera_entity,
+                        depth,
+                        Some(hit_pos_world),
+                        Some(*node_transform.back()),
+                    ),
+                ))
+            })
+            .collect();
+
+        output.write(PointerHits::new(*pointer, picks, camera.order as f32));
+    }
 }
 
 fn spawn_inventory_menu(
@@ -332,9 +477,16 @@ fn spawn_inventory_panel(
         UiDepth::Set(4.0),
         Sprite::from_color(Color::srgba(0.025, 0.022, 0.035, 0.95), Vec2::ONE),
         RenderLayers::layer(INVENTORY_RENDER_LAYER),
+        Pickable::default(),
     ))
     .observe(drop_inventory_item)
     .with_children(|ui| {
+        let debug_border_color = match kind {
+            InventoryKind::Run => Color::srgb(0.1, 0.75, 1.0),
+            InventoryKind::Safe => Color::srgb(1.0, 0.35, 0.9),
+        };
+        spawn_debug_border(ui, size, 12.0, debug_border_color);
+
         spawn_text(
             ui,
             "Inventory Section Title",
@@ -517,6 +669,56 @@ fn spawn_rect(
         RenderLayers::layer(INVENTORY_RENDER_LAYER),
         Pickable::IGNORE,
     ));
+}
+
+fn spawn_debug_border(ui: &mut ChildSpawnerCommands, size: (f32, f32), depth: f32, color: Color) {
+    let (width, height) = size;
+    let thickness = DEBUG_BORDER_THICKNESS;
+
+    spawn_rect(
+        ui,
+        "Inventory Drop Debug Border",
+        UiLayout::window()
+            .pos((Ab(0.0), Ab(0.0)))
+            .anchor(Anchor::TOP_LEFT)
+            .size((Ab(width), Ab(thickness)))
+            .pack(),
+        depth,
+        color,
+    );
+    spawn_rect(
+        ui,
+        "Inventory Drop Debug Border",
+        UiLayout::window()
+            .pos((Ab(0.0), Ab(height - thickness)))
+            .anchor(Anchor::TOP_LEFT)
+            .size((Ab(width), Ab(thickness)))
+            .pack(),
+        depth,
+        color,
+    );
+    spawn_rect(
+        ui,
+        "Inventory Drop Debug Border",
+        UiLayout::window()
+            .pos((Ab(0.0), Ab(0.0)))
+            .anchor(Anchor::TOP_LEFT)
+            .size((Ab(thickness), Ab(height)))
+            .pack(),
+        depth,
+        color,
+    );
+    spawn_rect(
+        ui,
+        "Inventory Drop Debug Border",
+        UiLayout::window()
+            .pos((Ab(width - thickness), Ab(0.0)))
+            .anchor(Anchor::TOP_LEFT)
+            .size((Ab(thickness), Ab(height)))
+            .pack(),
+        depth,
+        color,
+    );
 }
 
 fn spawn_text(

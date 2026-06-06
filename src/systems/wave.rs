@@ -34,7 +34,7 @@ impl Plugin for WaveSystemsPlugin {
         app.register_type::<WaveState>();
         app.add_systems(OnEnter(Screen::Gameplay), reset_wave_state);
         app.add_systems(OnExit(Screen::Gameplay), remove_wave_state);
-        app.add_systems(OnEnter(Menu::MonsterBuff), cleanup_wave_entities);
+        app.add_systems(OnEnter(Menu::Inventory), cleanup_wave_entities);
         app.add_systems(
             Update,
             advance_wave_timer
@@ -67,9 +67,9 @@ fn advance_wave_timer(
 
     wave_state.current_wave += 1;
     next_pause.set(Pause(true));
-    next_menu.set(Menu::MonsterBuff);
+    next_menu.set(Menu::Inventory);
     info!(
-        "Wave {:?} ready after monster evolution.",
+        "Wave {:?} ready for inventory picking.",
         wave_state.current_wave
     );
 }

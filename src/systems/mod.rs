@@ -14,7 +14,10 @@ mod wave;
 use bevy::prelude::*;
 
 pub(crate) use animation::PlayerAnimation;
-pub(crate) use inventory::RunInventory;
+pub(crate) use inventory::{
+    InventoryItem, RunInventory, SAFE_INVENTORY_CAPACITY, SafeInventory, move_run_item_to_safe,
+    move_safe_item_to_run,
+};
 pub(crate) use monster_progression::{MONSTER_BUFF_CHOICES, MonsterBuff, MonsterProgression};
 pub(crate) use wave::WaveState;
 

@@ -2,6 +2,7 @@
 
 mod credits;
 mod game_over;
+mod inventory;
 mod main;
 mod monster_buff;
 mod pause;
@@ -18,6 +19,7 @@ impl Plugin for MenusPlugin {
         app.add_plugins((
             credits::CreditsMenuPlugin,
             game_over::GameOverMenuPlugin,
+            inventory::InventoryMenuPlugin,
             main::MainMenuPlugin,
             monster_buff::MonsterBuffMenuPlugin,
             settings::SettingsMenuPlugin,
@@ -33,6 +35,7 @@ pub enum Menu {
     Main,
     Credits,
     Settings,
+    Inventory,
     Pause,
     MonsterBuff,
     GameOver,

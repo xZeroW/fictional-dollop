@@ -1,13 +1,6 @@
 //! The between-wave inventory menu.
 
-use bevy::{
-    camera::{ClearColorConfig, RenderTarget, visibility::RenderLayers},
-    math::FloatExt,
-    picking::backend::prelude::*,
-    prelude::*,
-    window::PrimaryWindow,
-};
-use bevy_lunex::{NoLunexPicking, RecomputeUiLayout, prelude::*};
+use bevy::{camera::ClearColorConfig, camera::visibility::RenderLayers, prelude::*};
 
 use crate::{
     assets::WeaponAssets,
@@ -20,17 +13,42 @@ use crate::{
     },
 };
 
-const INVENTORY_CAMERA_ORDER: isize = 30;
+const INVENTORY_UI_Z_INDEX: i32 = 30;
+const INVENTORY_CAMERA_ORDER: isize = INVENTORY_UI_Z_INDEX as isize;
+const DRAGGED_ITEM_GLOBAL_Z_INDEX: i32 = INVENTORY_UI_Z_INDEX + 1;
 const INVENTORY_RENDER_LAYER: usize = 2;
+const ITEM_Z_INDEX: i32 = 1;
+const ITEM_ICON_Z_INDEX: i32 = 2;
+const DRAGGED_ITEM_LOCAL_Z_INDEX: i32 = 30;
 
 const ITEM_SIZE: f32 = 16.0;
 const SLOT_SIZE: f32 = 48.0;
 const SLOT_GAP: f32 = 6.0;
+const RUN_SLOT_COLUMNS: usize = 8;
+const SAFE_SLOT_COLUMNS: usize = 5;
+
+const PANEL_WIDTH: f32 = 880.0;
+const PANEL_HEIGHT: f32 = 570.0;
+const PANEL_FRAME_PADDING: f32 = 10.0;
+const CONTINUE_BUTTON_WIDTH: f32 = 220.0;
+const CONTINUE_BUTTON_HEIGHT: f32 = 56.0;
+const CONTINUE_BUTTON_CENTER_Y: f32 = 520.0;
+const RUN_PANEL_POS: (f32, f32) = (30.0, 112.0);
+const RUN_PANEL_SIZE: (f32, f32) = (490.0, 350.0);
+const SAFE_PANEL_POS: (f32, f32) = (550.0, 112.0);
+const SAFE_PANEL_SIZE: (f32, f32) = (300.0, 350.0);
+const TITLE_POS: (f32, f32) = (30.0, 28.0);
+const HELP_POS: (f32, f32) = (30.0, 68.0);
+const SECTION_TITLE_POS: (f32, f32) = (16.0, 20.0);
+const SLOT_ORIGIN: (f32, f32) = (18.0, 60.0);
+const EMPTY_RUN_TEXT_POS: (f32, f32) = (18.0, 62.0);
 
 const PANEL_COLOR: Color = Color::srgba(0.05, 0.045, 0.075, 0.96);
 const PANEL_FRAME_COLOR: Color = Color::srgba(0.14, 0.11, 0.18, 0.98);
 const OVERLAY_COLOR: Color = Color::srgba(0.02, 0.0, 0.03, 0.88);
 const SLOT_COLOR: Color = Color::srgba(0.08, 0.075, 0.105, 0.95);
+const EMPTY_SLOT_COLOR: Color = Color::srgba(0.055, 0.05, 0.075, 0.92);
+const DROP_PANEL_COLOR: Color = Color::srgba(0.025, 0.022, 0.035, 0.95);
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.86, 0.78);
 const MUTED_TEXT_COLOR: Color = Color::srgb(0.62, 0.58, 0.65);
 const BUTTON_COLOR: Color = Color::srgb(0.33, 0.21, 0.46);
@@ -42,15 +60,26 @@ struct InventoryCamera;
 #[derive(Component)]
 struct InventoryMenuRoot;
 
-#[derive(Component)]
-struct StaleInventoryMenuRoot {
-    frames_remaining: u8,
-}
-
 #[derive(Component, Clone, Copy, PartialEq, Eq)]
 enum InventoryKind {
     Run,
     Safe,
+}
+
+impl InventoryKind {
+    fn opposite(self) -> Self {
+        match self {
+            Self::Run => Self::Safe,
+            Self::Safe => Self::Run,
+        }
+    }
+
+    fn debug_border_color(self) -> Color {
+        match self {
+            Self::Run => Color::srgb(0.1, 0.75, 1.0),
+            Self::Safe => Color::srgb(1.0, 0.35, 0.9),
+        }
+    }
 }
 
 #[derive(Component)]
@@ -62,6 +91,7 @@ struct InventoryDropTarget {
 struct InventoryItemUi {
     kind: InventoryKind,
     index: usize,
+    drag_offset: Vec2,
 }
 
 #[derive(Resource)]
@@ -78,17 +108,10 @@ impl Plugin for InventoryMenuPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<InventoryDragState>();
         app.add_systems(Startup, spawn_inventory_camera);
-        app.add_systems(
-            PreUpdate,
-            inventory_lunex_picking
-                .in_set(PickingSystems::Backend)
-                .run_if(in_state(Menu::Inventory)),
-        );
         app.add_systems(OnEnter(Menu::Inventory), spawn_inventory_menu);
         app.add_systems(
             Update,
-            (refresh_inventory_menu, cleanup_stale_inventory_menus)
-                .run_if(in_state(Menu::Inventory)),
+            refresh_inventory_menu.run_if(in_state(Menu::Inventory)),
         );
     }
 }
@@ -104,141 +127,8 @@ fn spawn_inventory_camera(mut commands: Commands) {
             ..default()
         },
         Msaa::Off,
-        UiSourceCamera::<1>,
         RenderLayers::layer(INVENTORY_RENDER_LAYER),
     ));
-}
-
-// Lunex's generic picking backend can choose the gameplay camera first, which
-// offsets inventory hit boxes when that camera has moved away from the UI camera.
-fn inventory_lunex_picking(
-    pointers: Query<(&PointerId, &PointerLocation)>,
-    camera: Query<
-        (
-            Entity,
-            &Camera,
-            &RenderTarget,
-            &GlobalTransform,
-            &Projection,
-        ),
-        With<InventoryCamera>,
-    >,
-    primary_window: Query<Entity, With<PrimaryWindow>>,
-    nodes: Query<
-        (
-            Entity,
-            &Dimension,
-            &GlobalTransform,
-            Option<&Pickable>,
-            &ViewVisibility,
-            &RenderLayers,
-        ),
-        Without<NoLunexPicking>,
-    >,
-    mut output: MessageWriter<PointerHits>,
-) {
-    let Ok((camera_entity, camera, target, camera_transform, Projection::Orthographic(ortho))) =
-        camera.single()
-    else {
-        return;
-    };
-
-    let primary_window = primary_window.single().ok();
-    let inventory_layers = RenderLayers::layer(INVENTORY_RENDER_LAYER);
-    let viewport_pos = camera
-        .logical_viewport_rect()
-        .map(|viewport| viewport.min)
-        .unwrap_or_default();
-
-    let mut sorted_nodes: Vec<_> = nodes
-        .iter()
-        .filter(|(_, _, _, _, visibility, layers)| {
-            visibility.get() && layers.intersects(&inventory_layers)
-        })
-        .collect();
-
-    sorted_nodes.sort_by(
-        |(_, _, a_transform, _, _, _), (_, _, b_transform, _, _, _)| {
-            b_transform
-                .translation()
-                .z
-                .total_cmp(&a_transform.translation().z)
-        },
-    );
-
-    for (pointer, location) in pointers.iter().filter_map(|(pointer, pointer_location)| {
-        pointer_location
-            .location()
-            .map(|location| (pointer, location))
-    }) {
-        if !target
-            .normalize(primary_window)
-            .is_some_and(|target| target == location.target)
-        {
-            continue;
-        }
-
-        let pos_in_viewport = location.position - viewport_pos;
-        let Ok(cursor_ray_world) = camera.viewport_to_world(camera_transform, pos_in_viewport)
-        else {
-            continue;
-        };
-
-        let cursor_ray_len = ortho.far - ortho.near;
-        let cursor_ray_end = cursor_ray_world.origin + cursor_ray_world.direction * cursor_ray_len;
-        let mut blocked = false;
-
-        let picks = sorted_nodes
-            .iter()
-            .filter_map(|(entity, dimension, node_transform, pickable, _, _)| {
-                if blocked {
-                    return None;
-                }
-
-                let world_to_node = node_transform.affine().inverse();
-                let cursor_start_node = world_to_node.transform_point3(cursor_ray_world.origin);
-                let cursor_end_node = world_to_node.transform_point3(cursor_ray_end);
-
-                if cursor_start_node.z == cursor_end_node.z {
-                    return None;
-                }
-
-                let lerp_factor = f32::inverse_lerp(cursor_start_node.z, cursor_end_node.z, 0.0);
-                if !(0.0..=1.0).contains(&lerp_factor) {
-                    return None;
-                }
-
-                let cursor_pos_node = cursor_start_node.lerp(cursor_end_node, lerp_factor).xy();
-
-                if !Rect::from_center_size(Vec2::ZERO, dimension.0).contains(cursor_pos_node) {
-                    return None;
-                }
-
-                blocked = pickable
-                    .map(|pickable| pickable.should_block_lower)
-                    .unwrap_or(true);
-
-                let hit_pos_world = node_transform.transform_point(cursor_pos_node.extend(0.0));
-                let hit_pos_camera = camera_transform
-                    .affine()
-                    .inverse()
-                    .transform_point3(hit_pos_world);
-                let depth = -ortho.near - hit_pos_camera.z;
-
-                Some((
-                    *entity,
-                    HitData::new(
-                        camera_entity,
-                        depth,
-                        Some(hit_pos_world),
-                        Some(*node_transform.back()),
-                    ),
-                ))
-            })
-            .collect();
-
-        output.write(PointerHits::new(*pointer, picks, camera.order as f32));
-    }
 }
 
 fn spawn_inventory_menu(
@@ -253,16 +143,16 @@ fn spawn_inventory_menu(
     let Ok(camera) = camera.single() else {
         return;
     };
+
     let weapons = weapons_assets.get(&weapons_handle.0);
-    let root = spawn_inventory_menu_root(
+    spawn_inventory_menu_root(
         &mut commands,
+        camera,
         &run_inventory,
         &safe_inventory,
         &weapon_assets,
         weapons,
     );
-
-    commands.entity(camera).add_child(root);
 }
 
 fn refresh_inventory_menu(
@@ -282,48 +172,28 @@ fn refresh_inventory_menu(
 
     commands.remove_resource::<InventoryUiDirty>();
 
+    for root in roots.iter() {
+        commands.entity(root).despawn();
+    }
+
     let Ok(camera) = camera.single() else {
         return;
     };
 
     let weapons = weapons_assets.get(&weapons_handle.0);
-    let root = spawn_inventory_menu_root(
+    spawn_inventory_menu_root(
         &mut commands,
+        camera,
         &run_inventory,
         &safe_inventory,
         &weapon_assets,
         weapons,
     );
-    commands.entity(camera).add_child(root);
-
-    for root in roots.iter() {
-        commands
-            .entity(root)
-            .remove::<InventoryMenuRoot>()
-            .insert(StaleInventoryMenuRoot {
-                frames_remaining: 1,
-            });
-    }
-}
-
-fn cleanup_stale_inventory_menus(
-    mut commands: Commands,
-    mut stale_roots: Query<(Entity, &mut StaleInventoryMenuRoot, &mut Visibility)>,
-) {
-    for (entity, mut stale, mut visibility) in &mut stale_roots {
-        if stale.frames_remaining > 0 {
-            stale.frames_remaining -= 1;
-            if stale.frames_remaining == 0 {
-                *visibility = Visibility::Hidden;
-            }
-        } else {
-            commands.entity(entity).despawn();
-        }
-    }
 }
 
 fn spawn_inventory_menu_root(
     commands: &mut Commands,
+    camera: Entity,
     run_inventory: &RunInventory,
     safe_inventory: &SafeInventory,
     weapon_assets: &WeaponAssets,
@@ -333,126 +203,114 @@ fn spawn_inventory_menu_root(
         .spawn((
             Name::new("Inventory Menu"),
             InventoryMenuRoot,
-            UiLayoutRoot::new_2d(),
-            UiFetchFromCamera::<1>,
-            RenderLayers::layer(INVENTORY_RENDER_LAYER),
+            Node {
+                position_type: PositionType::Absolute,
+                width: percent(100),
+                height: percent(100),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..default()
+            },
+            UiTargetCamera(camera),
+            GlobalZIndex(INVENTORY_UI_Z_INDEX),
+            BackgroundColor(OVERLAY_COLOR),
+            Pickable {
+                should_block_lower: true,
+                is_hoverable: false,
+            },
             DespawnOnExit(Menu::Inventory),
         ))
         .with_children(|ui| {
-            spawn_rect(
-                ui,
-                "Inventory Overlay",
-                UiLayout::boundary().pos1(Ab(0.0)).pos2(Rl(100.0)).pack(),
-                0.0,
-                OVERLAY_COLOR,
-            );
-
             ui.spawn((
                 Name::new("Inventory Panel Frame"),
-                UiLayout::window()
-                    .pos((Rl(50.0), Rl(50.0)))
-                    .anchor(Anchor::CENTER)
-                    .size((Ab(900.0), Ab(590.0)))
-                    .pack(),
-                UiDepth::Set(2.0),
-                Sprite::from_color(PANEL_FRAME_COLOR, Vec2::ONE),
-                RenderLayers::layer(INVENTORY_RENDER_LAYER),
+                Node {
+                    position_type: PositionType::Relative,
+                    width: px(PANEL_WIDTH + PANEL_FRAME_PADDING * 2.0),
+                    height: px(PANEL_HEIGHT + PANEL_FRAME_PADDING * 2.0),
+                    ..default()
+                },
+                BackgroundColor(PANEL_FRAME_COLOR),
                 Pickable::IGNORE,
             ))
             .with_children(|ui| {
-                spawn_rect(
-                    ui,
-                    "Inventory Panel",
-                    UiLayout::window()
-                        .pos((Rl(50.0), Rl(50.0)))
-                        .anchor(Anchor::CENTER)
-                        .size((Ab(880.0), Ab(570.0)))
-                        .pack(),
-                    3.0,
-                    PANEL_COLOR,
-                );
-
-                spawn_text(
-                    ui,
-                    "Inventory Title",
-                    "Wave loot",
-                    UiLayout::window()
-                        .pos((Ab(30.0), Ab(28.0)))
-                        .anchor(Anchor::TOP_LEFT)
-                        .pack(),
-                    4.0,
-                    38.0,
-                    TEXT_COLOR,
-                );
-                spawn_text(
-                    ui,
-                    "Inventory Help",
-                    "Drag items into the safe inventory before choosing the next monster buff.",
-                    UiLayout::window()
-                        .pos((Ab(30.0), Ab(68.0)))
-                        .anchor(Anchor::TOP_LEFT)
-                        .pack(),
-                    4.0,
-                    20.0,
-                    MUTED_TEXT_COLOR,
-                );
-
-                spawn_inventory_panel(
-                    ui,
-                    "Run Inventory",
-                    InventoryKind::Run,
-                    (30.0, 112.0),
-                    (490.0, 350.0),
-                    format!("Run Inventory ({})", run_inventory.items().len()),
-                    run_inventory.items(),
-                    weapon_assets,
-                    weapons,
-                );
-                spawn_inventory_panel(
-                    ui,
-                    "Safe Inventory",
-                    InventoryKind::Safe,
-                    (550.0, 112.0),
-                    (300.0, 350.0),
-                    format!(
-                        "Safe Inventory ({}/{SAFE_INVENTORY_CAPACITY})",
-                        safe_inventory.items().len()
-                    ),
-                    safe_inventory.items(),
-                    weapon_assets,
-                    weapons,
-                );
-
                 ui.spawn((
-                    Name::new("Inventory Continue Button"),
-                    UiLayout::window()
-                        .pos((Rl(50.0), Ab(520.0)))
-                        .anchor(Anchor::CENTER)
-                        .size((Ab(220.0), Ab(56.0)))
-                        .pack(),
-                    UiDepth::Set(5.0),
-                    Sprite::from_color(BUTTON_COLOR, Vec2::ONE),
-                    RenderLayers::layer(INVENTORY_RENDER_LAYER),
-                    Pickable::default(),
+                    Name::new("Inventory Panel"),
+                    absolute_node(
+                        PANEL_FRAME_PADDING,
+                        PANEL_FRAME_PADDING,
+                        PANEL_WIDTH,
+                        PANEL_HEIGHT,
+                    ),
+                    BackgroundColor(PANEL_COLOR),
+                    Pickable::IGNORE,
                 ))
-                .observe(continue_to_monster_buff)
                 .with_children(|ui| {
-                    spawn_text(
+                    spawn_inventory_content(
                         ui,
-                        "Inventory Continue Text",
-                        "Continue",
-                        UiLayout::window()
-                            .pos((Rl(50.0), Rl(50.0)))
-                            .anchor(Anchor::CENTER)
-                            .pack(),
-                        6.0,
-                        26.0,
-                        TEXT_COLOR,
+                        run_inventory,
+                        safe_inventory,
+                        weapon_assets,
+                        weapons,
                     );
                 });
             });
         })
         .id()
+}
+
+fn spawn_inventory_content(
+    ui: &mut ChildSpawnerCommands,
+    run_inventory: &RunInventory,
+    safe_inventory: &SafeInventory,
+    weapon_assets: &WeaponAssets,
+    weapons: Option<&Weapons>,
+) {
+    spawn_text(
+        ui,
+        "Inventory Title",
+        "Wave loot",
+        TITLE_POS.0,
+        TITLE_POS.1,
+        38.0,
+        TEXT_COLOR,
+    );
+    spawn_text(
+        ui,
+        "Inventory Help",
+        "Drag items into the safe inventory before choosing the next monster buff.",
+        HELP_POS.0,
+        HELP_POS.1,
+        20.0,
+        MUTED_TEXT_COLOR,
+    );
+
+    spawn_inventory_panel(
+        ui,
+        "Run Inventory",
+        InventoryKind::Run,
+        RUN_PANEL_POS,
+        RUN_PANEL_SIZE,
+        format!("Run Inventory ({})", run_inventory.items().len()),
+        run_inventory.items(),
+        weapon_assets,
+        weapons,
+    );
+    spawn_inventory_panel(
+        ui,
+        "Safe Inventory",
+        InventoryKind::Safe,
+        SAFE_PANEL_POS,
+        SAFE_PANEL_SIZE,
+        format!(
+            "Safe Inventory ({}/{SAFE_INVENTORY_CAPACITY})",
+            safe_inventory.items().len()
+        ),
+        safe_inventory.items(),
+        weapon_assets,
+        weapons,
+    );
+
+    spawn_continue_button(ui);
 }
 
 fn spawn_inventory_panel(
@@ -469,33 +327,22 @@ fn spawn_inventory_panel(
     ui.spawn((
         Name::new(name),
         InventoryDropTarget { kind },
-        UiLayout::window()
-            .pos((Ab(pos.0), Ab(pos.1)))
-            .anchor(Anchor::TOP_LEFT)
-            .size((Ab(size.0), Ab(size.1)))
-            .pack(),
-        UiDepth::Set(4.0),
-        Sprite::from_color(Color::srgba(0.025, 0.022, 0.035, 0.95), Vec2::ONE),
-        RenderLayers::layer(INVENTORY_RENDER_LAYER),
+        Node {
+            border: UiRect::all(px(DEBUG_BORDER_THICKNESS)),
+            ..absolute_node(pos.0, pos.1, size.0, size.1)
+        },
+        BackgroundColor(DROP_PANEL_COLOR),
+        BorderColor::all(kind.debug_border_color()),
         Pickable::default(),
     ))
     .observe(drop_inventory_item)
     .with_children(|ui| {
-        let debug_border_color = match kind {
-            InventoryKind::Run => Color::srgb(0.1, 0.75, 1.0),
-            InventoryKind::Safe => Color::srgb(1.0, 0.35, 0.9),
-        };
-        spawn_debug_border(ui, size, 12.0, debug_border_color);
-
         spawn_text(
             ui,
             "Inventory Section Title",
             title,
-            UiLayout::window()
-                .pos((Ab(16.0), Ab(20.0)))
-                .anchor(Anchor::TOP_LEFT)
-                .pack(),
-            5.0,
+            SECTION_TITLE_POS.0,
+            SECTION_TITLE_POS.1,
             22.0,
             TEXT_COLOR,
         );
@@ -514,18 +361,13 @@ fn spawn_run_slots(
     weapon_assets: &WeaponAssets,
     weapons: Option<&Weapons>,
 ) {
-    const COLUMNS: usize = 8;
-
     if items.is_empty() {
         spawn_text(
             ui,
             "Run Inventory Empty Text",
             "No drops this wave yet.",
-            UiLayout::window()
-                .pos((Ab(18.0), Ab(62.0)))
-                .anchor(Anchor::TOP_LEFT)
-                .pack(),
-            5.0,
+            EMPTY_RUN_TEXT_POS.0,
+            EMPTY_RUN_TEXT_POS.1,
             18.0,
             MUTED_TEXT_COLOR,
         );
@@ -533,15 +375,15 @@ fn spawn_run_slots(
     }
 
     for (index, item) in items.iter().enumerate() {
-        let col = index % COLUMNS;
-        let row = index / COLUMNS;
+        let col = index % RUN_SLOT_COLUMNS;
+        let row = index / RUN_SLOT_COLUMNS;
         spawn_slot(
             ui,
             kind,
             index,
             item,
-            18.0 + col as f32 * (SLOT_SIZE + SLOT_GAP),
-            60.0 + row as f32 * (SLOT_SIZE + SLOT_GAP),
+            SLOT_ORIGIN.0 + col as f32 * (SLOT_SIZE + SLOT_GAP),
+            SLOT_ORIGIN.1 + row as f32 * (SLOT_SIZE + SLOT_GAP),
             weapon_assets,
             weapons,
         );
@@ -555,13 +397,11 @@ fn spawn_safe_slots(
     weapon_assets: &WeaponAssets,
     weapons: Option<&Weapons>,
 ) {
-    const COLUMNS: usize = 5;
-
     for index in 0..SAFE_INVENTORY_CAPACITY {
-        let col = index % COLUMNS;
-        let row = index / COLUMNS;
-        let x = 18.0 + col as f32 * (SLOT_SIZE + SLOT_GAP);
-        let y = 60.0 + row as f32 * (SLOT_SIZE + SLOT_GAP);
+        let col = index % SAFE_SLOT_COLUMNS;
+        let row = index / SAFE_SLOT_COLUMNS;
+        let x = SLOT_ORIGIN.0 + col as f32 * (SLOT_SIZE + SLOT_GAP);
+        let y = SLOT_ORIGIN.1 + row as f32 * (SLOT_SIZE + SLOT_GAP);
 
         if let Some(item) = items.get(index) {
             spawn_slot(ui, kind, index, item, x, y, weapon_assets, weapons);
@@ -584,15 +424,15 @@ fn spawn_slot(
     let rarity_color = rarity_color(item.rarity);
     ui.spawn((
         Name::new(format!("Inventory Slot {}", index + 1)),
-        InventoryItemUi { kind, index },
-        UiLayout::window()
-            .pos((Ab(x), Ab(y)))
-            .anchor(Anchor::TOP_LEFT)
-            .size((Ab(SLOT_SIZE), Ab(SLOT_SIZE)))
-            .pack(),
-        UiDepth::Set(5.0),
-        Sprite::from_color(rarity_color, Vec2::ONE),
-        RenderLayers::layer(INVENTORY_RENDER_LAYER),
+        InventoryItemUi {
+            kind,
+            index,
+            drag_offset: Vec2::ZERO,
+        },
+        absolute_node(x, y, SLOT_SIZE, SLOT_SIZE),
+        UiTransform::default(),
+        ZIndex(ITEM_Z_INDEX),
+        BackgroundColor(rarity_color),
         Pickable::default(),
     ))
     .observe(shortcut_inventory_item)
@@ -600,41 +440,37 @@ fn spawn_slot(
     .observe(drag_inventory_item)
     .observe(finish_inventory_drag)
     .with_children(|ui| {
-        spawn_rect(
-            ui,
-            "Inventory Slot Backing",
-            UiLayout::window()
-                .pos((Rl(50.0), Rl(50.0)))
-                .anchor(Anchor::CENTER)
-                .size((Ab(SLOT_SIZE - 4.0), Ab(SLOT_SIZE - 4.0)))
-                .pack(),
-            6.0,
-            SLOT_COLOR,
-        );
-
-        let weapon_data = weapons.and_then(|weapons| weapons.0.get(&item.item_id));
-        let mut icon = ui.spawn((
-            Name::new(format!("{} Icon", item.item_id)),
-            UiLayout::window()
-                .pos((Rl(50.0), Rl(50.0)))
-                .anchor(Anchor::CENTER)
-                .size((Ab(ITEM_SIZE), Ab(ITEM_SIZE)))
-                .pack(),
-            UiDepth::Set(8.0),
+        ui.spawn((
+            Name::new("Inventory Slot Backing"),
+            centered_absolute_node(SLOT_SIZE - 4.0),
+            ZIndex(ITEM_Z_INDEX),
+            BackgroundColor(SLOT_COLOR),
             Pickable::IGNORE,
-            RenderLayers::layer(INVENTORY_RENDER_LAYER),
         ));
 
+        let weapon_data = weapons.and_then(|weapons| weapons.0.get(&item.item_id));
         if let Some(weapon_data) = weapon_data {
-            icon.insert(Sprite::from_atlas_image(
-                weapon_assets.sprite.clone(),
-                TextureAtlas {
-                    layout: weapon_assets.layout.clone(),
-                    index: weapon_data.weapon_sprite_index,
-                },
+            ui.spawn((
+                Name::new(format!("{} Icon", item.item_id)),
+                centered_absolute_node(ITEM_SIZE),
+                ZIndex(ITEM_ICON_Z_INDEX),
+                ImageNode::from_atlas_image(
+                    weapon_assets.sprite.clone(),
+                    TextureAtlas {
+                        layout: weapon_assets.layout.clone(),
+                        index: weapon_data.weapon_sprite_index,
+                    },
+                ),
+                Pickable::IGNORE,
             ));
         } else {
-            icon.insert(Sprite::from_color(rarity_color, Vec2::ONE));
+            ui.spawn((
+                Name::new(format!("{} Icon", item.item_id)),
+                centered_absolute_node(ITEM_SIZE),
+                ZIndex(ITEM_ICON_Z_INDEX),
+                BackgroundColor(rarity_color),
+                Pickable::IGNORE,
+            ));
         }
     });
 }
@@ -642,105 +478,79 @@ fn spawn_slot(
 fn spawn_empty_slot(ui: &mut ChildSpawnerCommands, x: f32, y: f32) {
     ui.spawn((
         Name::new("Empty Safe Inventory Slot"),
-        UiLayout::window()
-            .pos((Ab(x), Ab(y)))
-            .anchor(Anchor::TOP_LEFT)
-            .size((Ab(SLOT_SIZE), Ab(SLOT_SIZE)))
-            .pack(),
-        UiDepth::Set(5.0),
-        Sprite::from_color(Color::srgba(0.055, 0.05, 0.075, 0.92), Vec2::ONE),
-        RenderLayers::layer(INVENTORY_RENDER_LAYER),
+        absolute_node(x, y, SLOT_SIZE, SLOT_SIZE),
+        BackgroundColor(EMPTY_SLOT_COLOR),
         Pickable::IGNORE,
     ));
 }
 
-fn spawn_rect(
-    ui: &mut ChildSpawnerCommands,
-    name: &'static str,
-    layout: UiLayout,
-    depth: f32,
-    color: Color,
-) {
+fn spawn_continue_button(ui: &mut ChildSpawnerCommands) {
     ui.spawn((
-        Name::new(name),
-        layout,
-        UiDepth::Set(depth),
-        Sprite::from_color(color, Vec2::ONE),
-        RenderLayers::layer(INVENTORY_RENDER_LAYER),
-        Pickable::IGNORE,
-    ));
-}
-
-fn spawn_debug_border(ui: &mut ChildSpawnerCommands, size: (f32, f32), depth: f32, color: Color) {
-    let (width, height) = size;
-    let thickness = DEBUG_BORDER_THICKNESS;
-
-    spawn_rect(
-        ui,
-        "Inventory Drop Debug Border",
-        UiLayout::window()
-            .pos((Ab(0.0), Ab(0.0)))
-            .anchor(Anchor::TOP_LEFT)
-            .size((Ab(width), Ab(thickness)))
-            .pack(),
-        depth,
-        color,
-    );
-    spawn_rect(
-        ui,
-        "Inventory Drop Debug Border",
-        UiLayout::window()
-            .pos((Ab(0.0), Ab(height - thickness)))
-            .anchor(Anchor::TOP_LEFT)
-            .size((Ab(width), Ab(thickness)))
-            .pack(),
-        depth,
-        color,
-    );
-    spawn_rect(
-        ui,
-        "Inventory Drop Debug Border",
-        UiLayout::window()
-            .pos((Ab(0.0), Ab(0.0)))
-            .anchor(Anchor::TOP_LEFT)
-            .size((Ab(thickness), Ab(height)))
-            .pack(),
-        depth,
-        color,
-    );
-    spawn_rect(
-        ui,
-        "Inventory Drop Debug Border",
-        UiLayout::window()
-            .pos((Ab(width - thickness), Ab(0.0)))
-            .anchor(Anchor::TOP_LEFT)
-            .size((Ab(thickness), Ab(height)))
-            .pack(),
-        depth,
-        color,
-    );
+        Name::new("Inventory Continue Button"),
+        Button,
+        Node {
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            ..absolute_node(
+                (PANEL_WIDTH - CONTINUE_BUTTON_WIDTH) / 2.0,
+                CONTINUE_BUTTON_CENTER_Y - CONTINUE_BUTTON_HEIGHT / 2.0,
+                CONTINUE_BUTTON_WIDTH,
+                CONTINUE_BUTTON_HEIGHT,
+            )
+        },
+        BackgroundColor(BUTTON_COLOR),
+        Pickable::default(),
+    ))
+    .observe(continue_to_monster_buff)
+    .with_children(|ui| {
+        ui.spawn((
+            Name::new("Inventory Continue Text"),
+            Text("Continue".to_string()),
+            TextFont::from_font_size(26.0),
+            TextColor(TEXT_COLOR),
+            Pickable::IGNORE,
+        ));
+    });
 }
 
 fn spawn_text(
     ui: &mut ChildSpawnerCommands,
     name: &'static str,
     text: impl Into<String>,
-    layout: UiLayout,
-    depth: f32,
+    x: f32,
+    y: f32,
     font_size: f32,
     color: Color,
 ) {
     ui.spawn((
         Name::new(name),
-        layout,
-        UiTextSize::from(Ab(font_size)),
-        UiDepth::Set(depth),
-        Text2d::new(text),
+        Node {
+            position_type: PositionType::Absolute,
+            left: px(x),
+            top: px(y),
+            ..default()
+        },
+        Text(text.into()),
         TextFont::from_font_size(font_size),
         TextColor(color),
-        RenderLayers::layer(INVENTORY_RENDER_LAYER),
         Pickable::IGNORE,
     ));
+}
+
+fn absolute_node(x: f32, y: f32, width: f32, height: f32) -> Node {
+    Node {
+        position_type: PositionType::Absolute,
+        left: px(x),
+        top: px(y),
+        width: px(width),
+        height: px(height),
+        ..default()
+    }
+}
+
+fn centered_absolute_node(size: f32) -> Node {
+    let inset = (SLOT_SIZE - size) / 2.0;
+    absolute_node(inset, inset, size, size)
 }
 
 fn rarity_color(rarity: ItemRarity) -> Color {
@@ -756,45 +566,61 @@ fn rarity_color(rarity: ItemRarity) -> Color {
 
 fn drag_inventory_item(
     drag: On<Pointer<Drag>>,
-    mut items: Query<&mut Transform, With<InventoryItemUi>>,
+    mut items: Query<(&mut UiTransform, &mut InventoryItemUi)>,
 ) {
-    let Ok(mut transform) = items.get_mut(drag.event_target()) else {
+    let Ok((mut transform, mut item)) = items.get_mut(drag.event_target()) else {
         return;
     };
 
-    transform.translation.x += drag.delta.x;
-    transform.translation.y -= drag.delta.y;
-    transform.translation.z = 30.0;
+    item.drag_offset.x += drag.delta.x;
+    item.drag_offset.y += drag.delta.y;
+    transform.translation = Val2::px(item.drag_offset.x, item.drag_offset.y);
 }
 
 fn start_inventory_drag(
     drag: On<Pointer<DragStart>>,
-    mut items: Query<&mut Pickable, With<InventoryItemUi>>,
+    mut items: Query<(&mut Pickable, &mut ZIndex), With<InventoryItemUi>>,
+    mut commands: Commands,
 ) {
-    let Ok(mut pickable) = items.get_mut(drag.event_target()) else {
+    let Ok((mut pickable, mut z_index)) = items.get_mut(drag.event_target()) else {
         return;
     };
 
     pickable.is_hoverable = false;
     pickable.should_block_lower = false;
+    *z_index = ZIndex(DRAGGED_ITEM_LOCAL_Z_INDEX);
+    commands
+        .entity(drag.event_target())
+        .insert(GlobalZIndex(DRAGGED_ITEM_GLOBAL_Z_INDEX));
 }
 
 fn finish_inventory_drag(
     drag: On<Pointer<DragEnd>>,
     mut drag_state: ResMut<InventoryDragState>,
-    mut items: Query<&mut Pickable, With<InventoryItemUi>>,
     mut commands: Commands,
+    mut items: Query<(
+        &mut Pickable,
+        &mut UiTransform,
+        &mut ZIndex,
+        &mut InventoryItemUi,
+    )>,
 ) {
     if drag_state.successful_drop {
         drag_state.successful_drop = false;
         return;
     }
 
-    if let Ok(mut pickable) = items.get_mut(drag.event_target()) {
+    if let Ok((mut pickable, mut transform, mut z_index, mut item)) =
+        items.get_mut(drag.event_target())
+    {
         *pickable = Pickable::default();
+        *transform = UiTransform::default();
+        *z_index = ZIndex(ITEM_Z_INDEX);
+        item.drag_offset = Vec2::ZERO;
+        commands
+            .entity(drag.event_target())
+            .remove::<GlobalZIndex>();
     }
-
-    commands.trigger(RecomputeUiLayout);
 }
 
 fn drop_inventory_item(
@@ -818,15 +644,13 @@ fn drop_inventory_item(
         return;
     };
 
-    let moved = match (item.kind, target.kind) {
-        (InventoryKind::Run, InventoryKind::Safe) => {
-            move_run_item_to_safe(&mut run_inventory, &mut safe_inventory, item.index)
-        }
-        (InventoryKind::Safe, InventoryKind::Run) => {
-            move_safe_item_to_run(&mut run_inventory, &mut safe_inventory, item.index)
-        }
-        _ => false,
-    };
+    let moved = move_inventory_item(
+        item.kind,
+        target.kind,
+        item.index,
+        &mut run_inventory,
+        &mut safe_inventory,
+    );
 
     drop.propagate(false);
 
@@ -851,19 +675,36 @@ fn shortcut_inventory_item(
         return;
     };
 
-    let moved = match item.kind {
-        InventoryKind::Run => {
-            move_run_item_to_safe(&mut run_inventory, &mut safe_inventory, item.index)
-        }
-        InventoryKind::Safe => {
-            move_safe_item_to_run(&mut run_inventory, &mut safe_inventory, item.index)
-        }
-    };
+    let moved = move_inventory_item(
+        item.kind,
+        item.kind.opposite(),
+        item.index,
+        &mut run_inventory,
+        &mut safe_inventory,
+    );
 
     click.propagate(false);
 
     if moved {
         commands.insert_resource(InventoryUiDirty);
+    }
+}
+
+fn move_inventory_item(
+    source: InventoryKind,
+    target: InventoryKind,
+    index: usize,
+    run_inventory: &mut RunInventory,
+    safe_inventory: &mut SafeInventory,
+) -> bool {
+    match (source, target) {
+        (InventoryKind::Run, InventoryKind::Safe) => {
+            move_run_item_to_safe(run_inventory, safe_inventory, index)
+        }
+        (InventoryKind::Safe, InventoryKind::Run) => {
+            move_safe_item_to_run(run_inventory, safe_inventory, index)
+        }
+        _ => false,
     }
 }
 

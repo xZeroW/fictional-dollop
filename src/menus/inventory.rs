@@ -52,7 +52,6 @@ const DROP_PANEL_COLOR: Color = Color::srgba(0.025, 0.022, 0.035, 0.95);
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.86, 0.78);
 const MUTED_TEXT_COLOR: Color = Color::srgb(0.62, 0.58, 0.65);
 const BUTTON_COLOR: Color = Color::srgb(0.33, 0.21, 0.46);
-const DEBUG_BORDER_THICKNESS: f32 = 2.0;
 
 #[derive(Component)]
 struct InventoryCamera;
@@ -71,13 +70,6 @@ impl InventoryKind {
         match self {
             Self::Run => Self::Safe,
             Self::Safe => Self::Run,
-        }
-    }
-
-    fn debug_border_color(self) -> Color {
-        match self {
-            Self::Run => Color::srgb(0.1, 0.75, 1.0),
-            Self::Safe => Color::srgb(1.0, 0.35, 0.9),
         }
     }
 }
@@ -327,12 +319,8 @@ fn spawn_inventory_panel(
     ui.spawn((
         Name::new(name),
         InventoryDropTarget { kind },
-        Node {
-            border: UiRect::all(px(DEBUG_BORDER_THICKNESS)),
-            ..absolute_node(pos.0, pos.1, size.0, size.1)
-        },
+        absolute_node(pos.0, pos.1, size.0, size.1),
         BackgroundColor(DROP_PANEL_COLOR),
-        BorderColor::all(kind.debug_border_color()),
         Pickable::default(),
     ))
     .observe(drop_inventory_item)

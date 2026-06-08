@@ -3,8 +3,7 @@
 ## Core Concept
 - **Genre:** 2D Pixel Art Roguelite
 - **Perspective:** Top-down
-- **Session Structure:** Timed rounds (5 minutes each)
-- **Core Twist:** Player progression happens by upgrading **monsters**, not the hero
+- **Session Structure:** Timed rounds (1 minute each)
 
 ---
 
@@ -28,19 +27,18 @@
 ---
 
 ## ⏱️ Rounds & Game Flow
-- Each round lasts **5 minutes**
+- Each round lasts **1 minute**
 
 ### Round Loop
 1. Enter themed map
 2. Fight monsters and collect loot
 3. End of round:
-   - Choose monster buffs
    - Access loot and crafting
 4. Transition to next map
 
 ---
 
-## 👹 Monster Progression System
+## 👹 Monster Progression System -- I'm abandoning this idea
 
 ### Monster Buffs
 Instead of upgrading the hero, the player selects **monster buffs** each round.
@@ -156,4 +154,3 @@ Each monster buff grants the player a **bonus**, such as:
 - No timer
 - Single powerful boss
 - High-risk / high-reward rewards
-

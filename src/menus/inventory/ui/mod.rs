@@ -1,3 +1,4 @@
+mod crafting_workbench;
 mod item_transfer_menu;
 mod tooltip;
 
@@ -21,23 +22,26 @@ const SLOT_GAP: f32 = 6.0;
 const RUN_SLOT_COLUMNS: usize = 8;
 const SAFE_SLOT_COLUMNS: usize = 5;
 
-const PANEL_WIDTH: f32 = 880.0;
+const PANEL_WIDTH: f32 = 1260.0;
 const PANEL_HEIGHT: f32 = 570.0;
 const PANEL_FRAME_PADDING: f32 = 10.0;
 const CONTINUE_BUTTON_WIDTH: f32 = 220.0;
 const CONTINUE_BUTTON_HEIGHT: f32 = 56.0;
+const CONTINUE_BUTTON_CENTER_X: f32 = 440.0;
 const CONTINUE_BUTTON_CENTER_Y: f32 = 520.0;
 const RUN_PANEL_POS: (f32, f32) = (30.0, 112.0);
 const RUN_PANEL_SIZE: (f32, f32) = (490.0, 350.0);
 const SAFE_PANEL_POS: (f32, f32) = (550.0, 112.0);
 const SAFE_PANEL_SIZE: (f32, f32) = (300.0, 350.0);
+const CRAFT_PANEL_POS: (f32, f32) = (890.0, 112.0);
+const CRAFT_PANEL_SIZE: (f32, f32) = (340.0, 430.0);
 const TITLE_POS: (f32, f32) = (30.0, 28.0);
 const HELP_POS: (f32, f32) = (30.0, 68.0);
 const SECTION_TITLE_POS: (f32, f32) = (16.0, 20.0);
 const SLOT_ORIGIN: (f32, f32) = (18.0, 60.0);
 const EMPTY_RUN_TEXT_POS: (f32, f32) = (18.0, 62.0);
 const TOOLTIP_WIDTH: f32 = 320.0;
-const TOOLTIP_HEIGHT: f32 = 320.0;
+const TOOLTIP_HEIGHT: f32 = 370.0;
 const TOOLTIP_GAP: f32 = 12.0;
 const TOOLTIP_PANEL_MARGIN: f32 = 12.0;
 const TOOLTIP_FRAME_PADDING: f32 = 4.0;
@@ -59,6 +63,10 @@ const OVERLAY_COLOR: Color = Color::srgba(0.02, 0.0, 0.03, 0.88);
 const SLOT_COLOR: Color = Color::srgba(0.08, 0.075, 0.105, 0.95);
 const EMPTY_SLOT_COLOR: Color = Color::srgba(0.055, 0.05, 0.075, 0.92);
 const DROP_PANEL_COLOR: Color = Color::srgba(0.025, 0.022, 0.035, 0.95);
+const CRAFT_CARD_COLOR: Color = Color::srgba(0.09, 0.075, 0.12, 0.96);
+const CRAFT_CARD_SELECTED_COLOR: Color = Color::srgba(0.25, 0.16, 0.34, 0.98);
+const CRAFT_PREVIEW_COLOR: Color = Color::srgba(0.055, 0.048, 0.075, 0.98);
+const DISABLED_BUTTON_COLOR: Color = Color::srgba(0.16, 0.15, 0.18, 0.95);
 const TOOLTIP_COLOR: Color = Color::srgba(0.015, 0.014, 0.022, 0.98);
 const TOOLTIP_FRAME_COLOR: Color = Color::srgba(0.42, 0.35, 0.27, 0.98);
 const TOOLTIP_SEPARATOR_COLOR: Color = Color::srgba(0.32, 0.3, 0.32, 0.95);
@@ -66,6 +74,7 @@ const TEXT_COLOR: Color = Color::srgb(0.9, 0.86, 0.78);
 const MUTED_TEXT_COLOR: Color = Color::srgb(0.62, 0.58, 0.65);
 const BUTTON_COLOR: Color = Color::srgb(0.33, 0.21, 0.46);
 
+pub(super) use crafting_workbench::spawn_crafting_panel;
 pub(super) use item_transfer_menu::spawn_item_transfer_menu_root;
 pub(super) use tooltip::{
     InventoryItemTooltip, InventoryTooltipData, despawn_inventory_tooltips,
@@ -82,6 +91,14 @@ pub(super) struct InventoryItemUi {
     pub(in crate::menus::inventory) panel_pos: Vec2,
     pub(in crate::menus::inventory) drag_offset: Vec2,
 }
+
+#[derive(Component)]
+pub(super) struct CraftingActionUi {
+    pub(in crate::menus::inventory) action: super::CraftingAction,
+}
+
+#[derive(Component)]
+pub(super) struct CraftingConfirmButtonUi;
 
 fn absolute_node(x: f32, y: f32, width: f32, height: f32) -> Node {
     Node {

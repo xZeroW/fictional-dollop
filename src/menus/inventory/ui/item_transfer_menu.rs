@@ -4,22 +4,25 @@ use crate::{
     assets::WeaponAssets,
     game::weapon_data::Weapons,
     menus::Menu,
-    systems::{InventoryItem, RunInventory, SAFE_INVENTORY_CAPACITY, SafeInventory},
+    systems::{
+        CraftingMaterials, InventoryItem, RunInventory, SAFE_INVENTORY_CAPACITY, SafeInventory,
+    },
 };
 
 use super::super::{
-    InventoryDropTarget, InventoryKind, InventoryMenuRoot, continue_to_monster_buff,
-    drag_inventory_item, drop_inventory_item, finish_inventory_drag, shortcut_inventory_item,
-    start_inventory_drag,
+    CraftingSelection, InventoryDropTarget, InventoryKind, InventoryMenuRoot,
+    continue_to_monster_buff, drag_inventory_item, drop_inventory_item, finish_inventory_drag,
+    select_crafting_item, shortcut_inventory_item, start_inventory_drag,
 };
 use super::{
-    BUTTON_COLOR, CONTINUE_BUTTON_CENTER_Y, CONTINUE_BUTTON_HEIGHT, CONTINUE_BUTTON_WIDTH,
-    DROP_PANEL_COLOR, EMPTY_RUN_TEXT_POS, EMPTY_SLOT_COLOR, HELP_POS, INVENTORY_UI_Z_INDEX,
-    ITEM_ICON_Z_INDEX, ITEM_SIZE, ITEM_Z_INDEX, InventoryItemUi, InventoryPanelUi,
-    MUTED_TEXT_COLOR, OVERLAY_COLOR, PANEL_COLOR, PANEL_FRAME_COLOR, PANEL_FRAME_PADDING,
-    PANEL_HEIGHT, PANEL_WIDTH, RUN_PANEL_POS, RUN_PANEL_SIZE, RUN_SLOT_COLUMNS, SAFE_PANEL_POS,
-    SAFE_PANEL_SIZE, SAFE_SLOT_COLUMNS, SECTION_TITLE_POS, SLOT_COLOR, SLOT_GAP, SLOT_ORIGIN,
-    SLOT_SIZE, TEXT_COLOR, TITLE_POS, absolute_node, rarity_color,
+    BUTTON_COLOR, CONTINUE_BUTTON_CENTER_X, CONTINUE_BUTTON_CENTER_Y, CONTINUE_BUTTON_HEIGHT,
+    CONTINUE_BUTTON_WIDTH, DROP_PANEL_COLOR, EMPTY_RUN_TEXT_POS, EMPTY_SLOT_COLOR, HELP_POS,
+    INVENTORY_UI_Z_INDEX, ITEM_ICON_Z_INDEX, ITEM_SIZE, ITEM_Z_INDEX, InventoryItemUi,
+    InventoryPanelUi, MUTED_TEXT_COLOR, OVERLAY_COLOR, PANEL_COLOR, PANEL_FRAME_COLOR,
+    PANEL_FRAME_PADDING, PANEL_HEIGHT, PANEL_WIDTH, RUN_PANEL_POS, RUN_PANEL_SIZE,
+    RUN_SLOT_COLUMNS, SAFE_PANEL_POS, SAFE_PANEL_SIZE, SAFE_SLOT_COLUMNS, SECTION_TITLE_POS,
+    SLOT_COLOR, SLOT_GAP, SLOT_ORIGIN, SLOT_SIZE, TEXT_COLOR, TITLE_POS, absolute_node,
+    rarity_color, spawn_crafting_panel,
 };
 
 pub(in crate::menus::inventory) fn spawn_item_transfer_menu_root(
@@ -27,6 +30,8 @@ pub(in crate::menus::inventory) fn spawn_item_transfer_menu_root(
     camera: Entity,
     run_inventory: &RunInventory,
     safe_inventory: &SafeInventory,
+    crafting_selection: &CraftingSelection,
+    crafting_materials: &CraftingMaterials,
     weapon_assets: &WeaponAssets,
     weapons: Option<&Weapons>,
 ) -> Entity {
@@ -81,6 +86,8 @@ pub(in crate::menus::inventory) fn spawn_item_transfer_menu_root(
                         ui,
                         run_inventory,
                         safe_inventory,
+                        crafting_selection,
+                        crafting_materials,
                         weapon_assets,
                         weapons,
                     );
@@ -94,6 +101,8 @@ fn spawn_inventory_content(
     ui: &mut ChildSpawnerCommands,
     run_inventory: &RunInventory,
     safe_inventory: &SafeInventory,
+    crafting_selection: &CraftingSelection,
+    crafting_materials: &CraftingMaterials,
     weapon_assets: &WeaponAssets,
     weapons: Option<&Weapons>,
 ) {
@@ -109,7 +118,7 @@ fn spawn_inventory_content(
     spawn_text(
         ui,
         "Inventory Help",
-        "Drag items into the safe inventory before choosing the next monster buff.",
+        "Drag items into safe inventory. Left click a weapon to preview craft options.",
         HELP_POS.0,
         HELP_POS.1,
         20.0,
@@ -138,6 +147,16 @@ fn spawn_inventory_content(
             safe_inventory.items().len()
         ),
         safe_inventory.items(),
+        weapon_assets,
+        weapons,
+    );
+
+    spawn_crafting_panel(
+        ui,
+        run_inventory,
+        safe_inventory,
+        crafting_selection,
+        crafting_materials,
         weapon_assets,
         weapons,
     );
@@ -280,6 +299,7 @@ fn spawn_slot(
         BackgroundColor(rarity_color),
         Pickable::default(),
     ))
+    .observe(select_crafting_item)
     .observe(shortcut_inventory_item)
     .observe(super::super::show_inventory_item_tooltip)
     .observe(super::super::hide_inventory_item_tooltip)
@@ -339,7 +359,7 @@ fn spawn_continue_button(ui: &mut ChildSpawnerCommands) {
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
             ..absolute_node(
-                (PANEL_WIDTH - CONTINUE_BUTTON_WIDTH) / 2.0,
+                CONTINUE_BUTTON_CENTER_X - CONTINUE_BUTTON_WIDTH / 2.0,
                 CONTINUE_BUTTON_CENTER_Y - CONTINUE_BUTTON_HEIGHT / 2.0,
                 CONTINUE_BUTTON_WIDTH,
                 CONTINUE_BUTTON_HEIGHT,

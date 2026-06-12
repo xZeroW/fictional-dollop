@@ -1,5 +1,6 @@
 //! The between-wave inventory menu.
 
+mod crafting;
 mod ui;
 
 use bevy::{camera::ClearColorConfig, camera::visibility::RenderLayers, prelude::*};
@@ -9,7 +10,8 @@ use crate::{
     game::weapon_data::{Weapons, WeaponsHandle},
     menus::Menu,
     systems::{
-        InventoryItem, RunInventory, SafeInventory, move_run_item_to_safe, move_safe_item_to_run,
+        CraftingMaterials, InventoryItem, RunInventory, SafeInventory, move_run_item_to_safe,
+        move_safe_item_to_run,
     },
 };
 
@@ -17,6 +19,11 @@ use ui::{
     DRAGGED_ITEM_GLOBAL_Z_INDEX, DRAGGED_ITEM_LOCAL_Z_INDEX, INVENTORY_RENDER_LAYER, ITEM_Z_INDEX,
     InventoryItemTooltip, InventoryItemUi, InventoryPanelUi, InventoryTooltipData,
     despawn_inventory_tooltips, spawn_inventory_item_tooltip, spawn_item_transfer_menu_root,
+};
+
+pub(in crate::menus::inventory) use crafting::{
+    CraftingAction, CraftingItemRef, CraftingSelection, confirm_crafting_action,
+    select_crafting_action, select_crafting_item,
 };
 
 const INVENTORY_CAMERA_ORDER: isize = ui::INVENTORY_UI_Z_INDEX as isize;
@@ -27,7 +34,7 @@ struct InventoryCamera;
 #[derive(Component)]
 struct InventoryMenuRoot;
 
-#[derive(Component, Clone, Copy, PartialEq, Eq)]
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 enum InventoryKind {
     Run,
     Safe,
@@ -60,6 +67,7 @@ pub(super) struct InventoryMenuPlugin;
 impl Plugin for InventoryMenuPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<InventoryDragState>();
+        app.init_resource::<CraftingSelection>();
         app.add_systems(Startup, spawn_inventory_camera);
         app.add_systems(OnEnter(Menu::Inventory), spawn_inventory_menu);
         app.add_systems(
@@ -89,6 +97,8 @@ fn spawn_inventory_menu(
     camera: Query<Entity, With<InventoryCamera>>,
     run_inventory: Res<RunInventory>,
     safe_inventory: Res<SafeInventory>,
+    crafting_selection: Res<CraftingSelection>,
+    crafting_materials: Res<CraftingMaterials>,
     weapon_assets: Res<WeaponAssets>,
     weapons_handle: Res<WeaponsHandle>,
     weapons_assets: Res<Assets<Weapons>>,
@@ -103,6 +113,8 @@ fn spawn_inventory_menu(
         camera,
         &run_inventory,
         &safe_inventory,
+        &crafting_selection,
+        &crafting_materials,
         &weapon_assets,
         weapons,
     );
@@ -115,6 +127,8 @@ fn refresh_inventory_menu(
     camera: Query<Entity, With<InventoryCamera>>,
     run_inventory: Res<RunInventory>,
     safe_inventory: Res<SafeInventory>,
+    crafting_selection: Res<CraftingSelection>,
+    crafting_materials: Res<CraftingMaterials>,
     weapon_assets: Res<WeaponAssets>,
     weapons_handle: Res<WeaponsHandle>,
     weapons_assets: Res<Assets<Weapons>>,
@@ -139,6 +153,8 @@ fn refresh_inventory_menu(
         camera,
         &run_inventory,
         &safe_inventory,
+        &crafting_selection,
+        &crafting_materials,
         &weapon_assets,
         weapons,
     );
@@ -264,6 +280,7 @@ fn drop_inventory_item(
     items: Query<&InventoryItemUi>,
     mut run_inventory: ResMut<RunInventory>,
     mut safe_inventory: ResMut<SafeInventory>,
+    mut crafting_selection: ResMut<CraftingSelection>,
     mut drag_state: ResMut<InventoryDragState>,
     mut commands: Commands,
 ) {
@@ -290,6 +307,7 @@ fn drop_inventory_item(
     drop.propagate(false);
 
     if moved {
+        crafting_selection.item = None;
         drag_state.successful_drop = true;
         commands.insert_resource(InventoryUiDirty);
     }
@@ -300,6 +318,7 @@ fn shortcut_inventory_item(
     items: Query<&InventoryItemUi>,
     mut run_inventory: ResMut<RunInventory>,
     mut safe_inventory: ResMut<SafeInventory>,
+    mut crafting_selection: ResMut<CraftingSelection>,
     mut commands: Commands,
 ) {
     if click.button != PointerButton::Secondary {
@@ -321,6 +340,7 @@ fn shortcut_inventory_item(
     click.propagate(false);
 
     if moved {
+        crafting_selection.item = None;
         commands.insert_resource(InventoryUiDirty);
     }
 }

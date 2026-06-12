@@ -2,12 +2,27 @@ use bevy::prelude::*;
 
 use crate::{components::ItemRarity, screens::Screen};
 
+use super::crafting::CraftingAffix;
+
 pub const SAFE_INVENTORY_CAPACITY: usize = 20;
 
 #[derive(Debug, Clone, PartialEq, Eq, Reflect)]
 pub struct InventoryItem {
     pub item_id: String,
     pub rarity: ItemRarity,
+    pub quality: u8,
+    pub affixes: Vec<CraftingAffix>,
+}
+
+impl InventoryItem {
+    pub fn new(item_id: impl Into<String>, rarity: ItemRarity) -> Self {
+        Self {
+            item_id: item_id.into(),
+            rarity,
+            quality: 0,
+            affixes: Vec::new(),
+        }
+    }
 }
 
 #[derive(Resource, Default, Debug, Clone, Reflect)]
@@ -18,10 +33,7 @@ pub struct RunInventory {
 
 impl RunInventory {
     pub fn add_item(&mut self, item_id: impl Into<String>, rarity: ItemRarity) {
-        self.items.push(InventoryItem {
-            item_id: item_id.into(),
-            rarity,
-        });
+        self.items.push(InventoryItem::new(item_id, rarity));
     }
 
     pub fn push(&mut self, item: InventoryItem) {
@@ -42,6 +54,10 @@ impl RunInventory {
 
     pub fn items(&self) -> &[InventoryItem] {
         &self.items
+    }
+
+    pub fn item_mut(&mut self, index: usize) -> Option<&mut InventoryItem> {
+        self.items.get_mut(index)
     }
 
     pub fn summary(&self) -> String {
@@ -88,6 +104,10 @@ impl SafeInventory {
 
     pub fn items(&self) -> &[InventoryItem] {
         &self.items
+    }
+
+    pub fn item_mut(&mut self, index: usize) -> Option<&mut InventoryItem> {
+        self.items.get_mut(index)
     }
 
     pub fn is_full(&self) -> bool {
@@ -153,10 +173,7 @@ mod tests {
     use super::*;
 
     fn item(id: usize) -> InventoryItem {
-        InventoryItem {
-            item_id: format!("item_{id}"),
-            rarity: ItemRarity::Common,
-        }
+        InventoryItem::new(format!("item_{id}"), ItemRarity::Common)
     }
 
     #[test]

@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 
-use crate::{assets::WeaponAssets, game::weapon_data::Weapons, systems::InventoryItem};
+use crate::{
+    assets::WeaponAssets,
+    game::weapon_data::Weapons,
+    systems::{CraftingAffix, InventoryItem},
+};
 
 use super::{
     MUTED_TEXT_COLOR, PANEL_HEIGHT, PANEL_WIDTH, SLOT_COLOR, SLOT_SIZE, TEXT_COLOR,
@@ -19,6 +23,8 @@ pub(in crate::menus::inventory) struct InventoryTooltipData<'a> {
     item_id: &'a str,
     name: &'a str,
     rarity: crate::components::ItemRarity,
+    quality: u8,
+    affixes: &'a [CraftingAffix],
     damage: Option<f32>,
     attack_speed: Option<f32>,
     attack_range: Option<f32>,
@@ -38,6 +44,8 @@ impl<'a> InventoryTooltipData<'a> {
                 .map(|weapon_data| weapon_data.name.as_str())
                 .unwrap_or_else(|| item.item_id.as_str()),
             rarity: item.rarity,
+            quality: item.quality,
+            affixes: item.affixes.as_slice(),
             damage: weapon_data.map(|weapon_data| weapon_data.damage),
             attack_speed: weapon_data.map(|weapon_data| weapon_data.attack_speed),
             attack_range: weapon_data.map(|weapon_data| weapon_data.attack_range),
@@ -91,13 +99,7 @@ pub(in crate::menus::inventory) fn spawn_inventory_item_tooltip(
             spawn_tooltip_body(ui, tooltip_data, weapon_assets);
 
             spawn_tooltip_separator(ui);
-            spawn_tooltip_text(
-                ui,
-                "Inventory Tooltip Item Id",
-                tooltip_data.item_id,
-                TOOLTIP_DEBUG_FONT_SIZE,
-                MUTED_TEXT_COLOR,
-            );
+            spawn_tooltip_details(ui, tooltip_data);
         });
     });
 }
@@ -153,6 +155,13 @@ fn spawn_tooltip_stats(ui: &mut ChildSpawnerCommands, tooltip_data: &InventoryTo
         );
         spawn_tooltip_text(
             ui,
+            "Inventory Tooltip Quality",
+            format!("Quality +{}%", tooltip_data.quality),
+            TOOLTIP_STAT_FONT_SIZE,
+            TEXT_COLOR,
+        );
+        spawn_tooltip_text(
+            ui,
             "Inventory Tooltip Damage",
             format!("Damage {}", whole_stat(tooltip_data.damage)),
             TOOLTIP_STAT_FONT_SIZE,
@@ -171,6 +180,47 @@ fn spawn_tooltip_stats(ui: &mut ChildSpawnerCommands, tooltip_data: &InventoryTo
             format!("Range {}", whole_stat(tooltip_data.attack_range)),
             TOOLTIP_STAT_FONT_SIZE,
             TEXT_COLOR,
+        );
+    });
+}
+
+fn spawn_tooltip_details(ui: &mut ChildSpawnerCommands, tooltip_data: &InventoryTooltipData) {
+    ui.spawn((
+        Name::new("Inventory Tooltip Details"),
+        Node {
+            flex_direction: FlexDirection::Column,
+            row_gap: px(TOOLTIP_STAT_GAP),
+            ..default()
+        },
+        Pickable::IGNORE,
+    ))
+    .with_children(|ui| {
+        if !tooltip_data.affixes.is_empty() {
+            spawn_tooltip_text(
+                ui,
+                "Inventory Tooltip Affixes Title",
+                "Crafted affixes",
+                TOOLTIP_DEBUG_FONT_SIZE,
+                MUTED_TEXT_COLOR,
+            );
+
+            for affix in tooltip_data.affixes {
+                spawn_tooltip_text(
+                    ui,
+                    "Inventory Tooltip Crafted Affix",
+                    affix.label(),
+                    TOOLTIP_DEBUG_FONT_SIZE,
+                    TEXT_COLOR,
+                );
+            }
+        }
+
+        spawn_tooltip_text(
+            ui,
+            "Inventory Tooltip Item Id",
+            tooltip_data.item_id,
+            TOOLTIP_DEBUG_FONT_SIZE,
+            MUTED_TEXT_COLOR,
         );
     });
 }

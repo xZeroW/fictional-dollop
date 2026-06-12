@@ -5,8 +5,6 @@
     not(all(feature = "dev", debug_assertions)),
     windows_subsystem = "windows"
 )]
-// `attributes!` macro from bevy_gauge requires a higher recursion limit.
-#![recursion_limit = "256"]
 
 mod assets;
 mod audio;

@@ -56,10 +56,6 @@ impl RunInventory {
         &self.items
     }
 
-    pub fn item_mut(&mut self, index: usize) -> Option<&mut InventoryItem> {
-        self.items.get_mut(index)
-    }
-
     pub fn summary(&self) -> String {
         let mut rarity_totals = [0; ItemRarity::ALL.len()];
 

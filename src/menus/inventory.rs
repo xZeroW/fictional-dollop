@@ -1,35 +1,25 @@
 //! The between-wave inventory menu.
 
-mod crafting;
 mod ui;
 
-use bevy::{camera::ClearColorConfig, camera::visibility::RenderLayers, prelude::*};
+use bevy::prelude::*;
 
 use crate::{
     assets::WeaponAssets,
     game::weapon_data::{Weapons, WeaponsHandle},
-    menus::Menu,
+    menus::{
+        Menu, MenuCamera,
+        item_tooltip::{ItemTooltip, ItemTooltipData, despawn_item_tooltips, spawn_item_tooltip},
+    },
     systems::{
-        CraftingMaterials, InventoryItem, RunInventory, SafeInventory, move_run_item_to_safe,
-        move_safe_item_to_run,
+        InventoryItem, RunInventory, SafeInventory, move_run_item_to_safe, move_safe_item_to_run,
     },
 };
 
 use ui::{
-    DRAGGED_ITEM_GLOBAL_Z_INDEX, DRAGGED_ITEM_LOCAL_Z_INDEX, INVENTORY_RENDER_LAYER, ITEM_Z_INDEX,
-    InventoryItemTooltip, InventoryItemUi, InventoryPanelUi, InventoryTooltipData,
-    despawn_inventory_tooltips, spawn_inventory_item_tooltip, spawn_item_transfer_menu_root,
+    DRAGGED_ITEM_GLOBAL_Z_INDEX, DRAGGED_ITEM_LOCAL_Z_INDEX, ITEM_Z_INDEX, InventoryItemUi,
+    InventoryPanelUi, spawn_item_transfer_menu_root,
 };
-
-pub(in crate::menus::inventory) use crafting::{
-    CraftingAction, CraftingItemRef, CraftingSelection, confirm_crafting_action,
-    select_crafting_action, select_crafting_item,
-};
-
-const INVENTORY_CAMERA_ORDER: isize = ui::INVENTORY_UI_Z_INDEX as isize;
-
-#[derive(Component)]
-struct InventoryCamera;
 
 #[derive(Component)]
 struct InventoryMenuRoot;
@@ -41,7 +31,7 @@ enum InventoryKind {
 }
 
 impl InventoryKind {
-    fn opposite(self) -> Self {
+    fn shortcut_target(self) -> Self {
         match self {
             Self::Run => Self::Safe,
             Self::Safe => Self::Run,
@@ -59,6 +49,7 @@ struct InventoryUiDirty;
 
 #[derive(Resource, Default)]
 struct InventoryDragState {
+    primary_drag: bool,
     successful_drop: bool,
 }
 
@@ -67,8 +58,6 @@ pub(super) struct InventoryMenuPlugin;
 impl Plugin for InventoryMenuPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<InventoryDragState>();
-        app.init_resource::<CraftingSelection>();
-        app.add_systems(Startup, spawn_inventory_camera);
         app.add_systems(OnEnter(Menu::Inventory), spawn_inventory_menu);
         app.add_systems(
             Update,
@@ -77,28 +66,11 @@ impl Plugin for InventoryMenuPlugin {
     }
 }
 
-fn spawn_inventory_camera(mut commands: Commands) {
-    commands.spawn((
-        Name::new("Inventory Camera"),
-        InventoryCamera,
-        Camera2d,
-        Camera {
-            order: INVENTORY_CAMERA_ORDER,
-            clear_color: ClearColorConfig::None,
-            ..default()
-        },
-        Msaa::Off,
-        RenderLayers::layer(INVENTORY_RENDER_LAYER),
-    ));
-}
-
 fn spawn_inventory_menu(
     mut commands: Commands,
-    camera: Query<Entity, With<InventoryCamera>>,
+    camera: Query<Entity, With<MenuCamera>>,
     run_inventory: Res<RunInventory>,
     safe_inventory: Res<SafeInventory>,
-    crafting_selection: Res<CraftingSelection>,
-    crafting_materials: Res<CraftingMaterials>,
     weapon_assets: Res<WeaponAssets>,
     weapons_handle: Res<WeaponsHandle>,
     weapons_assets: Res<Assets<Weapons>>,
@@ -113,8 +85,6 @@ fn spawn_inventory_menu(
         camera,
         &run_inventory,
         &safe_inventory,
-        &crafting_selection,
-        &crafting_materials,
         &weapon_assets,
         weapons,
     );
@@ -124,11 +94,9 @@ fn refresh_inventory_menu(
     mut commands: Commands,
     dirty: Option<Res<InventoryUiDirty>>,
     roots: Query<Entity, With<InventoryMenuRoot>>,
-    camera: Query<Entity, With<InventoryCamera>>,
+    camera: Query<Entity, With<MenuCamera>>,
     run_inventory: Res<RunInventory>,
     safe_inventory: Res<SafeInventory>,
-    crafting_selection: Res<CraftingSelection>,
-    crafting_materials: Res<CraftingMaterials>,
     weapon_assets: Res<WeaponAssets>,
     weapons_handle: Res<WeaponsHandle>,
     weapons_assets: Res<Assets<Weapons>>,
@@ -153,8 +121,6 @@ fn refresh_inventory_menu(
         camera,
         &run_inventory,
         &safe_inventory,
-        &crafting_selection,
-        &crafting_materials,
         &weapon_assets,
         weapons,
     );
@@ -165,7 +131,7 @@ fn show_inventory_item_tooltip(
     mut commands: Commands,
     items: Query<&InventoryItemUi>,
     panels: Query<Entity, With<InventoryPanelUi>>,
-    tooltips: Query<Entity, With<InventoryItemTooltip>>,
+    tooltips: Query<Entity, With<ItemTooltip>>,
     run_inventory: Res<RunInventory>,
     safe_inventory: Res<SafeInventory>,
     weapon_assets: Res<WeaponAssets>,
@@ -184,21 +150,21 @@ fn show_inventory_item_tooltip(
     };
 
     let weapons = weapons_assets.get(&weapons_handle.0);
-    let tooltip_data = InventoryTooltipData::new(item, weapons);
+    let tooltip_data = ItemTooltipData::new(item, weapons);
     let slot_panel_pos = item_ui.panel_pos;
 
-    despawn_inventory_tooltips(&mut commands, &tooltips);
+    despawn_item_tooltips(&mut commands, &tooltips);
     commands.entity(panel).with_children(|ui| {
-        spawn_inventory_item_tooltip(ui, slot_panel_pos, &tooltip_data, &weapon_assets);
+        spawn_item_tooltip(ui, slot_panel_pos, &tooltip_data, &weapon_assets);
     });
 }
 
 fn hide_inventory_item_tooltip(
     _: On<Pointer<Out>>,
     mut commands: Commands,
-    tooltips: Query<Entity, With<InventoryItemTooltip>>,
+    tooltips: Query<Entity, With<ItemTooltip>>,
 ) {
-    despawn_inventory_tooltips(&mut commands, &tooltips);
+    despawn_item_tooltips(&mut commands, &tooltips);
 }
 
 fn inventory_item<'a>(
@@ -215,8 +181,13 @@ fn inventory_item<'a>(
 
 fn drag_inventory_item(
     drag: On<Pointer<Drag>>,
+    drag_state: Res<InventoryDragState>,
     mut items: Query<(&mut UiTransform, &mut InventoryItemUi)>,
 ) {
+    if !drag_state.primary_drag {
+        return;
+    }
+
     let Ok((mut transform, mut item)) = items.get_mut(drag.event_target()) else {
         return;
     };
@@ -228,18 +199,25 @@ fn drag_inventory_item(
 
 fn start_inventory_drag(
     drag: On<Pointer<DragStart>>,
+    mut drag_state: ResMut<InventoryDragState>,
     mut items: Query<(&mut Pickable, &mut ZIndex), With<InventoryItemUi>>,
-    tooltips: Query<Entity, With<InventoryItemTooltip>>,
+    tooltips: Query<Entity, With<ItemTooltip>>,
     mut commands: Commands,
 ) {
+    if drag.button != PointerButton::Primary {
+        drag_state.primary_drag = false;
+        return;
+    }
+
     let Ok((mut pickable, mut z_index)) = items.get_mut(drag.event_target()) else {
         return;
     };
 
+    drag_state.primary_drag = true;
     pickable.is_hoverable = false;
     pickable.should_block_lower = false;
     *z_index = ZIndex(DRAGGED_ITEM_LOCAL_Z_INDEX);
-    despawn_inventory_tooltips(&mut commands, &tooltips);
+    despawn_item_tooltips(&mut commands, &tooltips);
     commands
         .entity(drag.event_target())
         .insert(GlobalZIndex(DRAGGED_ITEM_GLOBAL_Z_INDEX));
@@ -258,6 +236,11 @@ fn finish_inventory_drag(
 ) {
     if drag_state.successful_drop {
         drag_state.successful_drop = false;
+        drag_state.primary_drag = false;
+        return;
+    }
+
+    if !drag_state.primary_drag {
         return;
     }
 
@@ -268,6 +251,7 @@ fn finish_inventory_drag(
         *transform = UiTransform::default();
         *z_index = ZIndex(ITEM_Z_INDEX);
         item.drag_offset = Vec2::ZERO;
+        drag_state.primary_drag = false;
         commands
             .entity(drag.event_target())
             .remove::<GlobalZIndex>();
@@ -280,11 +264,14 @@ fn drop_inventory_item(
     items: Query<&InventoryItemUi>,
     mut run_inventory: ResMut<RunInventory>,
     mut safe_inventory: ResMut<SafeInventory>,
-    mut crafting_selection: ResMut<CraftingSelection>,
     mut drag_state: ResMut<InventoryDragState>,
     mut commands: Commands,
 ) {
     if drag_state.successful_drop {
+        drop.propagate(false);
+        return;
+    }
+    if !drag_state.primary_drag {
         drop.propagate(false);
         return;
     }
@@ -307,7 +294,6 @@ fn drop_inventory_item(
     drop.propagate(false);
 
     if moved {
-        crafting_selection.item = None;
         drag_state.successful_drop = true;
         commands.insert_resource(InventoryUiDirty);
     }
@@ -318,7 +304,6 @@ fn shortcut_inventory_item(
     items: Query<&InventoryItemUi>,
     mut run_inventory: ResMut<RunInventory>,
     mut safe_inventory: ResMut<SafeInventory>,
-    mut crafting_selection: ResMut<CraftingSelection>,
     mut commands: Commands,
 ) {
     if click.button != PointerButton::Secondary {
@@ -331,7 +316,7 @@ fn shortcut_inventory_item(
 
     let moved = move_inventory_item(
         item.kind,
-        item.kind.opposite(),
+        item.kind.shortcut_target(),
         item.index,
         &mut run_inventory,
         &mut safe_inventory,
@@ -340,7 +325,6 @@ fn shortcut_inventory_item(
     click.propagate(false);
 
     if moved {
-        crafting_selection.item = None;
         commands.insert_resource(InventoryUiDirty);
     }
 }
@@ -363,11 +347,11 @@ fn move_inventory_item(
     }
 }
 
-fn continue_to_monster_buff(
+fn continue_to_equipment_menu(
     _: On<Pointer<Click>>,
     mut run_inventory: ResMut<RunInventory>,
     mut next_menu: ResMut<NextState<Menu>>,
 ) {
     run_inventory.clear();
-    next_menu.set(Menu::MonsterBuff);
+    next_menu.set(Menu::Equipment);
 }

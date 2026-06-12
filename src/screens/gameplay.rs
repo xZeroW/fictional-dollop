@@ -20,7 +20,6 @@ impl Plugin for GameplayScreenPlugin {
                 close_menu.run_if(
                     in_state(Screen::Gameplay)
                         .and(not(in_state(Menu::None)))
-                        .and(not(in_state(Menu::MonsterBuff)))
                         .and(not(in_state(Menu::GameOver)))
                         .and(input_just_pressed(KeyCode::KeyP)),
                 ),

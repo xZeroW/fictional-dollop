@@ -4,15 +4,13 @@ use crate::{
     assets::WeaponAssets,
     game::weapon_data::Weapons,
     menus::Menu,
-    systems::{
-        CraftingMaterials, InventoryItem, RunInventory, SAFE_INVENTORY_CAPACITY, SafeInventory,
-    },
+    systems::{InventoryItem, RunInventory, SAFE_INVENTORY_CAPACITY, SafeInventory},
 };
 
 use super::super::{
-    CraftingSelection, InventoryDropTarget, InventoryKind, InventoryMenuRoot,
-    continue_to_monster_buff, drag_inventory_item, drop_inventory_item, finish_inventory_drag,
-    select_crafting_item, shortcut_inventory_item, start_inventory_drag,
+    InventoryDropTarget, InventoryKind, InventoryMenuRoot, continue_to_equipment_menu,
+    drag_inventory_item, drop_inventory_item, finish_inventory_drag, shortcut_inventory_item,
+    start_inventory_drag,
 };
 use super::{
     BUTTON_COLOR, CONTINUE_BUTTON_CENTER_X, CONTINUE_BUTTON_CENTER_Y, CONTINUE_BUTTON_HEIGHT,
@@ -22,7 +20,7 @@ use super::{
     PANEL_FRAME_PADDING, PANEL_HEIGHT, PANEL_WIDTH, RUN_PANEL_POS, RUN_PANEL_SIZE,
     RUN_SLOT_COLUMNS, SAFE_PANEL_POS, SAFE_PANEL_SIZE, SAFE_SLOT_COLUMNS, SECTION_TITLE_POS,
     SLOT_COLOR, SLOT_GAP, SLOT_ORIGIN, SLOT_SIZE, TEXT_COLOR, TITLE_POS, absolute_node,
-    rarity_color, spawn_crafting_panel,
+    rarity_color,
 };
 
 pub(in crate::menus::inventory) fn spawn_item_transfer_menu_root(
@@ -30,8 +28,6 @@ pub(in crate::menus::inventory) fn spawn_item_transfer_menu_root(
     camera: Entity,
     run_inventory: &RunInventory,
     safe_inventory: &SafeInventory,
-    crafting_selection: &CraftingSelection,
-    crafting_materials: &CraftingMaterials,
     weapon_assets: &WeaponAssets,
     weapons: Option<&Weapons>,
 ) -> Entity {
@@ -86,8 +82,6 @@ pub(in crate::menus::inventory) fn spawn_item_transfer_menu_root(
                         ui,
                         run_inventory,
                         safe_inventory,
-                        crafting_selection,
-                        crafting_materials,
                         weapon_assets,
                         weapons,
                     );
@@ -101,8 +95,6 @@ fn spawn_inventory_content(
     ui: &mut ChildSpawnerCommands,
     run_inventory: &RunInventory,
     safe_inventory: &SafeInventory,
-    crafting_selection: &CraftingSelection,
-    crafting_materials: &CraftingMaterials,
     weapon_assets: &WeaponAssets,
     weapons: Option<&Weapons>,
 ) {
@@ -118,7 +110,7 @@ fn spawn_inventory_content(
     spawn_text(
         ui,
         "Inventory Help",
-        "Drag items into safe inventory. Left click a weapon to preview craft options.",
+        "Drag wave loot into safe inventory. Right click to move between panels.",
         HELP_POS.0,
         HELP_POS.1,
         20.0,
@@ -147,16 +139,6 @@ fn spawn_inventory_content(
             safe_inventory.items().len()
         ),
         safe_inventory.items(),
-        weapon_assets,
-        weapons,
-    );
-
-    spawn_crafting_panel(
-        ui,
-        run_inventory,
-        safe_inventory,
-        crafting_selection,
-        crafting_materials,
         weapon_assets,
         weapons,
     );
@@ -299,7 +281,6 @@ fn spawn_slot(
         BackgroundColor(rarity_color),
         Pickable::default(),
     ))
-    .observe(select_crafting_item)
     .observe(shortcut_inventory_item)
     .observe(super::super::show_inventory_item_tooltip)
     .observe(super::super::hide_inventory_item_tooltip)
@@ -368,7 +349,7 @@ fn spawn_continue_button(ui: &mut ChildSpawnerCommands) {
         BackgroundColor(BUTTON_COLOR),
         Pickable::default(),
     ))
-    .observe(continue_to_monster_buff)
+    .observe(continue_to_equipment_menu)
     .with_children(|ui| {
         ui.spawn((
             Name::new("Inventory Continue Text"),

@@ -3,11 +3,12 @@ use bevy_gauge::prelude::*;
 
 use crate::{
     AppSystems,
-    components::{Player, Weapon},
+    components::{Health, Player, Weapon},
+    game::attributes::VITALITY,
     screens::Screen,
 };
 
-use super::inventory::{InventoryItem, SAFE_INVENTORY_CAPACITY, SafeInventory};
+use super::inventory::{InventoryItem, SafeInventory};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect)]
 pub enum EquipmentSlot {
@@ -126,13 +127,13 @@ fn remove_equipment(mut commands: Commands) {
 fn sync_equipment_to_player(
     mut equipment: ResMut<Equipment>,
     mut attributes: AttributesMut,
-    mut player: Query<(Entity, &mut Weapon), With<Player>>,
+    mut player: Query<(Entity, &mut Weapon, &mut Health), With<Player>>,
 ) {
     if !equipment.needs_sync(EquipmentSlot::MainHand) {
         return;
     }
 
-    let Ok((player, mut weapon)) = player.single_mut() else {
+    let Ok((player, mut weapon, mut health)) = player.single_mut() else {
         return;
     };
 
@@ -140,15 +141,26 @@ fn sync_equipment_to_player(
         equipment.base_weapon = Some(weapon.key.clone());
     }
 
-    if let Some(old_item) = equipment.synced_main_hand.clone() {
+    let old_item = equipment.synced_main_hand.clone();
+    let new_item = equipment.main_hand.clone();
+    let max_health_delta = (new_item.as_ref().map(item_vitality).unwrap_or_default()
+        - old_item.as_ref().map(item_vitality).unwrap_or_default())
+        * 10.0;
+
+    if let Some(old_item) = old_item {
         item_attribute_modifiers(&old_item).remove(player, &mut attributes);
     }
 
-    if let Some(new_item) = equipment.main_hand.clone() {
+    if let Some(new_item) = new_item {
         item_attribute_modifiers(&new_item).apply(player, &mut attributes);
         weapon.equip(new_item.item_id);
     } else if let Some(base_weapon) = equipment.base_weapon.clone() {
         weapon.equip(base_weapon);
+    }
+
+    if max_health_delta.abs() > f32::EPSILON {
+        let new_max = health.max + max_health_delta;
+        scale_health_to_new_max(&mut health, new_max);
     }
 
     equipment.mark_synced(EquipmentSlot::MainHand);
@@ -166,11 +178,32 @@ fn item_attribute_modifiers(item: &InventoryItem) -> ModifierSet {
     modifiers
 }
 
+fn item_vitality(item: &InventoryItem) -> f32 {
+    item.affixes
+        .iter()
+        .filter_map(|affix| affix.attribute_modifier())
+        .filter_map(|(attribute, value)| (attribute == VITALITY).then_some(value))
+        .sum()
+}
+
+fn scale_health_to_new_max(health: &mut Health, new_max: f32) {
+    let new_max = new_max.max(0.0);
+    let current_fraction = if health.max > 0.0 {
+        health.current.clamp(0.0, health.max) / health.max
+    } else {
+        0.0
+    };
+
+    health.max = new_max;
+    health.current = new_max * current_fraction;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::{
         components::ItemRarity,
+        systems::SAFE_INVENTORY_CAPACITY,
         systems::crafting::{CraftingAffix, CraftingAffixKind},
     };
 
@@ -273,5 +306,29 @@ mod tests {
 
         assert_eq!(item_attribute_modifiers(&strength_item).len(), 1);
         assert_eq!(item_attribute_modifiers(&item(2)).len(), 0);
+    }
+
+    #[test]
+    fn health_current_scales_with_max_health_percentage() {
+        let mut health = Health {
+            current: 80.0,
+            max: 100.0,
+        };
+
+        scale_health_to_new_max(&mut health, 200.0);
+
+        assert_eq!(health.current, 160.0);
+        assert_eq!(health.max, 200.0);
+    }
+
+    #[test]
+    fn vitality_affixes_contribute_ten_max_health_each() {
+        let old_item = stat_item(1, CraftingAffixKind::Vitality, 4);
+        let new_item = stat_item(2, CraftingAffixKind::Vitality, 10);
+
+        assert_eq!(
+            (item_vitality(&new_item) - item_vitality(&old_item)) * 10.0,
+            60.0
+        );
     }
 }

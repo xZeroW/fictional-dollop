@@ -85,15 +85,23 @@ pub enum CraftingAffixKind {
     Range,
     ProjectileSpeed,
     CriticalChance,
+    Strength,
+    Dexterity,
+    Intelligence,
+    Vitality,
 }
 
 impl CraftingAffixKind {
-    const ALL: [Self; 5] = [
+    const ALL: [Self; 9] = [
         Self::Damage,
         Self::AttackSpeed,
         Self::Range,
         Self::ProjectileSpeed,
         Self::CriticalChance,
+        Self::Strength,
+        Self::Dexterity,
+        Self::Intelligence,
+        Self::Vitality,
     ];
 
     fn random_available(used: &[CraftingAffixKind]) -> Option<Self> {
@@ -116,7 +124,22 @@ impl CraftingAffixKind {
             Self::Range => "Range",
             Self::ProjectileSpeed => "Projectile Speed",
             Self::CriticalChance => "Critical Chance",
+            Self::Strength => "Strength",
+            Self::Dexterity => "Dexterity",
+            Self::Intelligence => "Intelligence",
+            Self::Vitality => "Vitality",
         }
+    }
+
+    fn is_percent(self) -> bool {
+        matches!(
+            self,
+            Self::Damage
+                | Self::AttackSpeed
+                | Self::Range
+                | Self::ProjectileSpeed
+                | Self::CriticalChance
+        )
     }
 }
 
@@ -124,7 +147,7 @@ impl CraftingAffixKind {
 pub struct CraftingAffix {
     pub kind: CraftingAffixKind,
     pub tier: u8,
-    pub value_percent: u8,
+    pub value: u8,
 }
 
 impl CraftingAffix {
@@ -136,17 +159,16 @@ impl CraftingAffix {
         Self {
             kind,
             tier,
-            value_percent: rand::random_range(min_value..=max_value),
+            value: rand::random_range(min_value..=max_value),
         }
     }
 
     pub fn label(self) -> String {
-        format!(
-            "T{} {} +{}%",
-            self.tier,
-            self.kind.label(),
-            self.value_percent
-        )
+        if self.kind.is_percent() {
+            format!("T{} {} +{}%", self.tier, self.kind.label(), self.value)
+        } else {
+            format!("T{} +{} {}", self.tier, self.value, self.kind.label())
+        }
     }
 }
 
@@ -294,7 +316,7 @@ mod tests {
         CraftingAffix {
             kind,
             tier: 1,
-            value_percent: 10,
+            value: 10,
         }
     }
 
@@ -355,10 +377,10 @@ mod tests {
     }
 
     #[test]
-    fn mythic_items_can_hold_all_affix_families() {
+    fn mythic_items_stop_at_affix_capacity() {
         let mut item = item_with_rarity(ItemRarity::Mythic);
 
-        for _ in 0..CraftingAffixKind::ALL.len() {
+        for _ in 0..item.affix_capacity() {
             assert!(item.add_random_affix());
         }
 
@@ -412,7 +434,15 @@ mod tests {
         assert_eq!(item.affixes.len(), 2);
         for affix in &item.affixes {
             assert!((1..=4).contains(&affix.tier));
-            assert!((5..=25).contains(&affix.value_percent));
+            assert!((5..=25).contains(&affix.value));
         }
+    }
+
+    #[test]
+    fn attribute_affixes_are_labeled_as_flat_stats() {
+        assert_eq!(
+            affix(CraftingAffixKind::Strength).label(),
+            "T1 +10 Strength"
+        );
     }
 }

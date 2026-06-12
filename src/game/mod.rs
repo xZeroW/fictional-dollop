@@ -7,6 +7,7 @@ use bevy::prelude::*;
 use bevy_gauge::prelude::*;
 use leafwing_input_manager::prelude::*;
 
+pub(crate) mod attributes;
 pub mod camera;
 pub mod level;
 mod map;

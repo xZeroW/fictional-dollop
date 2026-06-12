@@ -6,9 +6,13 @@ use crate::{
     AppSystems, PausableSystems,
     assets::WeaponAssets,
     components::{Bullet, Player, Weapon},
-    game::weapon_data::{WeaponData, Weapons, WeaponsHandle},
+    game::{
+        attributes::{ATTACK_DAMAGE, ATTACK_DAMAGE_BASE},
+        weapon_data::{WeaponData, Weapons, WeaponsHandle},
+    },
     screens::Screen,
 };
+use bevy_gauge::prelude::*;
 
 pub(super) struct AutoAttackSystemsPlugin;
 
@@ -26,14 +30,15 @@ impl Plugin for AutoAttackSystemsPlugin {
 
 fn auto_attack(
     mut commands: Commands,
-    mut player_query: Query<(&Transform, &mut Weapon), With<Player>>,
+    mut attributes: AttributesMut,
+    mut player_query: Query<(Entity, &Transform, &mut Weapon), With<Player>>,
     spatial_index: Res<EnemySpatialIndex>,
     time: Res<Time>,
     weapon_assets: Res<WeaponAssets>,
     weapons_handle: Res<WeaponsHandle>,
     weapons_assets: Res<Assets<Weapons>>,
 ) {
-    let (player_gt, mut weapon) = match player_query.single_mut() {
+    let (player, player_gt, mut weapon) = match player_query.single_mut() {
         Ok(v) => v,
         Err(_) => return,
     };
@@ -71,7 +76,16 @@ fn auto_attack(
 
     weapon.attack_timer.reset();
 
-    commands.spawn(bullet(&weapon_assets, weapon_data, player_pos, direction));
+    attributes.set_base(player, ATTACK_DAMAGE_BASE, weapon_data.damage);
+    let damage = attributes.evaluate(player, ATTACK_DAMAGE);
+
+    commands.spawn(bullet(
+        &weapon_assets,
+        weapon_data,
+        player_pos,
+        direction,
+        damage,
+    ));
 }
 
 fn bullet(
@@ -79,10 +93,11 @@ fn bullet(
     weapon_data: &WeaponData,
     position: Vec2,
     direction: Vec2,
+    damage: f32,
 ) -> impl Bundle {
     (
         Name::new("Bullet"),
-        Bullet::new(direction, weapon_data.velocity, weapon_data.damage),
+        Bullet::new(direction, weapon_data.velocity, damage),
         DespawnOnExit(Screen::Gameplay),
         Sprite::from_atlas_image(
             weapon_assets.bullet_sprite.clone(),

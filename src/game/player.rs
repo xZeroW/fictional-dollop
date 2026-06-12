@@ -1,13 +1,14 @@
 //! Player-specific behavior.
 
 use bevy::prelude::*;
-use bevy_gauge::prelude::*;
+use bevy_gauge::prelude::Attributes;
 use leafwing_input_manager::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
     assets::CharacterAssets,
     components::{Health, Movement, Player, Weapon},
+    game::attributes::player_attributes,
     systems::PlayerAnimation,
 };
 
@@ -25,27 +26,10 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (
-                record_player_input
-                    .in_set(AppSystems::RecordInput)
-                    .in_set(PausableSystems),
-                init_player_health_from_vitality,
-            ),
+            record_player_input
+                .in_set(AppSystems::RecordInput)
+                .in_set(PausableSystems),
         );
-    }
-}
-
-fn init_player_health_from_vitality(
-    mut attributes: AttributesMut,
-    player_query: Query<Entity, Added<Player>>,
-) {
-    for player in player_query.iter() {
-        attributes
-            .add_expr_modifier(player, "Health", "Vitality * 10.0 + 100.0")
-            .ok();
-        attributes
-            .add_expr_modifier(player, "Health.current", "Health")
-            .ok();
     }
 }
 
@@ -58,11 +42,7 @@ pub fn player(player_assets: &CharacterAssets, weapon: String) -> impl Bundle {
         Player,
         Weapon::new(weapon),
         Attributes::new(),
-        attributes! {
-            "Vitality" => 10.0,
-            "Health" => "Vitality * 10 + 100.0",
-            "Health.current" => "Health",
-        },
+        player_attributes(),
         Health::default(),
         Sprite::from_atlas_image(
             player_assets.sprite.clone(),

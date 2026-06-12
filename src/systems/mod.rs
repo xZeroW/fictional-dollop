@@ -4,6 +4,7 @@ mod bullet;
 mod collision;
 mod crafting;
 mod enemy_spatial;
+mod equipment;
 mod flip_sprite;
 mod health;
 mod inventory;
@@ -16,6 +17,9 @@ use bevy::prelude::*;
 
 pub(crate) use animation::PlayerAnimation;
 pub(crate) use crafting::{CraftingAffix, CraftingMaterial, CraftingMaterials};
+pub(crate) use equipment::{
+    Equipment, EquipmentSlot, move_equipment_item_to_safe, move_safe_item_to_equipment,
+};
 pub(crate) use inventory::{
     InventoryItem, RunInventory, SAFE_INVENTORY_CAPACITY, SafeInventory, move_run_item_to_safe,
     move_safe_item_to_run,
@@ -34,6 +38,7 @@ impl Plugin for SystemsPlugin {
             collision::CollisionSystemsPlugin,
             crafting::CraftingSystemsPlugin,
             enemy_spatial::EnemySpatialPlugin,
+            equipment::EquipmentSystemsPlugin,
             health::HealthSystemsPlugin,
             inventory::InventorySystemsPlugin,
             loot::LootSystemsPlugin,

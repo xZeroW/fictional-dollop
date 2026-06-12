@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 
-use crate::{components::ItemRarity, screens::Screen};
+use crate::{
+    components::ItemRarity,
+    game::attributes::{DEXTERITY, INTELLIGENCE, STRENGTH, VITALITY},
+    screens::Screen,
+};
 
 use super::inventory::InventoryItem;
 
@@ -169,6 +173,18 @@ impl CraftingAffix {
         } else {
             format!("T{} +{} {}", self.tier, self.value, self.kind.label())
         }
+    }
+
+    pub(crate) fn attribute_modifier(self) -> Option<(&'static str, f32)> {
+        let attribute = match self.kind {
+            CraftingAffixKind::Strength => STRENGTH,
+            CraftingAffixKind::Dexterity => DEXTERITY,
+            CraftingAffixKind::Intelligence => INTELLIGENCE,
+            CraftingAffixKind::Vitality => VITALITY,
+            _ => return None,
+        };
+
+        Some((attribute, self.value as f32))
     }
 }
 
@@ -444,5 +460,14 @@ mod tests {
             affix(CraftingAffixKind::Strength).label(),
             "T1 +10 Strength"
         );
+    }
+
+    #[test]
+    fn attribute_affixes_produce_flat_attribute_modifiers() {
+        assert_eq!(
+            affix(CraftingAffixKind::Intelligence).attribute_modifier(),
+            Some((INTELLIGENCE, 10.0))
+        );
+        assert_eq!(affix(CraftingAffixKind::Damage).attribute_modifier(), None);
     }
 }

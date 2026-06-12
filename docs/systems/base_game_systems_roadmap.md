@@ -5,7 +5,7 @@ enemy, and monster corruption prototype into a base game loop.
 
 The goal is not full content breadth. The goal is a complete playable skeleton:
 enter a run, survive waves, choose monster risk, gain loot, make between-wave
-decisions, die or extract, and keep some progress.
+decisions, die or extract, and keep extracted item and account progress.
 
 ## Current Foundation
 
@@ -26,9 +26,9 @@ Already present:
 4. Enemies drop loot.
 5. Finish the wave.
 6. Choose a monster buff.
-7. Manage loot and craft a small upgrade between waves.
+7. Manage loot, craft upgrades or gear, and decide what to bank between waves.
 8. Continue, extract, or die.
-9. Persist extracted loot or unlocked progress.
+9. Persist extracted loot, crafted items, unlocks, and account progress.
 
 ## Recommended Build Order
 
@@ -36,11 +36,11 @@ Already present:
 2. Run inventory system.
 3. Between-wave reward/inventory menu.
 4. Extraction and death-loss rules.
-5. Minimal crafting system.
-6. Map theme and map rotation system.
-7. Elite enemy system.
-8. Boss or run-ending encounter system.
-9. Persistent profile system.
+5. Persistent profile and bank system.
+6. Minimal crafting system.
+7. Map theme and map rotation system.
+8. Elite enemy system.
+9. Boss or run-ending encounter system.
 10. Base-game HUD and feedback pass.
 
 ## 1. Loot Drop System
@@ -81,12 +81,13 @@ Acceptance criteria:
 
 ## 2. Run Inventory System
 
-The run inventory stores what the player collected during the current run. It is
-not persistent by default.
+The run inventory stores what the player collected during the current run before
+it is banked or extracted. It is not persistent by itself, but its items become
+permanent when moved to the profile bank through extraction or safe banking.
 
 Purpose:
 
-- Track temporary loot earned during waves.
+- Track unbanked loot earned during waves.
 - Provide a source for crafting and extraction decisions.
 - Support death penalties.
 
@@ -144,7 +145,7 @@ The base game needs a way to leave with rewards and a reason death matters.
 Purpose:
 
 - Let the player bank some or all run loot.
-- Destroy unextracted temporary loot on death.
+- Destroy unextracted or unbanked run loot on death.
 - Create a real decision between greed and safety.
 
 Suggested shape:
@@ -159,37 +160,73 @@ Acceptance criteria:
 
 - Choosing extract ends the run successfully.
 - Extracted loot is retained outside the run.
-- Dying ends the run and loses temporary loot.
+- Dying ends the run and loses unbanked run loot.
 
-## 5. Minimal Crafting System
+## 5. Persistent Profile And Bank System
 
-Crafting should be tiny at first. It exists to make loot useful between waves.
+Persistence should come immediately after extraction exists. Otherwise item
+progression cannot feel like an RPG progression system.
+
+Purpose:
+
+- Store extracted loot, crafted items, materials, and currency.
+- Store unlocks or permanent progression.
+- Make item and crafting decisions matter across runs.
+- Support future class and passive tree systems.
+
+Suggested shape:
+
+- Add `src/systems/profile.rs` or a top-level `profile` module if it grows.
+- Keep the first save format small and explicit.
+- Persist bank inventory, material stacks, crafted item state, and simple unlock
+  flags first.
+- Save after extraction and after any craft that changes persistent inventory.
+
+Acceptance criteria:
+
+- Extracted loot and crafted persistent items survive leaving and restarting a run.
+- Death does not delete banked loot or crafted persistent progress.
+- Save/load failure has a safe fallback.
+
+## 6. Minimal Crafting System
+
+Crafting should be tiny at first, but it should still point toward permanent
+RPG-style item progression. Temporary run effects can exist, but they should be
+clearly marked as consumable run help, not the main progression path.
 
 Purpose:
 
 - Give players a reason to care about material drops.
 - Add a strategic choice before accepting more corruption.
+- Create or improve items, materials, or gear that can persist across runs.
 
 Suggested shape:
 
 - Add `src/systems/crafting.rs` with recipe definitions and validation.
-- Add a simple `Recipe` type: input item stacks, output effect or item.
-- Start with one or two recipes.
-- Prefer temporary run upgrades before permanent build complexity.
+- Add a simple `Recipe` type: input item stacks, output item, item upgrade,
+  material stack, or explicit run-only effect.
+- Start with one or two recipes that prove both consumption and persistence.
+- Use profile-bank items or extracted materials for permanent recipes once the
+  profile system exists.
 
 Good first recipes:
 
-- Heal the player before the next wave.
-- Increase weapon damage for the current run.
-- Increase player speed for the current run.
+- Salvage a weapon into bankable material shards based on rarity.
+- Spend shards to craft a bankable upgrade material.
+- Spend shards to apply a small permanent upgrade to a selected weapon or piece
+  of gear.
+- Heal the player before the next wave as an optional run-only recipe.
 
 Acceptance criteria:
 
-- Crafting consumes run inventory items.
-- Crafting applies a visible gameplay effect.
+- Crafting consumes run inventory or profile-bank items according to the recipe.
+- At least one recipe creates banked material, crafted gear, or a persistent item
+  upgrade.
+- Run-only recipes are labeled as run-only and do not replace permanent item
+  progression.
 - Invalid recipes cannot be crafted without ingredients.
 
-## 6. Map Theme And Rotation System
+## 7. Map Theme And Rotation System
 
 The design calls for themed maps and different drops. The base version only
 needs one additional map or theme to prove the structure.
@@ -213,7 +250,7 @@ Acceptance criteria:
 - Loot tables can depend on the active theme.
 - Enemy selection can eventually depend on the active theme.
 
-## 7. Elite Enemy System
+## 8. Elite Enemy System
 
 Elite enemies are the simplest way to make corruption change gameplay beyond
 numeric scaling.
@@ -237,7 +274,7 @@ Acceptance criteria:
 - Elites are visually distinguishable.
 - Elites are harder and reward better loot.
 
-## 8. Boss Or Run-Ending Encounter System
+## 9. Boss Or Run-Ending Encounter System
 
 The base game needs a goal. A boss wave is the clearest first version.
 
@@ -260,29 +297,6 @@ Acceptance criteria:
 - A boss encounter can start deterministically.
 - Normal wave flow does not fight the boss state.
 - Killing the boss produces a successful run outcome.
-
-## 9. Persistent Profile System
-
-Persistence should come after extraction exists. Otherwise there is nothing
-meaningful to save.
-
-Purpose:
-
-- Store extracted loot.
-- Store unlocks or permanent progression.
-- Support future class and passive tree systems.
-
-Suggested shape:
-
-- Add `src/systems/profile.rs` or a top-level `profile` module if it grows.
-- Keep the first save format small and explicit.
-- Persist bank inventory and simple unlock flags first.
-
-Acceptance criteria:
-
-- Extracted loot survives leaving and restarting a run.
-- Death does not delete banked loot.
-- Save/load failure has a safe fallback.
 
 ## 10. HUD And Feedback Pass
 
@@ -311,7 +325,7 @@ Acceptance criteria:
 
 These are important, but should wait until the base loop is playable:
 
-- Large itemization and equipment depth.
+- Large itemization depth beyond the first persistent item/crafting path.
 - Full safe inventory UI.
 - Class selection.
 - Passive trees.
@@ -328,9 +342,11 @@ Build this milestone before expanding content:
 1. Enemies drop one material item.
 2. The player can pick it up.
 3. The item appears in `RunInventory`.
-4. Between waves, a menu shows the collected material.
-5. The player can craft one temporary upgrade or extract the material.
-6. Death loses unextracted material.
+4. Between waves, a menu shows the collected material and persistent bank.
+5. The player can craft one persistent material/item upgrade or extract the
+   material.
+6. Death loses unextracted material but never deletes banked or crafted
+   persistent progress.
 
 Once this works, the project has the smallest complete version of the intended
 base game loop.

@@ -77,6 +77,11 @@ Each monster buff grants the player a **bonus**, such as:
 - Player must manually move items here
 - Limited capacity to enforce meaningful decisions
 
+### Permanent Item Progression
+- Extracted and banked items are permanent profile progression, not temporary run rewards
+- Crafting can create or upgrade equipment, materials, and other items that remain across runs
+- Temporary buffs may exist, but they should support the run instead of replacing RPG-style item progression
+
 ### Death Penalty
 - On death:
   - Lose all dropped items
@@ -90,10 +95,12 @@ Each monster buff grants the player a **bonus**, such as:
 - Player can:
   - Inspect collected loot
   - Craft new items
+  - Upgrade existing gear or banked materials
   - Combine materials
 - Crafting may consume:
   - Temporary inventory items
   - Safe inventory items (with risk)
+- Crafting outputs can be permanent items/upgrades or clearly marked run-only effects
 
 ---
 

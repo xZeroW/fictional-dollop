@@ -89,7 +89,8 @@ This should be the base loop before adding large progression systems:
 - Short rounds should feed long-term planning.
 - The bank should create pressure through limited capacity.
 - Map themes should change what the player wants and fears.
-- Player power should come from a mix of run loot, crafting, classes, and persistent passives.
+- Player power should come from a mix of run loot, permanent item progression,
+  crafting, classes, and persistent passives.
 - Corruption should improve rewards but change gameplay, not only multiply numbers.
 
 ## System Plan
@@ -152,7 +153,8 @@ Planned direction:
 - Keep `RunInventory` for unprotected loot collected during the active round.
 - Reframe the current `SafeInventory` as protected run stash or convert it into a true persistent bank after extraction.
 - Add item definitions with category, rarity behavior, stackability, icon, and theme tags.
-- Add materials as stackable drops so crafting can start small.
+- Add materials as stackable drops so crafting can start small while still
+  feeding permanent item progression.
 - Add weapon inspection and equip actions before building a large gear system.
 - Make rarity affect weapon stat rolls or affix counts.
 
@@ -174,7 +176,7 @@ Current state:
 Problems to solve:
 
 - The design requires persistent safe inventory across runs.
-- Death should destroy temporary inventory but not safe inventory.
+- Death should destroy unbanked run inventory but not safe inventory.
 - Bank capacity should create meaningful choices.
 - Extraction should be a strategic decision, not an automatic process.
 
@@ -210,23 +212,30 @@ Problems to solve:
 Planned direction:
 
 - Add small recipes that consume run loot or banked materials.
-- Prefer temporary run upgrades first because they are easier to balance.
-- Add permanent crafting only after persistence is stable.
+- Treat permanent item progression as the default crafting destination once
+  extraction and the profile bank exist.
+- Allow temporary run upgrades as optional consumables, but label them clearly
+  and do not make them the primary crafting path.
 - Use crafting to create decisions before the next round starts.
 
 First recipes to consider:
 
 - Salvage a weapon into material shards based on rarity.
-- Spend shards to heal before the next round.
-- Spend shards to add temporary weapon damage for the run.
-- Spend shards to reroll a low-rarity drop into another item.
-- Spend a theme-exclusive material for a map-specific bonus.
+- Spend shards to craft a bankable upgrade material.
+- Spend shards to apply a small permanent upgrade to a selected weapon or gear
+  item.
+- Spend shards to reroll a low-rarity drop into another bankable item.
+- Spend a theme-exclusive material for a map-specific permanent unlock, recipe,
+  or item upgrade.
+- Optionally spend shards to heal before the next round as a run-only recipe.
 
 Good first implementation slice:
 
 - Add a `CraftingRecipe` type.
-- Add one recipe: salvage selected weapon into shards.
-- Add one recipe: spend shards to heal the player.
+- Add one recipe: salvage selected weapon into bankable shards.
+- Add one permanent recipe: spend shards to craft an upgrade material or improve
+  a selected item.
+- Add one optional run-only recipe: spend shards to heal the player.
 - Add a simple crafting panel to the between-wave menu.
 
 ### Map Themes And Rotation
@@ -490,7 +499,8 @@ Problems to solve:
 Planned direction:
 
 - Start with a simple local profile save.
-- Persist only what is needed: bank items, unlocked classes, passive points, and settings-like progression flags.
+- Persist only what is needed: bank items, material balances, crafted item state,
+  unlocked classes, passive points, and settings-like progression flags.
 - Keep run inventory separate from persistent bank.
 - Add versioning early if save data is expected to evolve.
 
@@ -552,7 +562,7 @@ Tasks:
 
 Acceptance criteria:
 
-- Dying loses temporary run loot.
+- Dying loses unbanked run loot.
 - Extracting saves protected loot.
 - Restarting a run can show previously banked loot.
 
@@ -567,13 +577,14 @@ Tasks:
 - Add item details and tooltips.
 - Add weapon equip from inventory.
 - Add material drops.
-- Add salvage and one healing or upgrade recipe.
+- Add salvage, one permanent upgrade recipe, and optionally one healing recipe.
 - Make at least three weapon families mechanically different.
 
 Acceptance criteria:
 
 - The player can equip a dropped weapon.
-- The player can convert loot into a useful effect.
+- The player can convert loot into banked material, persistent item progression,
+  or an explicit run-only effect.
 - Rarity has a gameplay meaning beyond color.
 
 ### Milestone 3: Add Map Themes
@@ -657,7 +668,7 @@ Acceptance criteria:
 
 1. Add item inspection and weapon equip from the inventory menu.
 2. Add extraction and a persistent profile bank.
-3. Add material drops and one salvage/heal crafting path.
+3. Add material drops plus one salvage and permanent-upgrade crafting path.
 4. Add `ActiveMapTheme` with a placeholder Forest theme.
 5. Reword or replace the monster-buff menu as a risk contract menu.
 

@@ -36,6 +36,10 @@ The drop stores the selected weapon key in `ItemDrop.item_id`, so duplicate keys
 are still separate item instances in `RunInventory`. Loot is intentionally not
 stackable.
 
+When extraction/profile persistence exists, extracted weapon instances should be
+the permanent item objects stored in the profile bank, including rarity and any
+future rolls or upgrades.
+
 Drop sprites use the weapon atlas:
 
 - Image: `assets/sprites/weapons/weapons.png`

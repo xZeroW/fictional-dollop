@@ -23,7 +23,7 @@ impl AttackCooldown {
         } else {
             1.0
         };
-        let mut timer = Timer::from_seconds(cooldown, TimerMode::Repeating);
+        let mut timer = Timer::from_seconds(cooldown, TimerMode::Once);
         timer.set_elapsed(timer.duration());
 
         AttackCooldown { timer }

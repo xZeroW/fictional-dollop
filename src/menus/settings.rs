@@ -2,9 +2,11 @@
 //!
 //! Additional settings and accessibility options should go here.
 
-use bevy::{audio::Volume, input::common_conditions::input_just_pressed, prelude::*};
+use bevy::{
+    audio::Volume, ecs::spawn::SpawnWith, input::common_conditions::input_just_pressed, prelude::*,
+};
 
-use crate::{menus::Menu, screens::Screen, theme::prelude::*};
+use crate::{config::GameSettings, menus::Menu, screens::Screen, theme::prelude::*};
 
 pub(super) struct SettingsMenuPlugin;
 
@@ -18,7 +20,8 @@ impl Plugin for SettingsMenuPlugin {
 
         app.add_systems(
             Update,
-            update_global_volume_label.run_if(in_state(Menu::Settings)),
+            (update_global_volume_label, update_enemy_nameplates_label)
+                .run_if(in_state(Menu::Settings)),
         );
     }
 }
@@ -51,10 +54,20 @@ fn settings_grid() -> impl Bundle {
                 widget::label("Master Volume"),
                 Node {
                     justify_self: JustifySelf::End,
+                    align_self: AlignSelf::Center,
                     ..default()
                 }
             ),
             global_volume_widget(),
+            (
+                widget::label("Enemy Nameplates"),
+                Node {
+                    justify_self: JustifySelf::End,
+                    align_self: AlignSelf::Center,
+                    ..default()
+                }
+            ),
+            enemy_nameplates_widget(),
         ],
     )
 }
@@ -82,6 +95,46 @@ fn global_volume_widget() -> impl Bundle {
     )
 }
 
+fn enemy_nameplates_widget() -> impl Bundle {
+    (
+        Name::new("Enemy Nameplates Widget"),
+        Node {
+            justify_self: JustifySelf::Start,
+            ..default()
+        },
+        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+            parent
+                .spawn((
+                    Name::new("Enemy Nameplates Toggle"),
+                    Button,
+                    Node {
+                        width: px(160),
+                        height: px(48),
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        border_radius: BorderRadius::MAX,
+                        ..default()
+                    },
+                    BackgroundColor(ui_palette::BUTTON_BACKGROUND),
+                    InteractionPalette {
+                        none: ui_palette::BUTTON_BACKGROUND,
+                        hovered: ui_palette::BUTTON_HOVERED_BACKGROUND,
+                        pressed: ui_palette::BUTTON_PRESSED_BACKGROUND,
+                    },
+                    children![(
+                        Name::new("Enemy Nameplates Toggle Text"),
+                        EnemyNameplatesLabel,
+                        Text("".to_string()),
+                        TextFont::from_font_size(24.0),
+                        TextColor(ui_palette::BUTTON_TEXT),
+                        Pickable::IGNORE,
+                    )],
+                ))
+                .observe(toggle_enemy_nameplates);
+        })),
+    )
+}
+
 const MIN_VOLUME: f32 = 0.0;
 const MAX_VOLUME: f32 = 3.0;
 
@@ -95,9 +148,17 @@ fn raise_global_volume(_: On<Pointer<Click>>, mut global_volume: ResMut<GlobalVo
     global_volume.volume = Volume::Linear(linear);
 }
 
+fn toggle_enemy_nameplates(_: On<Pointer<Click>>, mut settings: ResMut<GameSettings>) {
+    settings.enemy_nameplates = !settings.enemy_nameplates;
+}
+
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 struct GlobalVolumeLabel;
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+struct EnemyNameplatesLabel;
 
 fn update_global_volume_label(
     global_volume: Res<GlobalVolume>,
@@ -105,6 +166,17 @@ fn update_global_volume_label(
 ) {
     let percent = 100.0 * global_volume.volume.to_linear();
     label.0 = format!("{percent:3.0}%");
+}
+
+fn update_enemy_nameplates_label(
+    settings: Res<GameSettings>,
+    mut label: Single<&mut Text, With<EnemyNameplatesLabel>>,
+) {
+    label.0 = if settings.enemy_nameplates {
+        "On".to_string()
+    } else {
+        "Off".to_string()
+    };
 }
 
 fn go_back_on_click(

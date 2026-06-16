@@ -21,6 +21,7 @@ pub(super) struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<crate::config::GameConfig>();
+        app.init_resource::<crate::config::GameSettings>();
         app.add_plugins((
             InputManagerPlugin::<PlayerAction>::default(),
             camera::CameraPlugin,

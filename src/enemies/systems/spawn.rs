@@ -1,11 +1,19 @@
 use bevy::prelude::*;
 
 use crate::assets::EnemyAssets;
-use crate::config::{GameConfig, map_bounds};
+use crate::config::{GameConfig, GameSettings, map_bounds};
 use crate::game::level::LevelEntity;
 use crate::systems::MonsterProgression;
 
 use crate::enemies::{Enemies, EnemiesDataHandle, EnemySpawner};
+
+use super::{AttackTimeNameplate, HealthNameplate};
+
+const ATTACK_NAMEPLATE_OFFSET_Y: f32 = 42.0;
+const HEALTH_NAMEPLATE_OFFSET_Y: f32 = 58.0;
+const NAMEPLATE_FONT_SIZE: f32 = 16.0;
+const ATTACK_NAMEPLATE_TEXT_COLOR: Color = Color::srgb(1.0, 0.92, 0.68);
+const HEALTH_NAMEPLATE_TEXT_COLOR: Color = Color::srgb(0.55, 1.0, 0.55);
 
 pub fn spawn_enemies(
     mut commands: Commands,
@@ -14,6 +22,7 @@ pub fn spawn_enemies(
     enemies_data_handle: Res<EnemiesDataHandle>,
     enemies_data_assets: Res<Assets<Enemies>>,
     config: Res<GameConfig>,
+    settings: Res<GameSettings>,
     enemy_assets: Res<EnemyAssets>,
     progression: Res<MonsterProgression>,
 ) {
@@ -52,13 +61,42 @@ pub fn spawn_enemies(
             let y = min_y + rand::random::<f32>() * (max_y - min_y);
             let spawn_pos = Vec3::new(x, y, 0.0);
 
-            parent.spawn(enemy_data.bundle(
-                enemy_key,
-                spawn_pos,
-                image.clone(),
-                layout.clone(),
-                &progression,
-            ));
+            let scale = enemy_data.scale.max(f32::EPSILON);
+            let nameplate_visibility = if settings.enemy_nameplates {
+                Visibility::Visible
+            } else {
+                Visibility::Hidden
+            };
+            parent
+                .spawn(enemy_data.bundle(
+                    enemy_key,
+                    spawn_pos,
+                    image.clone(),
+                    layout.clone(),
+                    &progression,
+                ))
+                .with_children(|enemy| {
+                    enemy.spawn((
+                        Name::new("Enemy Health Nameplate"),
+                        HealthNameplate,
+                        Text2d::new(""),
+                        TextFont::from_font_size(NAMEPLATE_FONT_SIZE),
+                        TextColor(HEALTH_NAMEPLATE_TEXT_COLOR),
+                        nameplate_visibility,
+                        Transform::from_xyz(0.0, HEALTH_NAMEPLATE_OFFSET_Y / scale, 1.0)
+                            .with_scale(Vec3::splat(1.0 / scale)),
+                    ));
+                    enemy.spawn((
+                        Name::new("Enemy Attack Time Nameplate"),
+                        AttackTimeNameplate,
+                        Text2d::new("READY"),
+                        TextFont::from_font_size(NAMEPLATE_FONT_SIZE),
+                        TextColor(ATTACK_NAMEPLATE_TEXT_COLOR),
+                        nameplate_visibility,
+                        Transform::from_xyz(0.0, ATTACK_NAMEPLATE_OFFSET_Y / scale, 1.0)
+                            .with_scale(Vec3::splat(1.0 / scale)),
+                    ));
+                });
             spawner.spawned_count += 1;
         }
     });

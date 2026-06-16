@@ -9,11 +9,25 @@ pub struct GameConfig {
     pub spawn_rate_per_second: usize,
 }
 
+#[derive(Resource, Reflect)]
+#[reflect(Resource)]
+pub struct GameSettings {
+    pub enemy_nameplates: bool,
+}
+
 impl Default for GameConfig {
     fn default() -> Self {
         Self {
             max_num_enemies: MAX_NUM_ENEMIES,
             spawn_rate_per_second: SPAWN_RATE_PER_SECOND,
+        }
+    }
+}
+
+impl Default for GameSettings {
+    fn default() -> Self {
+        Self {
+            enemy_nameplates: true,
         }
     }
 }

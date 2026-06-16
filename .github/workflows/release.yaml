@@ -87,9 +87,13 @@ env:
   # <https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-storage-and-bandwidth-usage>
   git_lfs: false
 
-  # Enabling this only helps with consecutive releases to the same version (and takes up cache storage space).
+  # Cache Rust dependencies for release builds. For best reuse, dispatch releases from `main`
+  # and use the `version` input instead of running this workflow from per-release tags.
   # See: <https://github.com/orgs/community/discussions/27059>.
-  use_github_cache: false
+  use_github_cache: true
+
+  # Pin nightly so Rust cache keys stay stable between releases.
+  toolchain: nightly-2025-06-26
 
 jobs:
   # Forward some environment variables as outputs of this job.
@@ -199,15 +203,17 @@ jobs:
 
       - name: Install Rust toolchain
         if: ${{ env.is_platform_enabled == 'true' }}
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: ${{ env.toolchain }}
           targets: ${{ matrix.targets }}
 
       - name: Restore Rust cache
         if: ${{ env.is_platform_enabled == 'true' && env.use_github_cache == 'true' }}
         uses: Swatinem/rust-cache@v2
         with:
-          shared-key: release
+          shared-key: release-${{ matrix.platform }}
+          cache-on-failure: true
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Install build dependencies (Linux)

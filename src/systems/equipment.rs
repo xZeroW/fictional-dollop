@@ -301,11 +301,13 @@ mod tests {
     }
 
     #[test]
-    fn item_attribute_modifiers_only_include_attribute_affixes() {
+    fn item_attribute_modifiers_include_equipment_affixes() {
         let strength_item = stat_item(1, CraftingAffixKind::Strength, 7);
+        let damage_item = stat_item(2, CraftingAffixKind::Damage, 10);
 
         assert_eq!(item_attribute_modifiers(&strength_item).len(), 1);
-        assert_eq!(item_attribute_modifiers(&item(2)).len(), 0);
+        assert_eq!(item_attribute_modifiers(&damage_item).len(), 1);
+        assert_eq!(item_attribute_modifiers(&item(3)).len(), 0);
     }
 
     #[test]

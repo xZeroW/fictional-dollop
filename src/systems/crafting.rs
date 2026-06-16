@@ -2,7 +2,11 @@ use bevy::prelude::*;
 
 use crate::{
     components::ItemRarity,
-    game::attributes::{DEXTERITY, INTELLIGENCE, STRENGTH, VITALITY},
+    game::attributes::{
+        ATTACK_DAMAGE_INCREASED, ATTACK_RANGE_INCREASED, ATTACK_SPEED_INCREASED, CRITICAL_CHANCE,
+        DEXTERITY, INTELLIGENCE, MOVEMENT_SPEED_INCREASED, PROJECTILE_SPEED_INCREASED, STRENGTH,
+        VITALITY,
+    },
     screens::Screen,
 };
 
@@ -89,6 +93,7 @@ pub enum CraftingAffixKind {
     Range,
     ProjectileSpeed,
     CriticalChance,
+    MovementSpeed,
     Strength,
     Dexterity,
     Intelligence,
@@ -96,12 +101,13 @@ pub enum CraftingAffixKind {
 }
 
 impl CraftingAffixKind {
-    const ALL: [Self; 9] = [
+    const ALL: [Self; 10] = [
         Self::Damage,
         Self::AttackSpeed,
         Self::Range,
         Self::ProjectileSpeed,
         Self::CriticalChance,
+        Self::MovementSpeed,
         Self::Strength,
         Self::Dexterity,
         Self::Intelligence,
@@ -128,6 +134,7 @@ impl CraftingAffixKind {
             Self::Range => "Range",
             Self::ProjectileSpeed => "Projectile Speed",
             Self::CriticalChance => "Critical Chance",
+            Self::MovementSpeed => "Movement Speed",
             Self::Strength => "Strength",
             Self::Dexterity => "Dexterity",
             Self::Intelligence => "Intelligence",
@@ -143,6 +150,7 @@ impl CraftingAffixKind {
                 | Self::Range
                 | Self::ProjectileSpeed
                 | Self::CriticalChance
+                | Self::MovementSpeed
         )
     }
 }
@@ -176,15 +184,21 @@ impl CraftingAffix {
     }
 
     pub(crate) fn attribute_modifier(self) -> Option<(&'static str, f32)> {
-        let attribute = match self.kind {
-            CraftingAffixKind::Strength => STRENGTH,
-            CraftingAffixKind::Dexterity => DEXTERITY,
-            CraftingAffixKind::Intelligence => INTELLIGENCE,
-            CraftingAffixKind::Vitality => VITALITY,
-            _ => return None,
+        let value = self.value as f32;
+        let (attribute, value) = match self.kind {
+            CraftingAffixKind::Damage => (ATTACK_DAMAGE_INCREASED, value / 100.0),
+            CraftingAffixKind::AttackSpeed => (ATTACK_SPEED_INCREASED, value / 100.0),
+            CraftingAffixKind::Range => (ATTACK_RANGE_INCREASED, value / 100.0),
+            CraftingAffixKind::ProjectileSpeed => (PROJECTILE_SPEED_INCREASED, value / 100.0),
+            CraftingAffixKind::CriticalChance => (CRITICAL_CHANCE, value / 100.0),
+            CraftingAffixKind::MovementSpeed => (MOVEMENT_SPEED_INCREASED, value / 100.0),
+            CraftingAffixKind::Strength => (STRENGTH, value),
+            CraftingAffixKind::Dexterity => (DEXTERITY, value),
+            CraftingAffixKind::Intelligence => (INTELLIGENCE, value),
+            CraftingAffixKind::Vitality => (VITALITY, value),
         };
 
-        Some((attribute, self.value as f32))
+        Some((attribute, value))
     }
 }
 
@@ -463,11 +477,22 @@ mod tests {
     }
 
     #[test]
-    fn attribute_affixes_produce_flat_attribute_modifiers() {
+    fn affixes_produce_attribute_modifiers() {
         assert_eq!(
             affix(CraftingAffixKind::Intelligence).attribute_modifier(),
             Some((INTELLIGENCE, 10.0))
         );
-        assert_eq!(affix(CraftingAffixKind::Damage).attribute_modifier(), None);
+        assert_eq!(
+            affix(CraftingAffixKind::Damage).attribute_modifier(),
+            Some((ATTACK_DAMAGE_INCREASED, 0.1))
+        );
+        assert_eq!(
+            affix(CraftingAffixKind::CriticalChance).attribute_modifier(),
+            Some((CRITICAL_CHANCE, 0.1))
+        );
+        assert_eq!(
+            affix(CraftingAffixKind::MovementSpeed).attribute_modifier(),
+            Some((MOVEMENT_SPEED_INCREASED, 0.1))
+        );
     }
 }

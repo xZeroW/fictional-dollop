@@ -7,7 +7,10 @@ use crate::{
     assets::WeaponAssets,
     components::{Bullet, Player, Weapon},
     game::{
-        attributes::{ATTACK_DAMAGE, ATTACK_DAMAGE_BASE},
+        attributes::{
+            ATTACK_DAMAGE, ATTACK_DAMAGE_BASE, ATTACK_RANGE, ATTACK_RANGE_BASE, ATTACK_SPEED,
+            ATTACK_SPEED_BASE, CRITICAL_CHANCE, PROJECTILE_SPEED, PROJECTILE_SPEED_BASE,
+        },
         weapon_data::{WeaponData, Weapons, WeaponsHandle},
     },
     screens::Screen,
@@ -58,14 +61,18 @@ fn auto_attack(
         }
     };
 
-    weapon.set_attack_speed(weapon_data.attack_speed);
+    attributes.set_base(player, ATTACK_SPEED_BASE, weapon_data.attack_speed);
+    let attack_speed = attributes.evaluate(player, ATTACK_SPEED);
+    weapon.set_attack_speed(attack_speed);
+
     weapon.attack_timer.tick(time.delta());
     if !weapon.attack_timer.is_finished() {
         return;
     }
 
-    let Some((_, enemy_pos)) = spatial_index.nearest_enemy(player_pos, weapon_data.attack_range)
-    else {
+    attributes.set_base(player, ATTACK_RANGE_BASE, weapon_data.attack_range);
+    let attack_range = attributes.evaluate(player, ATTACK_RANGE);
+    let Some((_, enemy_pos)) = spatial_index.nearest_enemy(player_pos, attack_range) else {
         return;
     };
 
@@ -77,13 +84,21 @@ fn auto_attack(
     weapon.attack_timer.reset();
 
     attributes.set_base(player, ATTACK_DAMAGE_BASE, weapon_data.damage);
-    let damage = attributes.evaluate(player, ATTACK_DAMAGE);
+    let mut damage = attributes.evaluate(player, ATTACK_DAMAGE);
+    let critical_chance = attributes.evaluate(player, CRITICAL_CHANCE).clamp(0.0, 1.0);
+    if rand::random::<f32>() < critical_chance {
+        damage *= 2.0;
+    }
+
+    attributes.set_base(player, PROJECTILE_SPEED_BASE, weapon_data.velocity);
+    let projectile_speed = attributes.evaluate(player, PROJECTILE_SPEED);
 
     commands.spawn(bullet(
         &weapon_assets,
         weapon_data,
         player_pos,
         direction,
+        projectile_speed,
         damage,
     ));
 }
@@ -93,11 +108,12 @@ fn bullet(
     weapon_data: &WeaponData,
     position: Vec2,
     direction: Vec2,
+    velocity: f32,
     damage: f32,
 ) -> impl Bundle {
     (
         Name::new("Bullet"),
-        Bullet::new(direction, weapon_data.velocity, damage),
+        Bullet::new(direction, velocity, damage),
         DespawnOnExit(Screen::Gameplay),
         Sprite::from_atlas_image(
             weapon_assets.bullet_sprite.clone(),

@@ -20,7 +20,11 @@ impl Weapon {
     }
 
     pub fn set_attack_speed(&mut self, attack_speed: f32) {
-        let cooldown = Duration::from_secs_f32(1.0 / attack_speed);
+        let cooldown = if attack_speed > 0.0 {
+            Duration::from_secs_f32(1.0 / attack_speed)
+        } else {
+            Duration::from_secs_f32(1.0)
+        };
         if self.attack_timer.duration() == cooldown {
             return;
         }

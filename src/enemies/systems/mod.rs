@@ -13,7 +13,6 @@ use crate::{AppSystems, PausableSystems, screens::Screen};
 
 pub use behavior::behavior;
 pub use hit_flash::HitFlash;
-pub use nameplate::{AttackTimeNameplate, HealthNameplate};
 
 fn tick_attack_cooldowns(mut query: Query<&mut AttackCooldown>, time: Res<Time>) {
     for mut cooldown in query.iter_mut() {
@@ -25,25 +24,13 @@ pub struct SystemsPlugin;
 
 impl Plugin for SystemsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((SpawnPlugin, HitFlashPlugin));
+        app.add_plugins((SpawnPlugin, HitFlashPlugin, nameplate::NameplatePlugin));
         app.add_systems(
             Update,
-            (
-                behavior,
-                tick_attack_cooldowns,
-                nameplate::update_attack_time_nameplates,
-                nameplate::update_health_nameplates,
-            )
+            (behavior, tick_attack_cooldowns)
                 .in_set(PausableSystems)
                 .in_set(AppSystems::Update)
                 .run_if(in_state(Screen::Gameplay)),
-        );
-        app.add_systems(
-            Update,
-            nameplate::update_nameplate_visibility
-                .in_set(AppSystems::Update)
-                .run_if(in_state(Screen::Gameplay))
-                .run_if(resource_changed::<crate::config::GameSettings>),
         );
         app.add_systems(
             Update,

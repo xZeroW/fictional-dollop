@@ -1,5 +1,4 @@
 use bevy::{camera::ClearColorConfig, camera::visibility::RenderLayers, prelude::*};
-use bevy_lunex::{NoLunexPicking, RecomputeUiLayout, prelude::*};
 
 use crate::{
     AppSystems,
@@ -34,7 +33,6 @@ pub(super) struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(UiLunexPlugins);
         app.add_systems(Startup, spawn_hud_camera);
         app.add_systems(OnEnter(Screen::Gameplay), spawn_hud);
         app.add_systems(
@@ -57,7 +55,6 @@ fn spawn_hud_camera(mut commands: Commands) {
             ..default()
         },
         Msaa::Off,
-        UiSourceCamera::<0>,
         RenderLayers::layer(HUD_RENDER_LAYER),
     ));
 }
@@ -67,117 +64,118 @@ fn spawn_hud(mut commands: Commands, camera: Query<Entity, With<HudCamera>>) {
         return;
     };
 
-    let root = commands
+    commands
         .spawn((
             Name::new("HUD"),
-            UiLayoutRoot::new_2d(),
-            UiFetchFromCamera::<0>,
-            NoLunexPicking,
-            RenderLayers::layer(HUD_RENDER_LAYER),
+            Node {
+                position_type: PositionType::Absolute,
+                width: percent(100),
+                height: percent(100),
+                ..default()
+            },
+            UiTargetCamera(camera),
+            Pickable::IGNORE,
             DespawnOnExit(Screen::Gameplay),
         ))
         .with_children(|ui| {
             ui.spawn((
                 Name::new("HUD Safe Area"),
-                UiLayout::boundary()
-                    .pos1(Ab(20.0))
-                    .pos2(Rl(100.0) - Ab(20.0))
-                    .pack(),
-                UiDepth::Set(19.0),
-                NoLunexPicking,
-                RenderLayers::layer(HUD_RENDER_LAYER),
+                Node {
+                    position_type: PositionType::Absolute,
+                    left: px(20),
+                    right: px(20),
+                    top: px(20),
+                    bottom: px(20),
+                    ..default()
+                },
                 Pickable::IGNORE,
             ))
             .with_children(|ui| {
                 ui.spawn((
                     Name::new("Run Stats Text"),
                     RunStatsText,
-                    UiLayout::window()
-                        .pos((Rl(0.0), Rl(0.0)))
-                        .anchor(Anchor::TOP_LEFT)
-                        .pack(),
-                    UiTextSize::from(Rh(3.0)),
-                    UiDepth::Set(20.0),
-                    NoLunexPicking,
-                    Text2d::new(""),
-                    TextFont::from_font_size(48.0),
+                    Node {
+                        position_type: PositionType::Absolute,
+                        left: px(0),
+                        top: px(0),
+                        ..default()
+                    },
+                    Text::default(),
+                    TextFont::from_font_size(32.0),
                     TextColor(RUN_TEXT_COLOR),
-                    RenderLayers::layer(HUD_RENDER_LAYER),
                     Pickable::IGNORE,
                 ));
 
                 ui.spawn((
                     Name::new("Player Health Panel"),
-                    UiLayout::window()
-                        .pos((Rl(50.0), Rl(88.0)))
-                        .anchor(Anchor::CENTER)
-                        .size((Rw(42.0), Rh(7.0)))
-                        .pack(),
-                    UiDepth::Set(20.0),
-                    NoLunexPicking,
-                    Sprite::from_color(HEALTH_FRAME_COLOR, Vec2::ONE),
-                    RenderLayers::layer(HUD_RENDER_LAYER),
+                    Node {
+                        position_type: PositionType::Absolute,
+                        left: percent(29),
+                        bottom: px(0),
+                        width: percent(42),
+                        height: percent(7),
+                        ..default()
+                    },
+                    BackgroundColor(HEALTH_FRAME_COLOR),
                     Pickable::IGNORE,
                 ))
                 .with_children(|ui| {
                     ui.spawn((
                         Name::new("Player Health Backing"),
-                        UiLayout::window()
-                            .pos((Rl(50.0), Rl(58.0)))
-                            .anchor(Anchor::CENTER)
-                            .size((Rl(88.0), Rl(28.0)))
-                            .pack(),
-                        UiDepth::Set(21.0),
-                        NoLunexPicking,
-                        Sprite::from_color(HEALTH_BACK_COLOR, Vec2::ONE),
-                        RenderLayers::layer(HUD_RENDER_LAYER),
+                        Node {
+                            position_type: PositionType::Absolute,
+                            left: percent(6),
+                            top: percent(36),
+                            width: percent(88),
+                            height: percent(28),
+                            ..default()
+                        },
+                        BackgroundColor(HEALTH_BACK_COLOR),
                         Pickable::IGNORE,
                     ));
 
                     ui.spawn((
                         Name::new("Player Health Fill"),
                         PlayerHealthFill { fraction: -1.0 },
-                        UiLayout::window()
-                            .pos((Rl(6.0), Rl(58.0)))
-                            .anchor(Anchor::CENTER_LEFT)
-                            .size((Rl(88.0), Rl(28.0)))
-                            .pack(),
-                        UiDepth::Set(22.0),
-                        NoLunexPicking,
-                        Sprite::from_color(HEALTH_FILL_COLOR, Vec2::ONE),
-                        RenderLayers::layer(HUD_RENDER_LAYER),
+                        Node {
+                            position_type: PositionType::Absolute,
+                            left: percent(6),
+                            top: percent(36),
+                            width: percent(88),
+                            height: percent(28),
+                            ..default()
+                        },
+                        BackgroundColor(HEALTH_FILL_COLOR),
                         Pickable::IGNORE,
                     ));
 
                     ui.spawn((
                         Name::new("Player Health Text"),
                         PlayerHealthText,
-                        UiLayout::window()
-                            .pos((Rl(50.0), Rl(30.0)))
-                            .anchor(Anchor::CENTER)
-                            .pack(),
-                        UiTextSize::from(Rh(30.0)),
-                        UiDepth::Set(23.0),
-                        NoLunexPicking,
-                        Text2d::new("Health"),
-                        TextFont::from_font_size(64.0),
+                        Node {
+                            position_type: PositionType::Absolute,
+                            left: percent(0),
+                            top: percent(0),
+                            width: percent(100),
+                            height: percent(100),
+                            align_items: AlignItems::Center,
+                            justify_content: JustifyContent::Center,
+                            ..default()
+                        },
+                        Text::new("Health"),
+                        TextFont::from_font_size(28.0),
                         TextColor(HEALTH_TEXT_COLOR),
-                        RenderLayers::layer(HUD_RENDER_LAYER),
                         Pickable::IGNORE,
                     ));
                 });
             });
-        })
-        .id();
-
-    commands.entity(camera).add_child(root);
+        });
 }
 
 fn update_player_health_hud(
-    mut commands: Commands,
     player_health: Query<&Health, With<Player>>,
-    mut fill: Query<(&mut UiLayout, &mut PlayerHealthFill)>,
-    mut text: Query<&mut Text2d, (With<PlayerHealthText>, Without<RunStatsText>)>,
+    mut fill: Query<(&mut Node, &mut PlayerHealthFill)>,
+    mut text: Query<&mut Text, (With<PlayerHealthText>, Without<RunStatsText>)>,
 ) {
     let health = player_health.single().ok();
     let (current, max, health_fraction) = health
@@ -190,13 +188,11 @@ fn update_player_health_hud(
         })
         .unwrap_or((0.0, 0.0, 0.0));
 
-    if let Ok((mut fill_layout, mut fill)) = fill.single_mut()
+    if let Ok((mut fill_node, mut fill)) = fill.single_mut()
         && (fill.fraction - health_fraction).abs() > f32::EPSILON
-        && let Some(window) = fill_layout.get_mut_window(UiBase::id())
     {
         fill.fraction = health_fraction;
-        window.set_width(Rl(88.0 * health_fraction));
-        commands.trigger(RecomputeUiLayout);
+        fill_node.width = percent(88.0 * health_fraction);
     }
 
     if let Ok(mut text) = text.single_mut() {
@@ -208,7 +204,7 @@ fn update_player_health_hud(
 }
 
 fn update_run_stats_hud(
-    mut text: Query<&mut Text2d, (With<RunStatsText>, Without<PlayerHealthText>)>,
+    mut text: Query<&mut Text, (With<RunStatsText>, Without<PlayerHealthText>)>,
     wave_state: Res<WaveState>,
     progression: Res<MonsterProgression>,
     inventory: Res<RunInventory>,

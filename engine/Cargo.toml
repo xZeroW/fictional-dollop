@@ -1,0 +1,62 @@
+[package]
+name = "my_game"
+authors = ["xzerow"]
+
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bevy = { version = "0.18.0", default-features = false, features = ["2d"] }
+bevy-inspector-egui = "0.36.0"
+bevy_asset_loader = { version = "0.25.0", features = ["2d", "standard_dynamic_assets"] }
+bevy_common_assets = { version = "0.15.0", features = ["ron"] }
+bevy_ecs_tiled = "0.11.4"
+bevy_gauge = "0.4.5"
+inventory = "0.3.24"
+kd-tree = "0.6.2"
+leafwing-input-manager = "0.20.0"
+rand = "0.10.0"
+serde = { version = "1.0.228", features = ["derive"] }
+typenum = "1.20.0"
+
+[features]
+# Default to a native dev build.
+default = ["dev_native"]
+dev = [
+    # Improve compile times for dev builds by linking Bevy as a dynamic library.
+    "bevy/dynamic_linking",
+    "bevy/bevy_dev_tools",
+    "bevy/bevy_ui_debug",
+    # Improve error messages coming from Bevy
+    "bevy/track_location",
+]
+dev_native = [
+    "dev",
+    # Enable asset hot reloading for native dev builds.
+    "bevy/file_watcher",
+    # Enable embedded asset hot reloading for native dev builds.
+    "bevy/embedded_watcher",
+]
+
+[package.metadata.bevy_cli.release]
+# Disable dev features for release builds.
+default-features = false
+
+[lints.rust]
+# Mark `bevy_lint` as a valid `cfg`, as it is set when the Bevy linter runs.
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(bevy_lint)"] }
+
+[lints.clippy]
+# Bevy supplies arguments to systems via dependency injection, so it's natural for systems to
+# request more than 7 arguments, which would undesirably trigger this lint.
+too_many_arguments = "allow"
+# Queries may access many components, which would undesirably trigger this lint.
+type_complexity = "allow"
+# Make sure macros use their standard braces, such as `[]` for `bevy_ecs::children!`.
+nonstandard_macro_braces = "warn"
+
+# You can configure the warning levels of Bevy lints here. For a list of all lints, see:
+# <https://thebevyflock.github.io/bevy_cli/bevy_lint/lints/>
+[package.metadata.bevy_lint]
+# panicking_methods = "deny"
+# pedantic = "warn"

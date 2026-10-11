@@ -1,3 +1,4 @@
+use crate::Screen;
 use bevy::prelude::*;
 
 use crate::{
@@ -7,10 +8,7 @@ use crate::{
         DEXTERITY, INTELLIGENCE, MOVEMENT_SPEED_INCREASED, PROJECTILE_SPEED_INCREASED, STRENGTH,
         VITALITY,
     },
-    screens::Screen,
 };
-
-use super::inventory::InventoryItem;
 
 const MAX_ITEM_QUALITY: u8 = 20;
 
@@ -162,6 +160,25 @@ pub struct CraftingAffix {
     pub value: u8,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Reflect)]
+pub struct InventoryItem {
+    pub item_id: String,
+    pub rarity: ItemRarity,
+    pub quality: u8,
+    pub affixes: Vec<CraftingAffix>,
+}
+
+impl InventoryItem {
+    pub fn new(item_id: impl Into<String>, rarity: ItemRarity) -> Self {
+        Self {
+            item_id: item_id.into(),
+            rarity,
+            quality: 0,
+            affixes: Vec::new(),
+        }
+    }
+}
+
 impl CraftingAffix {
     fn random(kind: CraftingAffixKind) -> Self {
         let tier = roll_affix_tier();
@@ -183,7 +200,7 @@ impl CraftingAffix {
         }
     }
 
-    pub(crate) fn attribute_modifier(self) -> Option<(&'static str, f32)> {
+    pub fn attribute_modifier(self) -> Option<(&'static str, f32)> {
         let value = self.value as f32;
         let (attribute, value) = match self.kind {
             CraftingAffixKind::Damage => (ATTACK_DAMAGE_INCREASED, value / 100.0),

@@ -1,10 +1,10 @@
+use crate::Screen;
 use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
     components::{Enemy, Health},
     config::GameSettings,
-    screens::Screen,
 };
 
 #[cfg(all(feature = "dev", debug_assertions))]

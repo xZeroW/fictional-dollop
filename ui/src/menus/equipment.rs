@@ -195,7 +195,7 @@ impl CraftingAction {
     }
 }
 
-pub(super) struct EquipmentMenuPlugin;
+pub(crate) struct EquipmentMenuPlugin;
 
 impl Plugin for EquipmentMenuPlugin {
     fn build(&self, app: &mut App) {

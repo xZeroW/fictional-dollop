@@ -3,7 +3,7 @@ use bevy::{camera::ClearColorConfig, camera::visibility::RenderLayers, prelude::
 use crate::{
     AppSystems,
     components::{Health, Player},
-    screens::Screen,
+    screen::Screen,
     systems::{MonsterProgression, RunInventory, WaveState},
 };
 

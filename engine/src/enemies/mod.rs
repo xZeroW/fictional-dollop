@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 mod assets;
 mod data;
-mod systems;
+pub(crate) mod systems;
 
 pub use assets::EnemyVisualsHandle;
 pub use data::Enemies;
@@ -62,16 +62,9 @@ pub(super) struct EnemiesPlugin;
 
 impl Plugin for EnemiesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((
-            data::EnemyDataPlugin,
-            assets::EnemyAssetsPlugin,
-            systems::SystemsPlugin,
-        ));
-        app.add_systems(OnEnter(crate::screens::Screen::Loading), load_enemies_data);
-        app.add_systems(
-            OnEnter(crate::screens::Screen::Loading),
-            load_enemy_visuals_data,
-        );
+        app.add_plugins((data::EnemyDataPlugin, assets::EnemyAssetsPlugin));
+        app.add_systems(OnEnter(crate::Screen::Loading), load_enemies_data);
+        app.add_systems(OnEnter(crate::Screen::Loading), load_enemy_visuals_data);
     }
 }
 

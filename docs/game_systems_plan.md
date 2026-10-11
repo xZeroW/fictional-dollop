@@ -26,10 +26,10 @@ spawn pressure layer, or optional risk contract system.
 
 Already implemented or partially implemented:
 
-- Bevy 0.18 single binary crate named `my_game`.
-- Screen states for splash, title, loading, and gameplay in `src/screens/`.
-- Menu states for main, pause, settings, credits, inventory, monster buff, and game over in `src/menus/`.
-- Pause state and ordered `AppSystems` schedule in `src/main.rs`.
+- Bevy 0.18 workspace with `my_game`, `engine`, and `ui` crates.
+- Screen states for splash, title, loading, and gameplay in `ui/src/screen/`.
+- Menu states for main, pause, settings, credits, inventory, monster buff, and game over in `ui/src/menus/`.
+- Pause state and ordered `AppSystems` schedule in `engine/src/lib.rs`.
 - Tiled map loading through `bevy_ecs_tiled` in `src/game/map.rs`.
 - A hardcoded map, currently `assets/maps/map1.tmx`.
 - Player movement through `leafwing_input_manager` in `src/game/player.rs`.

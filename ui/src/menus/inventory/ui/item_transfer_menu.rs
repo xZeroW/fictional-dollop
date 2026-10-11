@@ -2,26 +2,99 @@ use bevy::prelude::*;
 
 use crate::{
     assets::WeaponAssets,
-    game::weapon_data::Weapons,
-    menus::Menu,
+    game::weapon_data::{Weapons, WeaponsHandle},
+    menus::{Menu, MenuCamera},
     systems::{InventoryItem, RunInventory, SAFE_INVENTORY_CAPACITY, SafeInventory},
 };
 
 use super::super::{
-    InventoryDropTarget, InventoryKind, InventoryMenuRoot, continue_to_equipment_menu,
-    drag_inventory_item, drop_inventory_item, finish_inventory_drag, shortcut_inventory_item,
-    start_inventory_drag,
+    InventoryDragState, InventoryDropTarget, InventoryMenuRoot, InventoryUiDirty,
+    continue_to_equipment_menu, drag_inventory_item, drop_inventory_item, finish_inventory_drag,
+    shortcut_inventory_item, start_inventory_drag,
 };
 use super::{
     BUTTON_COLOR, CONTINUE_BUTTON_CENTER_X, CONTINUE_BUTTON_CENTER_Y, CONTINUE_BUTTON_HEIGHT,
     CONTINUE_BUTTON_WIDTH, DROP_PANEL_COLOR, EMPTY_RUN_TEXT_POS, EMPTY_SLOT_COLOR, HELP_POS,
     INVENTORY_UI_Z_INDEX, ITEM_ICON_Z_INDEX, ITEM_SIZE, ITEM_Z_INDEX, InventoryItemUi,
-    InventoryPanelUi, MUTED_TEXT_COLOR, OVERLAY_COLOR, PANEL_COLOR, PANEL_FRAME_COLOR,
-    PANEL_FRAME_PADDING, PANEL_HEIGHT, PANEL_WIDTH, RUN_PANEL_POS, RUN_PANEL_SIZE,
-    RUN_SLOT_COLUMNS, SAFE_PANEL_POS, SAFE_PANEL_SIZE, SAFE_SLOT_COLUMNS, SECTION_TITLE_POS,
-    SLOT_COLOR, SLOT_GAP, SLOT_ORIGIN, SLOT_SIZE, TEXT_COLOR, TITLE_POS, absolute_node,
-    rarity_color,
+    InventoryKind, InventoryPanelUi, MUTED_TEXT_COLOR, OVERLAY_COLOR, PANEL_COLOR,
+    PANEL_FRAME_COLOR, PANEL_FRAME_PADDING, PANEL_HEIGHT, PANEL_WIDTH, RUN_PANEL_POS,
+    RUN_PANEL_SIZE, RUN_SLOT_COLUMNS, SAFE_PANEL_POS, SAFE_PANEL_SIZE, SAFE_SLOT_COLUMNS,
+    SECTION_TITLE_POS, SLOT_COLOR, SLOT_GAP, SLOT_ORIGIN, SLOT_SIZE, TEXT_COLOR, TITLE_POS,
+    absolute_node, rarity_color,
 };
+
+pub(crate) struct InventoryMenuPlugin;
+
+impl Plugin for InventoryMenuPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<InventoryDragState>();
+        app.add_systems(OnEnter(Menu::Inventory), spawn_inventory_menu);
+        app.add_systems(
+            Update,
+            refresh_inventory_menu.run_if(in_state(Menu::Inventory)),
+        );
+    }
+}
+
+fn spawn_inventory_menu(
+    mut commands: Commands,
+    camera: Query<Entity, With<MenuCamera>>,
+    run_inventory: Res<RunInventory>,
+    safe_inventory: Res<SafeInventory>,
+    weapon_assets: Res<WeaponAssets>,
+    weapons_handle: Res<WeaponsHandle>,
+    weapons_assets: Res<Assets<Weapons>>,
+) {
+    let Ok(camera) = camera.single() else {
+        return;
+    };
+
+    let weapons = weapons_assets.get(&weapons_handle.0);
+    spawn_item_transfer_menu_root(
+        &mut commands,
+        camera,
+        &run_inventory,
+        &safe_inventory,
+        &weapon_assets,
+        weapons,
+    );
+}
+
+fn refresh_inventory_menu(
+    mut commands: Commands,
+    dirty: Option<Res<InventoryUiDirty>>,
+    roots: Query<Entity, With<InventoryMenuRoot>>,
+    camera: Query<Entity, With<MenuCamera>>,
+    run_inventory: Res<RunInventory>,
+    safe_inventory: Res<SafeInventory>,
+    weapon_assets: Res<WeaponAssets>,
+    weapons_handle: Res<WeaponsHandle>,
+    weapons_assets: Res<Assets<Weapons>>,
+) {
+    if dirty.is_none() {
+        return;
+    }
+
+    commands.remove_resource::<InventoryUiDirty>();
+
+    for root in roots.iter() {
+        commands.entity(root).despawn();
+    }
+
+    let Ok(camera) = camera.single() else {
+        return;
+    };
+
+    let weapons = weapons_assets.get(&weapons_handle.0);
+    spawn_item_transfer_menu_root(
+        &mut commands,
+        camera,
+        &run_inventory,
+        &safe_inventory,
+        &weapon_assets,
+        weapons,
+    );
+}
 
 pub(in crate::menus::inventory) fn spawn_item_transfer_menu_root(
     commands: &mut Commands,

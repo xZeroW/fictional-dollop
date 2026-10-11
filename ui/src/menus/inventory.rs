@@ -8,7 +8,7 @@ use crate::{
     assets::WeaponAssets,
     game::weapon_data::{Weapons, WeaponsHandle},
     menus::{
-        Menu, MenuCamera,
+        Menu,
         item_tooltip::{ItemTooltip, ItemTooltipData, despawn_item_tooltips, spawn_item_tooltip},
     },
     systems::{
@@ -18,17 +18,11 @@ use crate::{
 
 use ui::{
     DRAGGED_ITEM_GLOBAL_Z_INDEX, DRAGGED_ITEM_LOCAL_Z_INDEX, ITEM_Z_INDEX, InventoryItemUi,
-    InventoryPanelUi, spawn_item_transfer_menu_root,
+    InventoryKind, InventoryPanelUi,
 };
 
 #[derive(Component)]
 struct InventoryMenuRoot;
-
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
-enum InventoryKind {
-    Run,
-    Safe,
-}
 
 impl InventoryKind {
     fn shortcut_target(self) -> Self {
@@ -53,78 +47,7 @@ struct InventoryDragState {
     successful_drop: bool,
 }
 
-pub(super) struct InventoryMenuPlugin;
-
-impl Plugin for InventoryMenuPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_resource::<InventoryDragState>();
-        app.add_systems(OnEnter(Menu::Inventory), spawn_inventory_menu);
-        app.add_systems(
-            Update,
-            refresh_inventory_menu.run_if(in_state(Menu::Inventory)),
-        );
-    }
-}
-
-fn spawn_inventory_menu(
-    mut commands: Commands,
-    camera: Query<Entity, With<MenuCamera>>,
-    run_inventory: Res<RunInventory>,
-    safe_inventory: Res<SafeInventory>,
-    weapon_assets: Res<WeaponAssets>,
-    weapons_handle: Res<WeaponsHandle>,
-    weapons_assets: Res<Assets<Weapons>>,
-) {
-    let Ok(camera) = camera.single() else {
-        return;
-    };
-
-    let weapons = weapons_assets.get(&weapons_handle.0);
-    spawn_item_transfer_menu_root(
-        &mut commands,
-        camera,
-        &run_inventory,
-        &safe_inventory,
-        &weapon_assets,
-        weapons,
-    );
-}
-
-fn refresh_inventory_menu(
-    mut commands: Commands,
-    dirty: Option<Res<InventoryUiDirty>>,
-    roots: Query<Entity, With<InventoryMenuRoot>>,
-    camera: Query<Entity, With<MenuCamera>>,
-    run_inventory: Res<RunInventory>,
-    safe_inventory: Res<SafeInventory>,
-    weapon_assets: Res<WeaponAssets>,
-    weapons_handle: Res<WeaponsHandle>,
-    weapons_assets: Res<Assets<Weapons>>,
-) {
-    if dirty.is_none() {
-        return;
-    }
-
-    commands.remove_resource::<InventoryUiDirty>();
-
-    for root in roots.iter() {
-        commands.entity(root).despawn();
-    }
-
-    let Ok(camera) = camera.single() else {
-        return;
-    };
-
-    let weapons = weapons_assets.get(&weapons_handle.0);
-    spawn_item_transfer_menu_root(
-        &mut commands,
-        camera,
-        &run_inventory,
-        &safe_inventory,
-        &weapon_assets,
-        weapons,
-    );
-}
+pub(crate) use ui::InventoryMenuPlugin;
 
 fn show_inventory_item_tooltip(
     over: On<Pointer<Over>>,

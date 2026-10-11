@@ -2,9 +2,9 @@
 
 use bevy::prelude::*;
 
-use crate::{menus::Menu, screens::Screen, theme::widget};
+use crate::{menus::Menu, screen::Screen, theme::widget};
 
-pub(super) struct MainMenuPlugin;
+pub(crate) struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {

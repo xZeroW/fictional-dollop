@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::screens::Screen;
+use crate::Screen;
 
 #[derive(Resource, Reflect)]
 #[reflect(Resource)]

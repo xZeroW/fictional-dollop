@@ -4,7 +4,7 @@ use bevy::{ecs::spawn::SpawnIter, input::common_conditions::input_just_pressed, 
 
 use crate::{audio::music, menus::Menu, theme::prelude::*};
 
-pub(super) struct CreditsMenuPlugin;
+pub(crate) struct CreditsMenuPlugin;
 
 impl Plugin for CreditsMenuPlugin {
     fn build(&self, app: &mut App) {

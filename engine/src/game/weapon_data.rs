@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
 use std::collections::HashMap;
 
-use crate::screens::Screen;
+use crate::Screen;
 
 #[derive(serde::Deserialize, Asset, TypePath)]
 pub struct Weapons(pub HashMap<String, WeaponData>);

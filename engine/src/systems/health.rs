@@ -1,10 +1,10 @@
+use crate::Screen;
 use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
     components::{Enemy, Health, Player},
     messages::{ApplyDamageMessage, DamageMessage, EntityDiedMessage},
-    screens::Screen,
 };
 
 pub struct HealthSystemsPlugin;

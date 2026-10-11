@@ -1,18 +1,19 @@
-mod behavior;
-mod hit_flash;
-mod nameplate;
-mod spawn;
-
+use crate::Screen;
 use bevy::prelude::*;
 use bevy::time::common_conditions::on_timer;
 use std::time::Duration;
 
 use crate::components::AttackCooldown;
 use crate::config;
-use crate::{AppSystems, PausableSystems, screens::Screen};
+use crate::{AppSystems, PausableSystems};
 
 pub use behavior::behavior;
 pub use hit_flash::HitFlash;
+
+mod behavior;
+mod hit_flash;
+mod nameplate;
+mod spawn;
 
 fn tick_attack_cooldowns(mut query: Query<&mut AttackCooldown>, time: Res<Time>) {
     for mut cooldown in query.iter_mut() {

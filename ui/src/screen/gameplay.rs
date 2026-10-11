@@ -2,7 +2,7 @@
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{Pause, menus::Menu, screens::Screen, theme::widget};
+use crate::{Pause, menus::Menu, screen::Screen, theme::widget};
 
 pub(super) struct GameplayScreenPlugin;
 

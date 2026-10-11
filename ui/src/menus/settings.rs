@@ -6,9 +6,9 @@ use bevy::{
     audio::Volume, ecs::spawn::SpawnWith, input::common_conditions::input_just_pressed, prelude::*,
 };
 
-use crate::{config::GameSettings, menus::Menu, screens::Screen, theme::prelude::*};
+use crate::{config::GameSettings, menus::Menu, screen::Screen, theme::prelude::*};
 
-pub(super) struct SettingsMenuPlugin;
+pub(crate) struct SettingsMenuPlugin;
 
 impl Plugin for SettingsMenuPlugin {
     fn build(&self, app: &mut App) {

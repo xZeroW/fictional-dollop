@@ -17,11 +17,11 @@
 
 ## Architecture
 
-- Single binary crate `my_game`; app wiring is in `src/main.rs` via `AppPlugin`.
-- Top-level plugins registered in `main.rs`: `AssetsPlugin`, `AudioPlugin`, `GamePlugin`, `HudPlugin`, `SystemsPlugin`, `ListenersPlugin`, `MenusPlugin`, `ScreensPlugin`, `ThemePlugin`, `EnemiesPlugin`, and `DevToolsPlugin` only behind `feature = "dev"`.
-- `src/game/` owns gameplay setup and templates (`level`, `map`, `player`, `weapon_data`); `src/systems/` owns frame systems, gameplay lifecycle systems, and their run-scoped resources; `src/listeners/` owns message listeners; `src/enemies/` owns enemy data/assets/systems.
-- `Screen` lives in `src/screens/mod.rs`; `Menu` lives in `src/menus/mod.rs`; `Pause(pub bool)` and `AppSystems` live in `src/main.rs`.
-- If adding an `AppSystems` variant, add it to the chained `configure_sets(Update, ...)` order in `main.rs` in the same change.
+- Workspace crates are `app` (the `my_game` executable and composition root), `engine` (gameplay/runtime), and `ui`.
+- `engine::AppPlugin` registers assets, audio, gameplay, systems, listeners, and enemies; `ui::UiPlugin` registers HUD, menus, screens, theme, and dev tools.
+- `engine/src/game/` owns gameplay setup and templates (`level`, `map`, `player`, `weapon_data`); `engine/src/systems/` owns frame systems, gameplay lifecycle systems, and their run-scoped resources; `engine/src/listeners/` owns message listeners; `engine/src/enemies/` owns enemy data/assets/systems.
+- `Screen`, `Menu`, `Pause(pub bool)`, and `AppSystems` live in `engine/src/lib.rs`; the UI modules re-export the states for local use.
+- If adding an `AppSystems` variant, add it to the chained `configure_sets(Update, ...)` order in `engine/src/lib.rs` in the same change.
 - Put gameplay resources with `OnEnter`/`OnExit` lifecycle systems in `src/systems/` (for example wave state or monster progression), not in `src/game/`, unless the module is only setup/template code.
 - Gameplay systems that should pause must be in `PausableSystems`; most should also gate with `run_if(in_state(Screen::Gameplay))`.
 - Level-owned gameplay entities should be parented under `LevelEntity` from `src/game/level.rs`; `Level` has `DespawnOnExit(Screen::Gameplay)` and resources are cleaned up on exit.
@@ -29,7 +29,7 @@
 ## Patterns
 
 - New plugins should be named `*Plugin` structs with `impl Plugin`, matching `src/systems/*`; do not add bare `fn plugin(app: &mut App)` registrations.
-- Parent modules register child plugins; keep `src/main.rs` focused on top-level app modules.
+- Parent modules register child plugins; keep `app/src/main.rs` focused on composing the engine and UI plugins.
 - Entity templates are usually functions returning `impl Bundle` (`game/player.rs`, `systems/auto_attack.rs`, `enemies/data.rs`); prefer that before adding custom bundle structs.
 - Cross-system reactions use Bevy messages/listeners under `src/messages.rs` and `src/listeners/`; avoid coupling collision, damage, and death behavior into producer systems.
 - Runtime cleanup is state-driven with `DespawnOnExit(Screen::Gameplay)` plus resources inserted on enter and removed on exit.

@@ -16,16 +16,16 @@ mod wave;
 use bevy::prelude::*;
 
 pub(crate) use animation::PlayerAnimation;
-pub(crate) use crafting::{CraftingAffix, CraftingMaterial, CraftingMaterials};
-pub(crate) use equipment::{
+pub use crafting::{CraftingAffix, CraftingMaterial, CraftingMaterials, InventoryItem};
+pub use equipment::{
     Equipment, EquipmentSlot, move_equipment_item_to_safe, move_safe_item_to_equipment,
 };
-pub(crate) use inventory::{
-    InventoryItem, RunInventory, SAFE_INVENTORY_CAPACITY, SafeInventory, move_run_item_to_safe,
+pub use inventory::{
+    RunInventory, SAFE_INVENTORY_CAPACITY, SafeInventory, move_run_item_to_safe,
     move_safe_item_to_run,
 };
-pub(crate) use monster_progression::MonsterProgression;
-pub(crate) use wave::WaveState;
+pub use monster_progression::MonsterProgression;
+pub use wave::WaveState;
 
 pub struct SystemsPlugin;
 

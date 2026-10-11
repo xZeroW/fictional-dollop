@@ -1,5 +1,6 @@
 //! Spawn the main level.
 
+use crate::Screen;
 use bevy::prelude::*;
 
 use crate::{
@@ -7,7 +8,6 @@ use crate::{
     audio::music,
     enemies::EnemySpawner,
     game::player::player,
-    screens::Screen,
 };
 
 #[derive(Component)]

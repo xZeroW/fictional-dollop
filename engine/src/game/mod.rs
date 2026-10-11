@@ -12,7 +12,7 @@ pub mod camera;
 pub mod level;
 mod map;
 pub mod player;
-pub(crate) mod weapon_data;
+pub mod weapon_data;
 
 use player::PlayerAction;
 

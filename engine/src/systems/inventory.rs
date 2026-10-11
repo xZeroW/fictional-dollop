@@ -1,29 +1,11 @@
+use crate::Screen;
 use bevy::prelude::*;
 
-use crate::{components::ItemRarity, screens::Screen};
+use crate::components::ItemRarity;
 
-use super::crafting::CraftingAffix;
+use super::crafting::InventoryItem;
 
 pub const SAFE_INVENTORY_CAPACITY: usize = 20;
-
-#[derive(Debug, Clone, PartialEq, Eq, Reflect)]
-pub struct InventoryItem {
-    pub item_id: String,
-    pub rarity: ItemRarity,
-    pub quality: u8,
-    pub affixes: Vec<CraftingAffix>,
-}
-
-impl InventoryItem {
-    pub fn new(item_id: impl Into<String>, rarity: ItemRarity) -> Self {
-        Self {
-            item_id: item_id.into(),
-            rarity,
-            quality: 0,
-            affixes: Vec::new(),
-        }
-    }
-}
 
 #[derive(Resource, Default, Debug, Clone, Reflect)]
 #[reflect(Resource)]

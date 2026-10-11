@@ -2,9 +2,9 @@
 
 use bevy::prelude::*;
 
-use crate::{menus::Menu, screens::Screen, theme::widget};
+use crate::{menus::Menu, screen::Screen, theme::widget};
 
-pub(super) struct GameOverMenuPlugin;
+pub(crate) struct GameOverMenuPlugin;
 
 impl Plugin for GameOverMenuPlugin {
     fn build(&self, app: &mut App) {

@@ -2,9 +2,9 @@
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{menus::Menu, screens::Screen, theme::widget};
+use crate::{menus::Menu, screen::Screen, theme::widget};
 
-pub(super) struct PauseMenuPlugin;
+pub(crate) struct PauseMenuPlugin;
 
 impl Plugin for PauseMenuPlugin {
     fn build(&self, app: &mut App) {

@@ -1,14 +1,13 @@
+use crate::Screen;
 use bevy::prelude::*;
 
 use super::enemy_spatial::EnemySpatialIndex;
 
 use crate::{
-    AppSystems, PausableSystems, Pause,
+    AppSystems, Menu, PausableSystems, Pause,
     components::{Bullet, Enemy},
     config::WAVE_DURATION,
     enemies::EnemySpawner,
-    menus::Menu,
-    screens::Screen,
 };
 
 #[derive(Resource, Reflect)]

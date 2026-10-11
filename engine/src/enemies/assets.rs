@@ -29,7 +29,7 @@ pub(super) struct EnemyAssetsPlugin;
 impl Plugin for EnemyAssetsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(RonAssetPlugin::<EnemyVisuals>::new(&["enemies.assets.ron"]));
-        app.add_systems(OnEnter(crate::screens::Screen::Gameplay), load_visual_cache);
+        app.add_systems(OnEnter(crate::Screen::Gameplay), load_visual_cache);
     }
 }
 

@@ -1,3 +1,4 @@
+use crate::Screen;
 use bevy::prelude::*;
 
 use super::enemy_spatial::EnemySpatialIndex;
@@ -7,7 +8,6 @@ use crate::{
     components::{Bullet, Enemy, Player},
     config,
     messages::{BulletHitEnemyMessage, CollisionKind, CollisionMessage},
-    screens::Screen,
 };
 
 pub(super) struct CollisionSystemsPlugin;

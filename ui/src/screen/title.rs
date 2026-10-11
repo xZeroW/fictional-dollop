@@ -2,7 +2,7 @@
 
 use bevy::prelude::*;
 
-use crate::{menus::Menu, screens::Screen};
+use crate::{menus::Menu, screen::Screen};
 
 pub(super) struct TitleScreenPlugin;
 

@@ -1,3 +1,4 @@
+use crate::Screen;
 use bevy::prelude::*;
 
 use crate::{
@@ -9,7 +10,6 @@ use crate::{
         weapon_data::{WeaponData, Weapons, WeaponsHandle},
     },
     messages::EntityDiedMessage,
-    screens::Screen,
     systems::MonsterProgression,
 };
 

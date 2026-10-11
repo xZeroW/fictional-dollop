@@ -1,0 +1,27 @@
+[package]
+name = "my_game"
+authors = ["xzerow"]
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bevy = { workspace = true }
+engine = { path = "../engine", default-features = false }
+ui = { path = "../ui" }
+
+[features]
+default = ["dev_native"]
+dev = [
+    "engine/dev",
+    "ui/dev",
+    "bevy/dynamic_linking",
+    "bevy/bevy_dev_tools",
+    "bevy/bevy_ui_debug",
+    "bevy/track_location",
+]
+dev_native = [
+    "dev",
+    "engine/dev_native",
+    "bevy/file_watcher",
+    "bevy/embedded_watcher",
+]

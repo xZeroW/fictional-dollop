@@ -6,7 +6,7 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{AppSystems, screens::Screen, theme::prelude::*};
+use crate::{AppSystems, screen::Screen, theme::prelude::*};
 
 pub(super) struct SplashScreenPlugin;
 

@@ -6,13 +6,12 @@ mod splash;
 mod title;
 
 use bevy::prelude::*;
+pub use engine::Screen;
 
 pub(super) struct ScreensPlugin;
 
 impl Plugin for ScreensPlugin {
     fn build(&self, app: &mut App) {
-        app.init_state::<Screen>();
-
         app.add_plugins((
             gameplay::GameplayScreenPlugin,
             loading::LoadingScreenPlugin,
@@ -20,14 +19,4 @@ impl Plugin for ScreensPlugin {
             title::TitleScreenPlugin,
         ));
     }
-}
-
-/// The game's main screen states.
-#[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
-pub enum Screen {
-    #[default]
-    Splash,
-    Title,
-    Loading,
-    Gameplay,
 }

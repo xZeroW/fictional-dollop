@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 use std::collections::HashMap;
 
-use crate::screens::Screen;
+use crate::Screen;
 
 #[derive(AssetCollection, Resource)]
 pub struct CharacterAssets {

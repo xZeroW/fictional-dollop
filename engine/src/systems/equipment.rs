@@ -1,3 +1,4 @@
+use crate::Screen;
 use bevy::prelude::*;
 use bevy_gauge::prelude::*;
 
@@ -5,10 +6,9 @@ use crate::{
     AppSystems,
     components::{Health, Player, Weapon},
     game::attributes::VITALITY,
-    screens::Screen,
 };
 
-use super::inventory::{InventoryItem, SafeInventory};
+use super::{crafting::InventoryItem, inventory::SafeInventory};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect)]
 pub enum EquipmentSlot {

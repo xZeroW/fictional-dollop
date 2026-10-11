@@ -1,3 +1,4 @@
+use crate::Screen;
 use bevy::prelude::*;
 
 use super::enemy_spatial::EnemySpatialIndex;
@@ -13,7 +14,6 @@ use crate::{
         },
         weapon_data::{WeaponData, Weapons, WeaponsHandle},
     },
-    screens::Screen,
 };
 use bevy_gauge::prelude::*;
 

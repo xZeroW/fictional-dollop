@@ -1,9 +1,9 @@
+use crate::Screen;
 use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
     components::{ItemDrop, PickupRadius, Player},
-    screens::Screen,
     systems::RunInventory,
 };
 

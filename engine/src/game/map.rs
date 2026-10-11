@@ -1,7 +1,6 @@
+use crate::Screen;
 use bevy::prelude::*;
 use bevy_ecs_tiled::prelude::*;
-
-use crate::screens::Screen;
 
 pub struct MapPlugin;
 

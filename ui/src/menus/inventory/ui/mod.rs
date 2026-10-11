@@ -4,8 +4,6 @@ use bevy::prelude::*;
 
 use crate::components::ItemRarity;
 
-use super::InventoryKind;
-
 pub(super) const INVENTORY_UI_Z_INDEX: i32 = 30;
 pub(super) const DRAGGED_ITEM_GLOBAL_Z_INDEX: i32 = INVENTORY_UI_Z_INDEX + 1;
 pub(super) const ITEM_Z_INDEX: i32 = 1;
@@ -44,7 +42,13 @@ const TEXT_COLOR: Color = Color::srgb(0.9, 0.86, 0.78);
 const MUTED_TEXT_COLOR: Color = Color::srgb(0.62, 0.58, 0.65);
 const BUTTON_COLOR: Color = Color::srgb(0.33, 0.21, 0.46);
 
-pub(super) use item_transfer_menu::spawn_item_transfer_menu_root;
+pub(crate) use item_transfer_menu::InventoryMenuPlugin;
+
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum InventoryKind {
+    Run,
+    Safe,
+}
 
 #[derive(Component)]
 pub(super) struct InventoryPanelUi;

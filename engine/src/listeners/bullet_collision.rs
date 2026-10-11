@@ -1,9 +1,9 @@
+use crate::Screen;
 use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
     messages::{ApplyDamageMessage, BulletHitEnemyMessage},
-    screens::Screen,
 };
 
 pub struct BulletCollisionListenerPlugin;

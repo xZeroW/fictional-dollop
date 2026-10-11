@@ -3,7 +3,7 @@
 
 use bevy::prelude::*;
 
-use crate::{screens::Screen, theme::prelude::*};
+use crate::{screen::Screen, theme::prelude::*};
 
 pub(super) struct LoadingScreenPlugin;
 

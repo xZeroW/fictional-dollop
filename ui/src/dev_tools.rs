@@ -18,7 +18,7 @@ use crate::{
     components::{Bullet, Enemy, Player, Weapon},
     config,
     game::weapon_data::{Weapons, WeaponsHandle},
-    screens::Screen,
+    screen::Screen,
 };
 
 pub(super) struct DevToolsPlugin;

@@ -1,10 +1,9 @@
+use crate::Screen;
 use bevy::prelude::*;
 use kd_tree::{KdPoint, KdTree};
 use typenum::U2;
 
-use crate::{
-    AppSystems, PausableSystems, components::Enemy, config::KD_TREE_REFRESH_RATE, screens::Screen,
-};
+use crate::{AppSystems, PausableSystems, components::Enemy, config::KD_TREE_REFRESH_RATE};
 
 #[derive(Clone)]
 struct EnemySpatialEntry {

@@ -1,10 +1,10 @@
+use crate::Screen;
 use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
     components::{AttackCooldown, Damage, Enemy},
     messages::{ApplyDamageMessage, CollisionKind, CollisionMessage},
-    screens::Screen,
 };
 
 pub struct PlayerCollisionListenerPlugin;

@@ -1,8 +1,7 @@
+use crate::Screen;
 use bevy::prelude::*;
 
-use crate::{
-    AppSystems, PausableSystems, Pause, menus::Menu, messages::EntityDiedMessage, screens::Screen,
-};
+use crate::{AppSystems, Menu, PausableSystems, Pause, messages::EntityDiedMessage};
 
 pub struct DeathListenerPlugin;
 

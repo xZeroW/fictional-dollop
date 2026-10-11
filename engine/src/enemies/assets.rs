@@ -52,12 +52,12 @@ pub(super) fn load_visual_cache(
     enemy_assets.layouts.clear();
 
     for (key, visual) in &visuals.0 {
-        let image = asset_server.load_with_settings(
-            &visual.sprite_path,
-            |settings: &mut ImageLoaderSettings| {
+        let image = asset_server
+            .load_builder()
+            .with_settings(|settings: &mut ImageLoaderSettings| {
                 settings.sampler = ImageSampler::nearest();
-            },
-        );
+            })
+            .load(&visual.sprite_path);
         let layout = atlas_layouts.add(TextureAtlasLayout::from_grid(
             UVec2::new(visual.tile_size_x, visual.tile_size_y),
             visual.columns.try_into().unwrap(),

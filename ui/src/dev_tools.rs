@@ -63,13 +63,13 @@ impl Plugin for DevToolsPlugin {
         ));
         app.add_systems(
             EguiPrimaryContextPass,
-            weapon_selector_ui.run_if(in_state(Screen::Gameplay).and(weapon_selector_visible)),
+            weapon_selector_ui.run_if(in_state(Screen::Gameplay).and_then(weapon_selector_visible)),
         );
 
         app.add_plugins(FpsOverlayPlugin {
             config: FpsOverlayConfig {
                 text_config: TextFont {
-                    font_size: 18.0,
+                    font_size: FontSize::Px(18.0),
                     font_smoothing: FontSmoothing::default(),
                     ..default()
                 },
@@ -101,7 +101,7 @@ struct WorldInspectorVisible(bool);
 #[derive(Resource, Default)]
 struct CollisionGizmosVisible(bool);
 
-fn toggle_debug_ui(mut options: ResMut<UiDebugOptions>) {
+fn toggle_debug_ui(mut options: ResMut<GlobalUiDebugOptions>) {
     options.toggle();
 }
 

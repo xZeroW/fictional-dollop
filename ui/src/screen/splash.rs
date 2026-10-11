@@ -42,7 +42,7 @@ impl Plugin for SplashScreenPlugin {
         app.add_systems(
             Update,
             enter_title_screen
-                .run_if(input_just_pressed(KeyCode::Escape).and(in_state(Screen::Splash))),
+                .run_if(input_just_pressed(KeyCode::Escape).and_then(in_state(Screen::Splash))),
         );
     }
 }
@@ -63,16 +63,14 @@ fn spawn_splash_screen(mut commands: Commands, asset_server: Res<AssetServer>) {
                 width: percent(70),
                 ..default()
             },
-            ImageNode::new(asset_server.load_with_settings(
-                // This should be an embedded asset for instant loading, but that is
-                // currently [broken on Windows Wasm builds](https://github.com/bevyengine/bevy/issues/14246).
-                "images/splash.png",
-                |settings: &mut ImageLoaderSettings| {
-                    // Make an exception for the splash image in case
-                    // `ImagePlugin::default_nearest()` is used for pixel art.
-                    settings.sampler = ImageSampler::linear();
-                },
-            )),
+            ImageNode::new(
+                asset_server
+                    .load_builder()
+                    .with_settings(|settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::linear();
+                    })
+                    .load("images/splash.png")
+            ),
             ImageNodeFadeInOut {
                 total_duration: SPLASH_DURATION_SECS,
                 fade_duration: SPLASH_FADE_DURATION_SECS,

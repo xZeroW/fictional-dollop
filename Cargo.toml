@@ -12,7 +12,7 @@ version = "0.0.1"
 edition = "2024"
 
 [workspace.dependencies]
-bevy = { version = "0.18.0", default-features = false, features = ["2d"] }
+bevy = { version = "0.19.0", default-features = false, features = ["2d", "audio", "ui"] }
 
 # Compile with Performance Optimizations:
 # <https://bevyengine.org/learn/quick-start/getting-started/setup/#compile-with-performance-optimizations>

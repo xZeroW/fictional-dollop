@@ -1,12 +1,14 @@
-use crate::Screen;
 use bevy::prelude::*;
+use bevy_gauge::prelude::*;
 
 use super::enemy_spatial::EnemySpatialIndex;
 
+use crate::Screen;
+use crate::domain::combat::Bullet;
 use crate::{
     AppSystems, PausableSystems,
     assets::WeaponAssets,
-    components::{Bullet, Player, Weapon},
+    components::{Player, Weapon},
     game::{
         attributes::{
             ATTACK_DAMAGE, ATTACK_DAMAGE_BASE, ATTACK_RANGE, ATTACK_RANGE_BASE, ATTACK_SPEED,
@@ -15,7 +17,6 @@ use crate::{
         weapon_data::{WeaponData, Weapons, WeaponsHandle},
     },
 };
-use bevy_gauge::prelude::*;
 
 pub(super) struct AutoAttackSystemsPlugin;
 

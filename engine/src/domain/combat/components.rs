@@ -3,7 +3,6 @@ use bevy::prelude::*;
 const BULLET_LIFETIME: f32 = 2.0;
 
 #[derive(Component, Debug, Clone, PartialEq, Default, Reflect)]
-#[reflect(Component)]
 pub struct Bullet {
     pub velocity: Vec2,
     pub damage: f32,

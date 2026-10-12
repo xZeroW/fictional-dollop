@@ -1,4 +1,3 @@
-mod c_bullet;
 mod c_enemy;
 mod c_loot;
 mod c_movement;
@@ -8,7 +7,6 @@ mod char_state;
 mod damage;
 mod health;
 
-pub use c_bullet::Bullet;
 pub use c_enemy::{Behavior, Enemy, WanderState};
 pub use c_loot::{ItemDrop, ItemRarity, PickupRadius};
 pub use c_movement::Movement;

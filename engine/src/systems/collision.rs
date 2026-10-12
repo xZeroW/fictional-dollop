@@ -3,9 +3,10 @@ use bevy::prelude::*;
 
 use super::enemy_spatial::EnemySpatialIndex;
 
+use crate::domain::combat::Bullet;
 use crate::{
     AppSystems, PausableSystems,
-    components::{Bullet, Enemy, Player},
+    components::{Enemy, Player},
     config,
     messages::{BulletHitEnemyMessage, CollisionKind, CollisionMessage},
 };

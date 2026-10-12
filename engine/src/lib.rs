@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 use listeners::ListenersPlugin;
 use systems::SystemsPlugin;
 
@@ -6,15 +7,18 @@ pub mod assets;
 pub mod audio;
 pub mod components;
 pub mod config;
+pub mod domain;
 mod enemies;
 pub mod game;
 mod listeners;
 mod messages;
 pub mod systems;
 
-pub struct AppPlugin;
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
+pub struct EnginePlugin;
 
-impl Plugin for AppPlugin {
+impl Plugin for EnginePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(
             DefaultPlugins.set(WindowPlugin {

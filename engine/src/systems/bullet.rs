@@ -1,7 +1,8 @@
-use crate::Screen;
 use bevy::prelude::*;
 
-use crate::{AppSystems, PausableSystems, components::Bullet};
+use crate::Screen;
+use crate::domain::combat::Bullet;
+use crate::{AppSystems, PausableSystems};
 
 pub(super) struct BulletSystemsPlugin;
 

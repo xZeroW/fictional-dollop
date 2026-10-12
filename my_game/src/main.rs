@@ -7,6 +7,6 @@ use bevy::prelude::*;
 
 fn main() -> AppExit {
     App::new()
-        .add_plugins((engine::AppPlugin, ui::UiPlugin))
+        .add_plugins((engine::EnginePlugin, ui::UiPlugin))
         .run()
 }

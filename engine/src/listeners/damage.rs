@@ -2,7 +2,8 @@ use crate::Screen;
 use bevy::prelude::*;
 
 use crate::{
-    AppSystems, PausableSystems, components::Enemy, enemies::HitFlash, messages::DamageMessage,
+    AppSystems, PausableSystems, domain::entities::Enemy, enemies::HitFlash,
+    messages::DamageMessage,
 };
 
 pub struct DamageListenerPlugin;

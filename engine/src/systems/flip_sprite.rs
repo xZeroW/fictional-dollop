@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::components::Movement;
+use crate::domain::entities::Movement;
 
 pub fn flip_sprite(mut sprites: Query<(&Movement, &mut Sprite)>) {
     for (movement, mut sprite) in &mut sprites {

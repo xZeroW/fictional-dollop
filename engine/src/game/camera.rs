@@ -1,8 +1,10 @@
 use bevy::input::mouse::MouseWheel;
 use bevy::prelude::*;
 
-use crate::components::Player;
-use crate::config::{ORTHO_MAX_SCALE, ORTHO_MIN_SCALE};
+use crate::{
+    config::{ORTHO_MAX_SCALE, ORTHO_MIN_SCALE},
+    domain::entities::Player,
+};
 
 #[derive(Component)]
 pub(crate) struct GameplayCamera;

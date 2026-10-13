@@ -5,7 +5,8 @@ use bevy::prelude::*;
 use crate::{
     Pause,
     assets::WeaponAssets,
-    components::{Health, Player, Weapon},
+    components::Weapon,
+    domain::entities::{Health, Player},
     game::weapon_data::{Weapons, WeaponsHandle},
     menus::{
         Menu, MenuCamera,

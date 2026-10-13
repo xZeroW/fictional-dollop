@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     AppSystems,
-    components::{Health, Player},
+    domain::entities::{Health, Player},
     screen::Screen,
     systems::{MonsterProgression, RunInventory, WaveState},
 };

@@ -8,7 +8,7 @@ use crate::{
     AppSystems, PausableSystems,
     assets::AudioAssets,
     audio::sound_effect,
-    components::{Movement, Player},
+    domain::entities::{Movement, Player},
 };
 
 pub(super) struct AnimationSystemsPlugin;

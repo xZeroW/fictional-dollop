@@ -2,8 +2,8 @@ use bevy::prelude::*;
 use std::time::Duration;
 
 use crate::{
-    components::{Behavior, Enemy, Movement, Player, WanderState},
     config,
+    domain::entities::{Behavior, Enemy, Movement, Player, WanderState},
 };
 
 const COWARD_DISTANCE: f32 = 100.0;

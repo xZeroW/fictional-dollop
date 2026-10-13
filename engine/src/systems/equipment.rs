@@ -4,7 +4,8 @@ use bevy_gauge::prelude::*;
 
 use crate::{
     AppSystems,
-    components::{Health, Player, Weapon},
+    components::Weapon,
+    domain::entities::{Health, Player},
     game::attributes::VITALITY,
 };
 

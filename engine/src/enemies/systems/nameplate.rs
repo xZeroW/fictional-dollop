@@ -3,8 +3,11 @@ use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
-    components::{Enemy, Health},
     config::GameSettings,
+    domain::{
+        combat::AttackTimer,
+        entities::{Enemy, Health},
+    },
 };
 
 #[cfg(all(feature = "dev", debug_assertions))]
@@ -101,7 +104,7 @@ fn attach_nameplates_to_new_enemies(
 #[cfg(all(feature = "dev", debug_assertions))]
 fn update_attack_time_nameplates(
     settings: Res<GameSettings>,
-    enemies: Query<(&crate::components::AttackCooldown, &Children), With<Enemy>>,
+    enemies: Query<(&AttackTimer, &Children), With<Enemy>>,
     mut nameplates: Query<&mut Text2d, With<AttackTimeNameplate>>,
 ) {
     if !settings.enemy_nameplates {

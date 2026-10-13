@@ -5,9 +5,8 @@ use super::enemy_spatial::EnemySpatialIndex;
 
 use crate::domain::combat::Bullet;
 use crate::{
-    AppSystems, PausableSystems,
-    components::{Enemy, Player},
-    config,
+    AppSystems, PausableSystems, config,
+    domain::entities::{Enemy, Player},
     messages::{BulletHitEnemyMessage, CollisionKind, CollisionMessage},
 };
 

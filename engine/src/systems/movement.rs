@@ -5,8 +5,8 @@ use bevy_gauge::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
-    components::{Movement, Player},
     config::map_bounds,
+    domain::entities::{Movement, Player},
     game::attributes::{MOVEMENT_SPEED, MOVEMENT_SPEED_BASE},
 };
 

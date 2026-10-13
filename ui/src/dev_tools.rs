@@ -14,11 +14,13 @@ use bevy_inspector_egui::{
     quick::WorldInspectorPlugin,
 };
 
-use engine::domain::combat::Bullet;
-
 use crate::{
-    components::{Enemy, Player, Weapon},
+    components::Weapon,
     config,
+    domain::{
+        combat::Bullet,
+        entities::{Enemy, Player},
+    },
     game::weapon_data::{Weapons, WeaponsHandle},
     screen::Screen,
 };

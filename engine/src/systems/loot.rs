@@ -3,7 +3,8 @@ use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
-    components::{ItemDrop, PickupRadius, Player},
+    components::{ItemDrop, PickupRadius},
+    domain::entities::Player,
     systems::RunInventory,
 };
 

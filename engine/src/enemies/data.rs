@@ -4,10 +4,11 @@ use bevy::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
 use std::collections::HashMap;
 
-use crate::{
-    components::{AttackCooldown, Behavior, Damage, Enemy, Health, Movement, WanderState},
-    systems::MonsterProgression,
+use crate::domain::{
+    combat::{AttackTimer, Damage},
+    entities::{Behavior, Enemy, Health, Movement, WanderState},
 };
+use crate::systems::MonsterProgression;
 
 #[derive(serde::Deserialize, Asset, TypePath)]
 pub struct Enemies(pub HashMap<String, EnemyData>);
@@ -63,7 +64,7 @@ impl EnemyData {
             Movement::new(speed),
             WanderState::default(),
             Damage::new(damage),
-            AttackCooldown::new(self.attack_speed),
+            AttackTimer::new(self.attack_speed),
             behavior,
             Sprite::from_atlas_image(
                 image,

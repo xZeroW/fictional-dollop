@@ -3,8 +3,8 @@ use bevy::prelude::*;
 use bevy::time::common_conditions::on_timer;
 use std::time::Duration;
 
-use crate::components::AttackCooldown;
 use crate::config;
+use crate::domain::combat::AttackTimer;
 use crate::{AppSystems, PausableSystems};
 
 pub use behavior::behavior;
@@ -15,7 +15,7 @@ mod hit_flash;
 mod nameplate;
 mod spawn;
 
-fn tick_attack_cooldowns(mut query: Query<&mut AttackCooldown>, time: Res<Time>) {
+fn tick_attack_cooldowns(mut query: Query<&mut AttackTimer>, time: Res<Time>) {
     for mut cooldown in query.iter_mut() {
         cooldown.timer.tick(time.delta());
     }

@@ -7,7 +7,8 @@ use leafwing_input_manager::prelude::*;
 use crate::{
     AppSystems, PausableSystems,
     assets::CharacterAssets,
-    components::{Health, Movement, Player, Weapon},
+    components::Weapon,
+    domain::entities::{Health, Movement, Player},
     game::attributes::player_attributes,
     systems::PlayerAnimation,
 };

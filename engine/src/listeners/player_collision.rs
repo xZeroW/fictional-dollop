@@ -3,7 +3,10 @@ use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
-    components::{AttackCooldown, Damage, Enemy},
+    domain::{
+        combat::{AttackTimer, Damage},
+        entities::Enemy,
+    },
     messages::{ApplyDamageMessage, CollisionKind, CollisionMessage},
 };
 
@@ -23,7 +26,7 @@ impl Plugin for PlayerCollisionListenerPlugin {
 
 fn handle_enemy_player_collision(
     mut collision_reader: MessageReader<CollisionMessage>,
-    mut enemy_query: Query<(&Damage, &mut AttackCooldown), With<Enemy>>,
+    mut enemy_query: Query<(&Damage, &mut AttackTimer), With<Enemy>>,
     mut damage_writer: MessageWriter<ApplyDamageMessage>,
 ) {
     for collision in collision_reader.read() {

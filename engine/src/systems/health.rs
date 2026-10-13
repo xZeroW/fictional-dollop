@@ -3,7 +3,7 @@ use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
-    components::{Enemy, Health, Player},
+    domain::entities::{Enemy, Health, Player},
     messages::{ApplyDamageMessage, DamageMessage, EntityDiedMessage},
 };
 

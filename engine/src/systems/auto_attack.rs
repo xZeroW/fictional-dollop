@@ -8,7 +8,8 @@ use crate::domain::combat::Bullet;
 use crate::{
     AppSystems, PausableSystems,
     assets::WeaponAssets,
-    components::{Player, Weapon},
+    components::Weapon,
+    domain::entities::Player,
     game::{
         attributes::{
             ATTACK_DAMAGE, ATTACK_DAMAGE_BASE, ATTACK_RANGE, ATTACK_RANGE_BASE, ATTACK_SPEED,

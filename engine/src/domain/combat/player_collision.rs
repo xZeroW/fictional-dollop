@@ -1,5 +1,6 @@
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use super::messages::{ApplyDamageMessage, CollisionKind, CollisionMessage};
 use crate::{
@@ -10,9 +11,11 @@ use crate::{
     },
 };
 
+#[derive(AutoPlugin)]
 pub struct PlayerCollisionListenerPlugin;
 
 impl Plugin for PlayerCollisionListenerPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

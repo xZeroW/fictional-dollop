@@ -1,5 +1,6 @@
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use super::messages::DamageMessage;
 use crate::{
@@ -7,9 +8,11 @@ use crate::{
     domain::{enemies::HitFlash, entities::Enemy},
 };
 
+#[derive(AutoPlugin)]
 pub struct DamageListenerPlugin;
 
 impl Plugin for DamageListenerPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

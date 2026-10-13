@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::{
     AppSystems,
@@ -26,9 +27,11 @@ struct PlayerHealthText;
 #[derive(Component, Clone, Default)]
 struct RunStatsText;
 
+#[derive(AutoPlugin)]
 pub(super) struct HudPlugin;
 
 impl Plugin for HudPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(Screen::Gameplay), hud.spawn());
         app.add_systems(

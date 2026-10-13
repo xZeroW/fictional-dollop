@@ -1,6 +1,7 @@
 //! Enemy data loaded from .ron files.
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
 use std::collections::HashMap;
 
@@ -77,9 +78,11 @@ pub struct EnemyData {
     pub attack_speed: f32,
 }
 
+#[derive(AutoPlugin)]
 pub(super) struct EnemyDataPlugin;
 
 impl Plugin for EnemyDataPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_plugins(RonAssetPlugin::<Enemies>::new(&["enemies_data.ron"]));
     }

@@ -4,6 +4,7 @@ use bevy::{
     image::{ImageLoaderSettings, ImageSampler},
     prelude::*,
 };
+use bevy_auto_plugin::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
 use std::collections::HashMap;
 
@@ -24,15 +25,20 @@ pub struct EnemyVisualData {
 #[derive(Resource)]
 pub struct EnemyVisualsHandle(pub Handle<EnemyVisuals>);
 
+#[derive(AutoPlugin)]
 pub(super) struct EnemyAssetsPlugin;
 
 impl Plugin for EnemyAssetsPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_plugins(RonAssetPlugin::<EnemyVisuals>::new(&["enemies.assets.ron"]));
-        app.add_systems(OnEnter(crate::Screen::Gameplay), load_visual_cache);
     }
 }
 
+#[auto_system(
+    plugin = EnemyAssetsPlugin,
+    schedule = OnEnter(crate::Screen::Gameplay)
+)]
 pub(super) fn load_visual_cache(
     mut enemy_assets: ResMut<EnemyAssets>,
     visuals_handle: Option<Res<EnemyVisualsHandle>>,

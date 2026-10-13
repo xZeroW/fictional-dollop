@@ -5,12 +5,15 @@ use bevy::{
     input::common_conditions::input_just_pressed,
     prelude::*,
 };
+use bevy_auto_plugin::prelude::*;
 
 use crate::{AppSystems, screen::Screen, theme::prelude::*};
 
+#[derive(AutoPlugin)]
 pub(super) struct SplashScreenPlugin;
 
 impl Plugin for SplashScreenPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         // Spawn splash screen.
         app.insert_resource(ClearColor(SPLASH_BACKGROUND_COLOR));

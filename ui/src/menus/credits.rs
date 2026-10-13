@@ -1,12 +1,15 @@
 //! The credits menu.
 
 use bevy::{ecs::spawn::SpawnIter, input::common_conditions::input_just_pressed, prelude::*};
+use bevy_auto_plugin::prelude::*;
 
 use crate::{domain::audio::music, menus::Menu, theme::prelude::*};
 
+#[derive(AutoPlugin)]
 pub(crate) struct CreditsMenuPlugin;
 
 impl Plugin for CreditsMenuPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(Menu::Credits), spawn_credits_menu);
         app.add_systems(

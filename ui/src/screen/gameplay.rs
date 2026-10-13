@@ -1,12 +1,15 @@
 //! The screen state for the main gameplay.
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
+use bevy_auto_plugin::prelude::*;
 
 use crate::{Pause, menus::Menu, screen::Screen, theme::widget};
 
+#[derive(AutoPlugin)]
 pub(super) struct GameplayScreenPlugin;
 
 impl Plugin for GameplayScreenPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         // Toggle pause on key press.
         app.add_systems(

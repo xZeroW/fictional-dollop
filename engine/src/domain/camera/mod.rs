@@ -1,5 +1,6 @@
 use bevy::input::mouse::MouseWheel;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::{
     domain::entities::Player,
@@ -9,9 +10,11 @@ use crate::{
 #[derive(Component)]
 pub(crate) struct GameplayCamera;
 
+#[derive(AutoPlugin)]
 pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup)
             .add_systems(Startup, set_camera_scale_after_spawn.after(setup))

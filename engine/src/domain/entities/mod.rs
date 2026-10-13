@@ -6,6 +6,7 @@ mod movement;
 mod player;
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 use bevy_gauge::prelude::AttributesPlugin;
 use leafwing_input_manager::prelude::InputManagerPlugin;
 
@@ -13,9 +14,11 @@ pub use components::{Behavior, Enemy, Health, Movement, Player, WanderState};
 pub use player::PlayerAction;
 pub(crate) use player::player;
 
+#[derive(AutoPlugin)]
 pub(crate) struct EntitiesPlugin;
 
 impl Plugin for EntitiesPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_plugins((
             AttributesPlugin,
@@ -24,12 +27,15 @@ impl Plugin for EntitiesPlugin {
             animation::AnimationSystemsPlugin,
             movement::MovementSystemsPlugin,
         ));
-        app.add_systems(
-            Update,
-            flip_sprite::flip_sprite.in_set(crate::PausableSystems),
-        );
     }
 }
+
+#[auto_add_system(
+    plugin = EntitiesPlugin,
+    schedule = Update,
+    config(in_set = crate::PausableSystems)
+)]
+use flip_sprite::flip_sprite;
 
 #[cfg(test)]
 mod tests {

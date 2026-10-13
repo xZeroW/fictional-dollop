@@ -1,5 +1,6 @@
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
@@ -19,9 +20,11 @@ const BASE_DROP_CHANCE: f32 = 0.1;
 const MAX_DROP_CHANCE: f32 = 0.85;
 const DROP_SCALE: f32 = 2.0;
 
+#[derive(AutoPlugin)]
 pub struct LootListenerPlugin;
 
 impl Plugin for LootListenerPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

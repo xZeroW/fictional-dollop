@@ -1,5 +1,6 @@
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use super::messages::{BulletHitEnemyMessage, CollisionKind, CollisionMessage};
 use crate::domain::combat::Bullet;
@@ -10,9 +11,11 @@ use crate::{
     infrastructure::config,
 };
 
+#[derive(AutoPlugin)]
 pub(super) struct CollisionSystemsPlugin;
 
 impl Plugin for CollisionSystemsPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

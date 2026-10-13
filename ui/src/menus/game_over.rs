@@ -1,17 +1,15 @@
 //! The game over menu shown over paused gameplay when the player dies.
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::{menus::Menu, screen::Screen, theme::widget};
 
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
 pub(crate) struct GameOverMenuPlugin;
 
-impl Plugin for GameOverMenuPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Menu::GameOver), spawn_game_over_menu);
-    }
-}
-
+#[auto_system(plugin = GameOverMenuPlugin, schedule = OnEnter(Menu::GameOver))]
 fn spawn_game_over_menu(mut commands: Commands) {
     commands.spawn((
         widget::full_screen_overlay("Game Over Overlay", Color::srgba(0.02, 0.0, 0.01, 0.86)),

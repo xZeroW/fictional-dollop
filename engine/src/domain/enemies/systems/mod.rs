@@ -1,6 +1,7 @@
 use crate::Screen;
 use bevy::prelude::*;
 use bevy::time::common_conditions::on_timer;
+use bevy_auto_plugin::prelude::*;
 use std::time::Duration;
 
 use crate::domain::combat::AttackTimer;
@@ -23,9 +24,11 @@ fn tick_attack_cooldowns(mut query: Query<&mut AttackTimer>, time: Res<Time>) {
     }
 }
 
+#[derive(AutoPlugin)]
 pub struct SystemsPlugin;
 
 impl Plugin for SystemsPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_plugins((SpawnPlugin, HitFlashPlugin, nameplate::NameplatePlugin));
         app.add_systems(
@@ -45,9 +48,11 @@ impl Plugin for SystemsPlugin {
     }
 }
 
+#[derive(AutoPlugin)]
 pub struct SpawnPlugin;
 
 impl Plugin for SpawnPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
@@ -64,9 +69,11 @@ impl Plugin for SpawnPlugin {
     }
 }
 
+#[derive(AutoPlugin)]
 pub struct HitFlashPlugin;
 
 impl Plugin for HitFlashPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

@@ -1,12 +1,15 @@
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use super::messages::EntityDiedMessage;
 use crate::{AppSystems, Menu, PausableSystems, Pause};
 
+#[derive(AutoPlugin)]
 pub struct DeathListenerPlugin;
 
 impl Plugin for DeathListenerPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

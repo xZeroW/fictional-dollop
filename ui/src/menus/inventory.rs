@@ -3,6 +3,7 @@
 mod ui;
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::{
     domain::inventory::{
@@ -44,6 +45,7 @@ struct InventoryDropTarget {
 struct InventoryUiDirty;
 
 #[derive(Resource, Default)]
+#[auto_init_resource(plugin = ui::InventoryMenuPlugin)]
 struct InventoryDragState {
     primary_drag: bool,
     successful_drop: bool,

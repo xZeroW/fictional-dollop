@@ -1,6 +1,7 @@
 //! Apply movement based on [`Movement`] intent and maximum speed.
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 use bevy_gauge::prelude::*;
 
 use crate::{
@@ -12,9 +13,11 @@ use crate::{
     infrastructure::config::map_bounds,
 };
 
+#[derive(AutoPlugin)]
 pub(super) struct MovementSystemsPlugin;
 
 impl Plugin for MovementSystemsPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

@@ -1,5 +1,6 @@
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::domain::inventory::ItemRarity;
 
@@ -127,20 +128,17 @@ pub fn move_safe_item_to_run(
     true
 }
 
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
 pub(super) struct InventorySystemsPlugin;
 
-impl Plugin for InventorySystemsPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Screen::Gameplay), reset_run_inventory);
-        app.add_systems(OnExit(Screen::Gameplay), remove_run_inventory);
-    }
-}
-
+#[auto_system(plugin = InventorySystemsPlugin, schedule = OnEnter(Screen::Gameplay))]
 fn reset_run_inventory(mut commands: Commands) {
     commands.insert_resource(RunInventory::default());
     commands.insert_resource(SafeInventory::default());
 }
 
+#[auto_system(plugin = InventorySystemsPlugin, schedule = OnExit(Screen::Gameplay))]
 fn remove_run_inventory(mut commands: Commands) {
     commands.remove_resource::<RunInventory>();
     commands.remove_resource::<SafeInventory>();

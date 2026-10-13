@@ -1,12 +1,15 @@
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::Screen;
 use crate::domain::combat::Bullet;
 use crate::{AppSystems, PausableSystems};
 
+#[derive(AutoPlugin)]
 pub(super) struct BulletSystemsPlugin;
 
 impl Plugin for BulletSystemsPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

@@ -10,16 +10,17 @@ mod messages;
 mod player_collision;
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 pub use components::{AttackTimer, Bullet, Damage, Weapon};
 pub(crate) use messages::EntityDiedMessage;
 
+#[derive(AutoPlugin)]
 pub(crate) struct CombatPlugin;
 
 impl Plugin for CombatPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
-        app.init_resource::<Messages<messages::CollisionMessage>>();
-        app.init_resource::<Messages<messages::BulletHitEnemyMessage>>();
         app.add_plugins((
             auto_attack::AutoAttackSystemsPlugin,
             bullet::BulletSystemsPlugin,

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
+use bevy_auto_plugin::prelude::*;
 use std::collections::HashMap;
 
 use crate::Screen;
@@ -38,16 +39,18 @@ pub struct WeaponAssets {
 }
 
 #[derive(Resource, Default)]
+#[auto_init_resource(plugin = AssetsPlugin)]
 pub struct EnemyAssets {
     pub sprites: HashMap<String, Handle<Image>>,
     pub layouts: HashMap<String, Handle<TextureAtlasLayout>>,
 }
 
+#[derive(AutoPlugin)]
 pub(crate) struct AssetsPlugin;
 
 impl Plugin for AssetsPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
-        app.init_resource::<EnemyAssets>();
         app.add_loading_state(
             LoadingState::new(Screen::Loading)
                 .with_dynamic_assets_file::<StandardDynamicAssetCollection>(

@@ -1,5 +1,6 @@
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::{
     domain::entities::attributes::{
@@ -325,19 +326,16 @@ impl InventoryItem {
     }
 }
 
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
 pub(super) struct CraftingSystemsPlugin;
 
-impl Plugin for CraftingSystemsPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Screen::Gameplay), reset_crafting_materials);
-        app.add_systems(OnExit(Screen::Gameplay), remove_crafting_materials);
-    }
-}
-
+#[auto_system(plugin = CraftingSystemsPlugin, schedule = OnEnter(Screen::Gameplay))]
 fn reset_crafting_materials(mut commands: Commands) {
     commands.insert_resource(CraftingMaterials::default());
 }
 
+#[auto_system(plugin = CraftingSystemsPlugin, schedule = OnExit(Screen::Gameplay))]
 fn remove_crafting_materials(mut commands: Commands) {
     commands.remove_resource::<CraftingMaterials>();
 }

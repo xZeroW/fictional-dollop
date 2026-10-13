@@ -2,17 +2,15 @@
 //! This reduces stuttering, especially for audio on Wasm.
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::{screen::Screen, theme::prelude::*};
 
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
 pub(super) struct LoadingScreenPlugin;
 
-impl Plugin for LoadingScreenPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Screen::Loading), spawn_loading_screen);
-    }
-}
-
+#[auto_system(plugin = LoadingScreenPlugin, schedule = OnEnter(Screen::Loading))]
 fn spawn_loading_screen(mut commands: Commands) {
     commands.spawn((
         widget::ui_root("Loading Screen"),

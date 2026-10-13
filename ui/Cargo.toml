@@ -5,10 +5,12 @@ edition.workspace = true
 
 [dependencies]
 bevy = { workspace = true }
+bevy_auto_plugin = { workspace = true }
 bevy-inspector-egui = { version = "0.37.0", optional = true }
 bevy_asset_loader = { version = "0.27.0", features = ["2d", "standard_dynamic_assets"] }
 bevy_feathers = "0.19.0"
 engine = { path = "../engine", default-features = false }
+inventory = { workspace = true }
 
 [features]
 dev = [

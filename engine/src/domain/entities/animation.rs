@@ -1,6 +1,7 @@
 //! Player sprite animation.
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 use rand::prelude::*;
 use std::time::Duration;
 
@@ -11,9 +12,11 @@ use crate::{
     infrastructure::assets::AudioAssets,
 };
 
+#[derive(AutoPlugin)]
 pub(super) struct AnimationSystemsPlugin;
 
 impl Plugin for AnimationSystemsPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

@@ -12,7 +12,7 @@ bevy_asset_loader = { version = "0.27.0", features = ["2d", "standard_dynamic_as
 bevy_common_assets = { version = "0.17.0", features = ["ron"] }
 bevy_ecs_tiled = "0.13.4"
 bevy_gauge = "0.5.1"
-inventory = "0.3.25"
+inventory = { workspace = true }
 kd-tree = "0.6.2"
 leafwing-input-manager = "0.21.0"
 rand = "0.10.0"

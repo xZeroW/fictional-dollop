@@ -1,5 +1,6 @@
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use super::messages::{ApplyDamageMessage, DamageMessage, EntityDiedMessage};
 use crate::{
@@ -8,13 +9,12 @@ use crate::{
     domain::entities::{Enemy, Health, Player},
 };
 
+#[derive(AutoPlugin)]
 pub struct HealthSystemsPlugin;
 
 impl Plugin for HealthSystemsPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
-        app.init_resource::<Messages<ApplyDamageMessage>>();
-        app.init_resource::<Messages<DamageMessage>>();
-        app.init_resource::<Messages<EntityDiedMessage>>();
         app.add_systems(
             Update,
             apply_damage

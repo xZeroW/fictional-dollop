@@ -11,6 +11,7 @@ pub(crate) mod settings;
 
 use bevy::prelude::*;
 use bevy::{camera::ClearColorConfig, camera::visibility::RenderLayers};
+use bevy_auto_plugin::prelude::*;
 pub use engine::Menu;
 
 const MENU_CAMERA_ORDER: isize = 30;
@@ -19,14 +20,11 @@ const MENU_RENDER_LAYER: usize = 2;
 #[derive(Component)]
 pub(super) struct MenuCamera;
 
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
 pub(super) struct MenusPlugin;
 
-impl Plugin for MenusPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_menu_camera);
-    }
-}
-
+#[auto_system(plugin = MenusPlugin, schedule = Startup)]
 fn spawn_menu_camera(mut commands: Commands) {
     commands.spawn((
         Name::new("Menu Camera"),

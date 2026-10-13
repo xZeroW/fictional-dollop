@@ -1,5 +1,6 @@
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
@@ -18,9 +19,11 @@ const NAMEPLATE_FONT_SIZE: f32 = 16.0;
 const ATTACK_NAMEPLATE_TEXT_COLOR: Color = Color::srgb(1.0, 0.92, 0.68);
 const HEALTH_NAMEPLATE_TEXT_COLOR: Color = Color::srgb(0.55, 1.0, 0.55);
 
+#[derive(AutoPlugin)]
 pub(super) struct NameplatePlugin;
 
 impl Plugin for NameplatePlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

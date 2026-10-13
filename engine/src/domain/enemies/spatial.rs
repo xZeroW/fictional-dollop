@@ -1,5 +1,6 @@
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 use kd_tree::{KdPoint, KdTree};
 use typenum::U2;
 
@@ -24,6 +25,7 @@ impl KdPoint for EnemySpatialEntry {
 }
 
 #[derive(Resource)]
+#[auto_init_resource(plugin = EnemySpatialPlugin)]
 pub(crate) struct EnemySpatialIndex {
     tree: KdTree<EnemySpatialEntry>,
     rebuild_timer: Timer,
@@ -87,11 +89,12 @@ impl EnemySpatialIndex {
     }
 }
 
+#[derive(AutoPlugin)]
 pub(super) struct EnemySpatialPlugin;
 
 impl Plugin for EnemySpatialPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
-        app.init_resource::<EnemySpatialIndex>();
         app.add_systems(
             Update,
             rebuild_enemy_spatial_index

@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::{
     domain::inventory::{InventoryItem, RunInventory, SAFE_INVENTORY_CAPACITY, SafeInventory},
@@ -10,9 +11,9 @@ use crate::{
 };
 
 use super::super::{
-    InventoryDragState, InventoryDropTarget, InventoryMenuRoot, InventoryUiDirty,
-    continue_to_equipment_menu, drag_inventory_item, drop_inventory_item, finish_inventory_drag,
-    shortcut_inventory_item, start_inventory_drag,
+    InventoryDropTarget, InventoryMenuRoot, InventoryUiDirty, continue_to_equipment_menu,
+    drag_inventory_item, drop_inventory_item, finish_inventory_drag, shortcut_inventory_item,
+    start_inventory_drag,
 };
 use super::{
     BUTTON_COLOR, CONTINUE_BUTTON_CENTER_X, CONTINUE_BUTTON_CENTER_Y, CONTINUE_BUTTON_HEIGHT,
@@ -25,19 +26,11 @@ use super::{
     absolute_node, rarity_color,
 };
 
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
 pub(crate) struct InventoryMenuPlugin;
 
-impl Plugin for InventoryMenuPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_resource::<InventoryDragState>();
-        app.add_systems(OnEnter(Menu::Inventory), spawn_inventory_menu);
-        app.add_systems(
-            Update,
-            refresh_inventory_menu.run_if(in_state(Menu::Inventory)),
-        );
-    }
-}
-
+#[auto_system(plugin = InventoryMenuPlugin, schedule = OnEnter(Menu::Inventory))]
 fn spawn_inventory_menu(
     mut commands: Commands,
     camera: Query<Entity, With<MenuCamera>>,
@@ -62,6 +55,11 @@ fn spawn_inventory_menu(
     );
 }
 
+#[auto_system(
+    plugin = InventoryMenuPlugin,
+    schedule = Update,
+    config(run_if = in_state(Menu::Inventory))
+)]
 fn refresh_inventory_menu(
     mut commands: Commands,
     dirty: Option<Res<InventoryUiDirty>>,

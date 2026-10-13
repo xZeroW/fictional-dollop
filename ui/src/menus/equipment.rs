@@ -1,6 +1,7 @@
 //! The between-wave equipment and crafting menu.
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::{
     Pause,
@@ -105,12 +106,14 @@ struct CraftingConfirmButtonUi;
 struct EquipmentMenuDirty;
 
 #[derive(Resource, Default)]
+#[auto_init_resource(plugin = EquipmentMenuPlugin)]
 struct EquipmentDragState {
     primary_drag: bool,
     successful_drop: bool,
 }
 
 #[derive(Resource)]
+#[auto_init_resource(plugin = EquipmentMenuPlugin)]
 struct CraftingSelection {
     item_index: Option<usize>,
     action: CraftingAction,
@@ -200,20 +203,11 @@ impl CraftingAction {
     }
 }
 
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
 pub(crate) struct EquipmentMenuPlugin;
 
-impl Plugin for EquipmentMenuPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_resource::<EquipmentDragState>();
-        app.init_resource::<CraftingSelection>();
-        app.add_systems(OnEnter(Menu::Equipment), spawn_equipment_menu);
-        app.add_systems(
-            Update,
-            refresh_equipment_menu.run_if(in_state(Menu::Equipment)),
-        );
-    }
-}
-
+#[auto_system(plugin = EquipmentMenuPlugin, schedule = OnEnter(Menu::Equipment))]
 fn spawn_equipment_menu(
     mut commands: Commands,
     camera: Query<Entity, With<MenuCamera>>,
@@ -244,6 +238,11 @@ fn spawn_equipment_menu(
     );
 }
 
+#[auto_system(
+    plugin = EquipmentMenuPlugin,
+    schedule = Update,
+    config(run_if = in_state(Menu::Equipment))
+)]
 fn refresh_equipment_menu(
     mut commands: Commands,
     dirty: Option<Res<EquipmentMenuDirty>>,

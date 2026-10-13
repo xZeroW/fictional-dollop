@@ -1,5 +1,6 @@
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 use bevy_gauge::prelude::*;
 
 use crate::{
@@ -12,12 +13,14 @@ use crate::{
 use super::{InventoryItem, SafeInventory};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect)]
+#[auto_register_type(plugin = EquipmentSystemsPlugin)]
 pub enum EquipmentSlot {
     MainHand,
 }
 
 #[derive(Resource, Default, Debug, Clone, Reflect)]
 #[reflect(Resource)]
+#[auto_register_type(plugin = EquipmentSystemsPlugin)]
 pub struct Equipment {
     main_hand: Option<InventoryItem>,
     synced_main_hand: Option<InventoryItem>,
@@ -100,14 +103,12 @@ pub fn move_equipment_item_to_safe(
     }
 }
 
+#[derive(AutoPlugin)]
 pub(super) struct EquipmentSystemsPlugin;
 
 impl Plugin for EquipmentSystemsPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
-        app.register_type::<Equipment>();
-        app.register_type::<EquipmentSlot>();
-        app.add_systems(OnEnter(Screen::Gameplay), reset_equipment);
-        app.add_systems(OnExit(Screen::Gameplay), remove_equipment);
         app.add_systems(
             Update,
             sync_equipment_to_player
@@ -117,10 +118,12 @@ impl Plugin for EquipmentSystemsPlugin {
     }
 }
 
+#[auto_system(plugin = EquipmentSystemsPlugin, schedule = OnEnter(Screen::Gameplay))]
 fn reset_equipment(mut commands: Commands) {
     commands.insert_resource(Equipment::default());
 }
 
+#[auto_system(plugin = EquipmentSystemsPlugin, schedule = OnExit(Screen::Gameplay))]
 fn remove_equipment(mut commands: Commands) {
     commands.remove_resource::<Equipment>();
 }

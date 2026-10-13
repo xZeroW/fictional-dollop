@@ -13,10 +13,13 @@ pub mod prelude {
 }
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
+#[derive(AutoPlugin)]
 pub(super) struct ThemePlugin;
 
 impl Plugin for ThemePlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_plugins(interaction::InteractionPlugin);
     }

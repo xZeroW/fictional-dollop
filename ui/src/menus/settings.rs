@@ -5,27 +5,15 @@
 use bevy::{
     audio::Volume, ecs::spawn::SpawnWith, input::common_conditions::input_just_pressed, prelude::*,
 };
+use bevy_auto_plugin::prelude::*;
 
 use crate::{infrastructure::config::GameSettings, menus::Menu, screen::Screen, theme::prelude::*};
 
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
 pub(crate) struct SettingsMenuPlugin;
 
-impl Plugin for SettingsMenuPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Menu::Settings), spawn_settings_menu);
-        app.add_systems(
-            Update,
-            go_back.run_if(in_state(Menu::Settings).and_then(input_just_pressed(KeyCode::Escape))),
-        );
-
-        app.add_systems(
-            Update,
-            (update_global_volume_label, update_enemy_nameplates_label)
-                .run_if(in_state(Menu::Settings)),
-        );
-    }
-}
-
+#[auto_system(plugin = SettingsMenuPlugin, schedule = OnEnter(Menu::Settings))]
 fn spawn_settings_menu(mut commands: Commands) {
     commands.spawn((
         widget::ui_root("Settings Menu"),
@@ -160,6 +148,11 @@ struct GlobalVolumeLabel;
 #[reflect(Component)]
 struct EnemyNameplatesLabel;
 
+#[auto_system(
+    plugin = SettingsMenuPlugin,
+    schedule = Update,
+    config(run_if = in_state(Menu::Settings))
+)]
 fn update_global_volume_label(
     global_volume: Res<GlobalVolume>,
     mut label: Single<&mut Text, With<GlobalVolumeLabel>>,
@@ -168,6 +161,11 @@ fn update_global_volume_label(
     label.0 = format!("{percent:3.0}%");
 }
 
+#[auto_system(
+    plugin = SettingsMenuPlugin,
+    schedule = Update,
+    config(run_if = in_state(Menu::Settings))
+)]
 fn update_enemy_nameplates_label(
     settings: Res<GameSettings>,
     mut label: Single<&mut Text, With<EnemyNameplatesLabel>>,
@@ -191,6 +189,11 @@ fn go_back_on_click(
     });
 }
 
+#[auto_system(
+    plugin = SettingsMenuPlugin,
+    schedule = Update,
+    config(run_if = in_state(Menu::Settings).and_then(input_just_pressed(KeyCode::Escape)))
+)]
 fn go_back(screen: Res<State<Screen>>, mut next_menu: ResMut<NextState<Menu>>) {
     next_menu.set(if screen.get() == &Screen::Title {
         Menu::Main

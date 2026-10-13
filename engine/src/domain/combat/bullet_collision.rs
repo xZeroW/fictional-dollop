@@ -1,12 +1,15 @@
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use super::messages::{ApplyDamageMessage, BulletHitEnemyMessage};
 use crate::{AppSystems, PausableSystems};
 
+#[derive(AutoPlugin)]
 pub struct BulletCollisionListenerPlugin;
 
 impl Plugin for BulletCollisionListenerPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

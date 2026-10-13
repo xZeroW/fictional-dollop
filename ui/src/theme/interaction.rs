@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::{domain::audio::sound_effect, screen::Screen};
 
@@ -11,9 +12,11 @@ struct InteractionAssets {
     click: Handle<AudioSource>,
 }
 
+#[derive(AutoPlugin)]
 pub(super) struct InteractionPlugin;
 
 impl Plugin for InteractionPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_loading_state(
             LoadingState::new(Screen::Splash)
@@ -22,13 +25,6 @@ impl Plugin for InteractionPlugin {
                 )
                 .load_collection::<InteractionAssets>(),
         );
-
-        app.add_observer(apply_interaction_palette_on_click);
-        app.add_observer(apply_interaction_palette_on_over);
-        app.add_observer(apply_interaction_palette_on_out);
-
-        app.add_observer(play_sound_effect_on_click);
-        app.add_observer(play_sound_effect_on_over);
     }
 }
 
@@ -43,6 +39,7 @@ pub struct InteractionPalette {
     pub pressed: Color,
 }
 
+#[auto_observer(plugin = InteractionPlugin)]
 fn apply_interaction_palette_on_click(
     click: On<Pointer<Click>>,
     mut palette_query: Query<(&InteractionPalette, &mut BackgroundColor)>,
@@ -54,6 +51,7 @@ fn apply_interaction_palette_on_click(
     *bg = palette.pressed.into();
 }
 
+#[auto_observer(plugin = InteractionPlugin)]
 fn apply_interaction_palette_on_over(
     over: On<Pointer<Over>>,
     mut palette_query: Query<(&InteractionPalette, &mut BackgroundColor)>,
@@ -65,6 +63,7 @@ fn apply_interaction_palette_on_over(
     *bg = palette.hovered.into();
 }
 
+#[auto_observer(plugin = InteractionPlugin)]
 fn apply_interaction_palette_on_out(
     out: On<Pointer<Out>>,
     mut palette_query: Query<(&InteractionPalette, &mut BackgroundColor)>,
@@ -76,6 +75,7 @@ fn apply_interaction_palette_on_out(
     *bg = palette.none.into();
 }
 
+#[auto_observer(plugin = InteractionPlugin)]
 fn play_sound_effect_on_click(
     on: On<Pointer<Click>>,
     interaction_assets: If<Res<InteractionAssets>>,
@@ -87,6 +87,7 @@ fn play_sound_effect_on_click(
     }
 }
 
+#[auto_observer(plugin = InteractionPlugin)]
 fn play_sound_effect_on_over(
     on: On<Pointer<Over>>,
     interaction_assets: If<Res<InteractionAssets>>,

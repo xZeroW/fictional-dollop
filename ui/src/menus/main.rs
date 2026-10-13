@@ -1,17 +1,15 @@
 //! The main menu (seen on the title screen).
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::{menus::Menu, screen::Screen, theme::widget};
 
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
 pub(crate) struct MainMenuPlugin;
 
-impl Plugin for MainMenuPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Menu::Main), spawn_main_menu);
-    }
-}
-
+#[auto_system(plugin = MainMenuPlugin, schedule = OnEnter(Menu::Main))]
 fn spawn_main_menu(mut commands: Commands) {
     commands.spawn((
         widget::ui_root("Main Menu"),

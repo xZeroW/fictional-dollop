@@ -1,15 +1,9 @@
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
 pub(super) struct AudioPlugin;
-
-impl Plugin for AudioPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            apply_global_volume.run_if(resource_changed::<GlobalVolume>),
-        );
-    }
-}
 
 /// An organizational marker component that should be added to a spawned [`AudioPlayer`] if it's in the
 /// general "music" category (e.g. global background music, soundtrack).
@@ -38,6 +32,11 @@ pub fn sound_effect(handle: Handle<AudioSource>) -> impl Bundle {
 }
 
 /// [`GlobalVolume`] doesn't apply to already-running audio entities, so this system will update them.
+#[auto_system(
+    plugin = AudioPlugin,
+    schedule = Update,
+    config(run_if = resource_changed::<GlobalVolume>)
+)]
 fn apply_global_volume(
     global_volume: Res<GlobalVolume>,
     mut audio_query: Query<(&PlaybackSettings, &mut AudioSink)>,

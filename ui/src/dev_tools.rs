@@ -9,6 +9,7 @@ use bevy::{
     prelude::*,
     text::FontSmoothing,
 };
+use bevy_auto_plugin::prelude::*;
 use bevy_inspector_egui::{
     bevy_egui::{EguiContexts, EguiPlugin, EguiPrimaryContextPass, egui},
     quick::WorldInspectorPlugin,
@@ -26,14 +27,12 @@ use crate::{
     screen::Screen,
 };
 
+#[derive(AutoPlugin)]
 pub(super) struct DevToolsPlugin;
 
 impl Plugin for DevToolsPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
-        app.init_resource::<WeaponSelectorVisible>();
-        app.init_resource::<WorldInspectorVisible>();
-        app.init_resource::<CollisionGizmosVisible>();
-
         // Log `Screen` state transitions.
         app.add_systems(Update, log_transitions::<Screen>);
 
@@ -98,12 +97,15 @@ const TOGGLE_COLLISION_GIZMOS_KEY: KeyCode = KeyCode::F3;
 const COLLISION_GIZMO_VIEW_RADIUS: f32 = 500.0;
 
 #[derive(Resource, Default)]
+#[auto_init_resource(plugin = DevToolsPlugin)]
 struct WeaponSelectorVisible(bool);
 
 #[derive(Resource, Default)]
+#[auto_init_resource(plugin = DevToolsPlugin)]
 struct WorldInspectorVisible(bool);
 
 #[derive(Resource, Default)]
+#[auto_init_resource(plugin = DevToolsPlugin)]
 struct CollisionGizmosVisible(bool);
 
 fn toggle_debug_ui(mut options: ResMut<GlobalUiDebugOptions>) {

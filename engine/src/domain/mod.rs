@@ -8,10 +8,13 @@ pub mod progression;
 pub mod world;
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
+#[derive(AutoPlugin)]
 pub(crate) struct DomainPlugin;
 
 impl Plugin for DomainPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_plugins((
             audio::AudioPlugin,

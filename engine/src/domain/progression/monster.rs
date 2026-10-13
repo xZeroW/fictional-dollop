@@ -1,9 +1,11 @@
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::Screen;
 
 #[derive(Resource, Reflect)]
 #[reflect(Resource)]
+#[auto_register_type(plugin = MonsterProgressionPlugin)]
 pub struct MonsterProgression {
     pub corruption: u32,
     pub enemy_health_mult: f32,
@@ -26,20 +28,22 @@ impl Default for MonsterProgression {
     }
 }
 
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
 pub(super) struct MonsterProgressionPlugin;
 
-impl Plugin for MonsterProgressionPlugin {
-    fn build(&self, app: &mut App) {
-        app.register_type::<MonsterProgression>();
-        app.add_systems(OnEnter(Screen::Gameplay), reset_monster_progression);
-        app.add_systems(OnExit(Screen::Gameplay), remove_monster_progression);
-    }
-}
-
+#[auto_system(
+    plugin = MonsterProgressionPlugin,
+    schedule = OnEnter(Screen::Gameplay)
+)]
 fn reset_monster_progression(mut commands: Commands) {
     commands.insert_resource(MonsterProgression::default());
 }
 
+#[auto_system(
+    plugin = MonsterProgressionPlugin,
+    schedule = OnExit(Screen::Gameplay)
+)]
 fn remove_monster_progression(mut commands: Commands) {
     commands.remove_resource::<MonsterProgression>();
 }

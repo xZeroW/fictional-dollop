@@ -1,6 +1,7 @@
 //! Weapon data loaded from assets.
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
 use std::collections::HashMap;
 
@@ -22,18 +23,20 @@ pub struct WeaponData {
     pub fire_sound_key: String,
 }
 
+#[derive(AutoPlugin)]
 pub(crate) struct WeaponDataPlugin;
 
 impl Plugin for WeaponDataPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_plugins(RonAssetPlugin::<Weapons>::new(&["weapon_data.ron"]));
-        app.add_systems(OnEnter(Screen::Loading), load_weapon_data);
     }
 }
 
 #[derive(Resource)]
 pub struct WeaponsHandle(pub Handle<Weapons>);
 
+#[auto_system(plugin = WeaponDataPlugin, schedule = OnEnter(Screen::Loading))]
 fn load_weapon_data(mut commands: Commands, server: Res<AssetServer>) {
     let handle = server.load("data/weapon_data.ron");
     commands.insert_resource(WeaponsHandle(handle));

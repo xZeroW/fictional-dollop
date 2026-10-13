@@ -1,18 +1,15 @@
 //! Game configuration.
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
 pub(crate) struct ConfigPlugin;
-
-impl Plugin for ConfigPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_resource::<GameConfig>();
-        app.init_resource::<GameSettings>();
-    }
-}
 
 #[derive(Resource, Reflect)]
 #[reflect(Resource)]
+#[auto_init_resource(plugin = ConfigPlugin)]
 pub struct GameConfig {
     pub max_num_enemies: usize,
     pub spawn_rate_per_second: usize,
@@ -20,6 +17,7 @@ pub struct GameConfig {
 
 #[derive(Resource, Reflect)]
 #[reflect(Resource)]
+#[auto_init_resource(plugin = ConfigPlugin)]
 pub struct GameSettings {
     pub enemy_nameplates: bool,
 }

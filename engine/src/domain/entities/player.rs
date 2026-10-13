@@ -1,6 +1,7 @@
 //! Player-specific behavior.
 
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 use bevy_gauge::prelude::Attributes;
 use leafwing_input_manager::prelude::*;
 
@@ -20,9 +21,11 @@ pub enum PlayerAction {
     Right,
 }
 
+#[derive(AutoPlugin)]
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

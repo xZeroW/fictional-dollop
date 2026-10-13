@@ -2,6 +2,7 @@
 
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::{
     domain::{audio::music, enemies::EnemySpawner, entities::player},
@@ -14,16 +15,12 @@ pub struct Level;
 #[derive(Resource)]
 pub struct LevelEntity(pub Entity);
 
+#[derive(AutoPlugin)]
+#[auto_plugin(impl_plugin_trait)]
 pub(super) struct LevelPlugin;
 
-impl Plugin for LevelPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Screen::Gameplay), spawn_level);
-        app.add_systems(OnExit(Screen::Gameplay), remove_level_resources);
-    }
-}
-
 /// A system that spawns the main level.
+#[auto_system(plugin = LevelPlugin, schedule = OnEnter(Screen::Gameplay))]
 pub fn spawn_level(
     mut commands: Commands,
     audio_assets: Res<AudioAssets>,
@@ -56,6 +53,7 @@ pub fn spawn_level(
     });
 }
 
+#[auto_system(plugin = LevelPlugin, schedule = OnExit(Screen::Gameplay))]
 fn remove_level_resources(mut commands: Commands) {
     commands.remove_resource::<EnemySpawner>();
     commands.remove_resource::<LevelEntity>();

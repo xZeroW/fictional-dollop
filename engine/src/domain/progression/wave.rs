@@ -1,5 +1,6 @@
 use crate::Screen;
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 
 use crate::domain::combat::Bullet;
 use crate::{
@@ -13,6 +14,7 @@ use crate::{
 
 #[derive(Resource, Reflect)]
 #[reflect(Resource)]
+#[auto_register_type(plugin = WaveSystemsPlugin)]
 pub struct WaveState {
     pub current_wave: u32,
     pub timer: Timer,
@@ -27,14 +29,12 @@ impl Default for WaveState {
     }
 }
 
+#[derive(AutoPlugin)]
 pub(super) struct WaveSystemsPlugin;
 
 impl Plugin for WaveSystemsPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
-        app.register_type::<WaveState>();
-        app.add_systems(OnEnter(Screen::Gameplay), reset_wave_state);
-        app.add_systems(OnExit(Screen::Gameplay), remove_wave_state);
-        app.add_systems(OnEnter(Menu::Inventory), cleanup_wave_entities);
         app.add_systems(
             Update,
             advance_wave_timer
@@ -45,10 +45,12 @@ impl Plugin for WaveSystemsPlugin {
     }
 }
 
+#[auto_system(plugin = WaveSystemsPlugin, schedule = OnEnter(Screen::Gameplay))]
 fn reset_wave_state(mut commands: Commands) {
     commands.insert_resource(WaveState::default());
 }
 
+#[auto_system(plugin = WaveSystemsPlugin, schedule = OnExit(Screen::Gameplay))]
 fn remove_wave_state(mut commands: Commands) {
     commands.remove_resource::<WaveState>();
 }
@@ -74,6 +76,7 @@ fn advance_wave_timer(
     );
 }
 
+#[auto_system(plugin = WaveSystemsPlugin, schedule = OnEnter(Menu::Inventory))]
 fn cleanup_wave_entities(
     mut commands: Commands,
     enemies: Query<Entity, With<Enemy>>,

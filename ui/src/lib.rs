@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 use engine::{AppSystems, Pause, domain, infrastructure};
 
 #[cfg(all(feature = "dev", debug_assertions))]
@@ -8,9 +9,11 @@ mod menus;
 pub mod screen;
 mod theme;
 
+#[derive(AutoPlugin)]
 pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         // Add other plugins.
         app.add_plugins((

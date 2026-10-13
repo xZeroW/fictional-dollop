@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_auto_plugin::prelude::*;
 use bevy_gauge::prelude::*;
 
 use crate::Screen;
@@ -18,9 +19,11 @@ use crate::{
     },
 };
 
+#[derive(AutoPlugin)]
 pub(super) struct AutoAttackSystemsPlugin;
 
 impl Plugin for AutoAttackSystemsPlugin {
+    #[auto_plugin]
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

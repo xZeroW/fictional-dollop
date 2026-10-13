@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use engine::{AppSystems, Pause, assets, audio, components, config, domain, game, systems};
+use engine::{AppSystems, Pause, domain, infrastructure};
 
 #[cfg(all(feature = "dev", debug_assertions))]
 mod dev_tools;

@@ -30,11 +30,11 @@ Already implemented or partially implemented:
 - Screen states for splash, title, loading, and gameplay in `ui/src/screen/`.
 - Menu states for main, pause, settings, credits, inventory, monster buff, and game over in `ui/src/menus/`.
 - Pause state and ordered `AppSystems` schedule in `engine/src/lib.rs`.
-- Tiled map loading through `bevy_ecs_tiled` in `src/game/map.rs`.
+- Tiled map loading through `bevy_ecs_tiled` in `engine/src/domain/world/map.rs`.
 - A hardcoded map, currently `assets/maps/map1.tmx`.
-- Player movement through `leafwing_input_manager` in `src/game/player.rs`.
+- Player movement through `leafwing_input_manager` in `engine/src/domain/entities/player.rs`.
 - Player health through `bevy_gauge` attributes and `Health` components.
-- Automatic weapon targeting and bullet firing in `src/systems/auto_attack.rs`.
+- Automatic weapon targeting and bullet firing in `engine/src/domain/combat/auto_attack.rs`.
 - Bullet movement, bullet lifetime, and bullet/enemy collision systems.
 - Enemy spawning from data in `assets/data/enemies_data.ron`.
 - Enemy visuals from `assets/data/enemies.assets.ron`.
@@ -243,7 +243,7 @@ Good first implementation slice:
 Current state:
 
 - The map is loaded from `assets/maps/map1.tmx`.
-- The map bounds are hardcoded in `src/config.rs`.
+- The map bounds are hardcoded in `engine/src/infrastructure/config.rs`.
 - There is no map theme state.
 - There is no random map selection every five rounds yet.
 

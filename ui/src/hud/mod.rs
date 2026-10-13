@@ -2,9 +2,12 @@ use bevy::prelude::*;
 
 use crate::{
     AppSystems,
-    domain::entities::{Health, Player},
+    domain::{
+        entities::{Health, Player},
+        inventory::RunInventory,
+        progression::{MonsterProgression, WaveState},
+    },
     screen::Screen,
-    systems::{MonsterProgression, RunInventory, WaveState},
 };
 
 const HEALTH_FILL_COLOR: Color = Color::srgb(0.82, 0.13, 0.16);

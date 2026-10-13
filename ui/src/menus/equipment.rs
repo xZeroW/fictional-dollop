@@ -4,18 +4,22 @@ use bevy::prelude::*;
 
 use crate::{
     Pause,
-    assets::WeaponAssets,
-    components::Weapon,
-    domain::entities::{Health, Player},
-    game::weapon_data::{Weapons, WeaponsHandle},
+    domain::{
+        combat::Weapon,
+        entities::{Health, Player},
+        inventory::{
+            CraftingMaterial, CraftingMaterials, Equipment, EquipmentSlot, InventoryItem,
+            ItemRarity, SAFE_INVENTORY_CAPACITY, SafeInventory, move_equipment_item_to_safe,
+            move_safe_item_to_equipment,
+        },
+    },
+    infrastructure::{
+        assets::WeaponAssets,
+        weapon::{Weapons, WeaponsHandle},
+    },
     menus::{
         Menu, MenuCamera,
         item_tooltip::{ItemTooltip, ItemTooltipData, despawn_item_tooltips, spawn_item_tooltip},
-    },
-    systems::{
-        CraftingMaterial, CraftingMaterials, Equipment, EquipmentSlot, InventoryItem,
-        SAFE_INVENTORY_CAPACITY, SafeInventory, move_equipment_item_to_safe,
-        move_safe_item_to_equipment,
     },
 };
 
@@ -1353,13 +1357,13 @@ fn centered_absolute_node(size: f32) -> Node {
     absolute_node(inset, inset, size, size)
 }
 
-fn rarity_color(rarity: crate::components::ItemRarity) -> Color {
+fn rarity_color(rarity: ItemRarity) -> Color {
     match rarity {
-        crate::components::ItemRarity::Common => Color::srgb(0.48, 0.5, 0.54),
-        crate::components::ItemRarity::Uncommon => Color::srgb(0.24, 0.66, 0.31),
-        crate::components::ItemRarity::Rare => Color::srgb(0.22, 0.42, 0.9),
-        crate::components::ItemRarity::Epic => Color::srgb(0.58, 0.27, 0.86),
-        crate::components::ItemRarity::Legendary => Color::srgb(0.96, 0.58, 0.17),
-        crate::components::ItemRarity::Mythic => Color::srgb(0.92, 0.25, 0.32),
+        ItemRarity::Common => Color::srgb(0.48, 0.5, 0.54),
+        ItemRarity::Uncommon => Color::srgb(0.24, 0.66, 0.31),
+        ItemRarity::Rare => Color::srgb(0.22, 0.42, 0.9),
+        ItemRarity::Epic => Color::srgb(0.58, 0.27, 0.86),
+        ItemRarity::Legendary => Color::srgb(0.96, 0.58, 0.17),
+        ItemRarity::Mythic => Color::srgb(0.92, 0.25, 0.32),
     }
 }

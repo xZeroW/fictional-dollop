@@ -17,36 +17,36 @@
 
 ## Architecture
 
-- Workspace crates are `app` (the `my_game` executable and composition root), `engine` (gameplay/runtime), and `ui`.
-- `engine::AppPlugin` registers assets, audio, gameplay, systems, listeners, and enemies; `ui::UiPlugin` registers HUD, menus, screens, theme, and dev tools.
-- `engine/src/game/` owns gameplay setup and templates (`level`, `map`, `player`, `weapon_data`); `engine/src/systems/` owns frame systems, gameplay lifecycle systems, and their run-scoped resources; `engine/src/listeners/` owns message listeners; `engine/src/enemies/` owns enemy data/assets/systems.
-- `Screen`, `Menu`, `Pause(pub bool)`, and `AppSystems` live in `engine/src/lib.rs`; the UI modules re-export the states for local use.
+- Workspace crates are `my_game` (the executable and composition root), `engine` (gameplay/runtime), and `ui`.
+- `my_game` selects Bevy's platform plugins and composes `engine::EnginePlugin` with `ui::UiPlugin`.
+- `engine/src/core/` owns shared states and scheduling contracts; `engine/src/domain/` owns feature-oriented gameplay; `engine/src/infrastructure/` owns configuration, asset collections, and data loaders.
+- `Screen`, `Menu`, `Pause(pub bool)`, and `AppSystems` live in `engine/src/core/state.rs` and are re-exported from `engine`.
 - If adding an `AppSystems` variant, add it to the chained `configure_sets(Update, ...)` order in `engine/src/lib.rs` in the same change.
-- Put gameplay resources with `OnEnter`/`OnExit` lifecycle systems in `src/systems/` (for example wave state or monster progression), not in `src/game/`, unless the module is only setup/template code.
+- Put gameplay resources and their `OnEnter`/`OnExit` lifecycle systems in the owning domain.
 - Gameplay systems that should pause must be in `PausableSystems`; most should also gate with `run_if(in_state(Screen::Gameplay))`.
-- Level-owned gameplay entities should be parented under `LevelEntity` from `src/game/level.rs`; `Level` has `DespawnOnExit(Screen::Gameplay)` and resources are cleaned up on exit.
+- Level-owned gameplay entities should be parented under `LevelEntity` from `domain/world/level.rs`; `Level` has `DespawnOnExit(Screen::Gameplay)` and resources are cleaned up on exit.
 
 ## Patterns
 
-- New plugins should be named `*Plugin` structs with `impl Plugin`, matching `src/systems/*`; do not add bare `fn plugin(app: &mut App)` registrations.
-- Parent modules register child plugins; keep `app/src/main.rs` focused on composing the engine and UI plugins.
-- Entity templates are usually functions returning `impl Bundle` (`game/player.rs`, `systems/auto_attack.rs`, `enemies/data.rs`); prefer that before adding custom bundle structs.
-- Cross-system reactions use Bevy messages/listeners under `src/messages.rs` and `src/listeners/`; avoid coupling collision, damage, and death behavior into producer systems.
+- New plugins should be named `*Plugin` structs with `impl Plugin`; do not add bare `fn plugin(app: &mut App)` registrations.
+- Parent domain modules register child plugins; keep `my_game/src/main.rs` focused on platform setup and plugin composition.
+- Entity templates are usually functions returning `impl Bundle` (for example `domain/entities/player.rs`, `domain/combat/auto_attack.rs`, and `domain/enemies/data.rs`); prefer that before adding custom bundle structs.
+- Cross-system messages and reactions live in the domain that owns their meaning (for example combat damage messages); avoid global mechanism-based folders.
 - Runtime cleanup is state-driven with `DespawnOnExit(Screen::Gameplay)` plus resources inserted on enter and removed on exit.
 
 ## Assets And Data
 
-- Dynamic asset manifests live in `assets/data/*.assets.ron` and are loaded by `bevy_asset_loader` in `src/assets.rs`.
-- Weapon stats are `assets/data/weapon_data.ron` via `bevy_common_assets` in `src/game/weapon_data.rs`.
+- Dynamic asset manifests live in `assets/data/*.assets.ron` and are loaded by `bevy_asset_loader` in `engine/src/infrastructure/assets.rs`.
+- Weapon stats are `assets/data/weapon_data.ron` via `bevy_common_assets` in `engine/src/infrastructure/weapon.rs`.
 - Enemy stats are `assets/data/enemies_data.ron`; enemy visuals are `assets/data/enemies.assets.ron`. Keep RON keys aligned with `asset_key` and sprite paths.
-- The map is currently hardcoded in `src/game/map.rs` as `assets/maps/map1.tmx` through `bevy_ecs_tiled`.
+- The map is currently hardcoded in `engine/src/domain/world/map.rs` as `assets/maps/map1.tmx` through `bevy_ecs_tiled`.
 
-## Bevy 0.18 Gotchas
+## Bevy 0.19 Gotchas
 
 - Use `Camera2d` and `Sprite`, not the removed `Camera2dBundle`/`SpriteBundle` APIs.
 - Query single-entity access returns `Result`; use `single()` / `single_mut()` and handle `Err` instead of older `get_single*` APIs.
 - `children!` must use square brackets; `clippy.toml` enforces this via `nonstandard_macro_braces`.
-- Input uses `leafwing_input_manager`; player input is wired through `PlayerAction` in `src/game/player.rs`.
+- Input uses `leafwing_input_manager`; player input is wired through `PlayerAction` in `engine/src/domain/entities/player.rs`.
 
 ## Existing Guidance
 

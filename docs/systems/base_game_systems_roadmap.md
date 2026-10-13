@@ -57,8 +57,8 @@ Purpose:
 
 Suggested shape:
 
-- Add `src/systems/loot.rs` for drop resources and item pickup behavior.
-- Add `src/listeners/loot.rs` to react to `EntityDiedMessage` for enemies.
+- Extend `engine/src/domain/inventory/pickup.rs` for item pickup behavior.
+- Extend `engine/src/domain/inventory/drops.rs` to react to enemy deaths.
 - Add `LootDropMessage` if drop creation needs to stay decoupled from death
   handling.
 - Add `ItemDrop`, `PickupRadius`, or similar components under `src/components/`.
@@ -93,7 +93,7 @@ Purpose:
 
 Suggested shape:
 
-- Add `src/systems/inventory.rs` with a run-scoped `RunInventory` resource.
+- Extend `engine/src/domain/inventory/storage.rs` with run-scoped inventory behavior.
 - Insert `RunInventory` on `OnEnter(Screen::Gameplay)`.
 - Remove it on `OnExit(Screen::Gameplay)` after death/extraction has resolved.
 - Store item stacks by item id.
@@ -150,7 +150,7 @@ Purpose:
 
 Suggested shape:
 
-- Add an `ExtractionState` or run outcome resource in `src/systems/`.
+- Add an `ExtractionState` or run outcome resource to its owning domain.
 - Add an extract action in the between-wave menu.
 - Add a persistent `BankInventory` later, but first prove the transfer from
   run inventory to a placeholder persistent resource.
@@ -176,7 +176,7 @@ Purpose:
 
 Suggested shape:
 
-- Add `src/systems/profile.rs` or a top-level `profile` module if it grows.
+- Add an `engine/src/domain/profile/` feature if profile behavior grows.
 - Keep the first save format small and explicit.
 - Persist bank inventory, material stacks, crafted item state, and simple unlock
   flags first.
@@ -202,7 +202,7 @@ Purpose:
 
 Suggested shape:
 
-- Add `src/systems/crafting.rs` with recipe definitions and validation.
+- Extend `engine/src/domain/inventory/crafting.rs` with recipe definitions and validation.
 - Add a simple `Recipe` type: input item stacks, output item, item upgrade,
   material stack, or explicit run-only effect.
 - Start with one or two recipes that prove both consumption and persistence.
@@ -239,7 +239,7 @@ Purpose:
 
 Suggested shape:
 
-- Add `src/systems/map_progression.rs` for active map/theme state.
+- Add map progression to `engine/src/domain/world/`.
 - Add `MapTheme` data that can be referenced by loot and enemy selection.
 - Start with hardcoded themes before data-loading them.
 - Rotate theme every 5 waves, matching the game idea.
@@ -286,7 +286,7 @@ Purpose:
 
 Suggested shape:
 
-- Add `src/systems/boss.rs` or `src/enemies/boss.rs` once boss behavior differs
+- Add `engine/src/domain/enemies/boss.rs` once boss behavior differs
   enough from normal enemies.
 - Trigger a boss at a wave number or corruption threshold.
 - Pause normal wave spawning during the boss encounter.

@@ -2,7 +2,7 @@
 
 use bevy::{ecs::spawn::SpawnIter, input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{audio::music, menus::Menu, theme::prelude::*};
+use crate::{domain::audio::music, menus::Menu, theme::prelude::*};
 
 pub(crate) struct CreditsMenuPlugin;
 

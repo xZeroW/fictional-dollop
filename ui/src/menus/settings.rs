@@ -6,7 +6,7 @@ use bevy::{
     audio::Volume, ecs::spawn::SpawnWith, input::common_conditions::input_just_pressed, prelude::*,
 };
 
-use crate::{config::GameSettings, menus::Menu, screen::Screen, theme::prelude::*};
+use crate::{infrastructure::config::GameSettings, menus::Menu, screen::Screen, theme::prelude::*};
 
 pub(crate) struct SettingsMenuPlugin;
 

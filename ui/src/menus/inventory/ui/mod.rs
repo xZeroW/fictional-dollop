@@ -2,7 +2,7 @@ mod item_transfer_menu;
 
 use bevy::prelude::*;
 
-use crate::components::ItemRarity;
+use crate::domain::inventory::ItemRarity;
 
 pub(super) const INVENTORY_UI_Z_INDEX: i32 = 30;
 pub(super) const DRAGGED_ITEM_GLOBAL_Z_INDEX: i32 = INVENTORY_UI_Z_INDEX + 1;

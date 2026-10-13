@@ -15,13 +15,14 @@ use bevy_inspector_egui::{
 };
 
 use crate::{
-    components::Weapon,
-    config,
     domain::{
-        combat::Bullet,
+        combat::{Bullet, Weapon},
         entities::{Enemy, Player},
     },
-    game::weapon_data::{Weapons, WeaponsHandle},
+    infrastructure::{
+        config,
+        weapon::{Weapons, WeaponsHandle},
+    },
     screen::Screen,
 };
 

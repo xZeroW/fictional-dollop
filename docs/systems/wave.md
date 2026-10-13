@@ -5,7 +5,8 @@ seconds, currently `60.0`.
 
 ## State
 
-Wave state is stored in the `WaveState` resource in `src/systems/wave.rs`.
+Wave state is stored in the `WaveState` resource in
+`engine/src/domain/progression/wave.rs`.
 
 - `current_wave`: the active wave number, starting at `1`.
 - `timer`: a repeating Bevy `Timer` using `config::WAVE_DURATION`.
@@ -52,7 +53,7 @@ to enforce the enemy cap.
 
 ## Related Files
 
-- `src/systems/wave.rs`: wave state and wave transition system
-- `src/config.rs`: `WAVE_DURATION`
-- `src/main.rs`: `AppSystems::WaveTransitions` ordering
-- `src/game/level.rs`: gameplay resource cleanup for level-owned resources
+- `engine/src/domain/progression/wave.rs`: wave state and wave transition system
+- `engine/src/infrastructure/config.rs`: `WAVE_DURATION`
+- `engine/src/lib.rs`: `AppSystems::WaveTransitions` ordering
+- `engine/src/domain/world/level.rs`: gameplay resource cleanup for level-owned resources

@@ -5,14 +5,16 @@ mod ui;
 use bevy::prelude::*;
 
 use crate::{
-    assets::WeaponAssets,
-    game::weapon_data::{Weapons, WeaponsHandle},
+    domain::inventory::{
+        InventoryItem, RunInventory, SafeInventory, move_run_item_to_safe, move_safe_item_to_run,
+    },
+    infrastructure::{
+        assets::WeaponAssets,
+        weapon::{Weapons, WeaponsHandle},
+    },
     menus::{
         Menu,
         item_tooltip::{ItemTooltip, ItemTooltipData, despawn_item_tooltips, spawn_item_tooltip},
-    },
-    systems::{
-        InventoryItem, RunInventory, SafeInventory, move_run_item_to_safe, move_safe_item_to_run,
     },
 };
 

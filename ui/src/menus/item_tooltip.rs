@@ -1,9 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
-    assets::WeaponAssets,
-    game::weapon_data::Weapons,
-    systems::{CraftingAffix, InventoryItem},
+    domain::inventory::{CraftingAffix, InventoryItem, ItemRarity},
+    infrastructure::{assets::WeaponAssets, weapon::Weapons},
 };
 
 const PANEL_WIDTH: f32 = 1260.0;
@@ -40,7 +39,7 @@ pub(in crate::menus) struct ItemTooltip;
 pub(in crate::menus) struct ItemTooltipData<'a> {
     item_id: &'a str,
     name: &'a str,
-    rarity: crate::components::ItemRarity,
+    rarity: ItemRarity,
     quality: u8,
     affixes: &'a [CraftingAffix],
     damage: Option<f32>,
@@ -368,14 +367,14 @@ fn absolute_node(x: f32, y: f32, width: f32, height: f32) -> Node {
     }
 }
 
-fn rarity_color(rarity: crate::components::ItemRarity) -> Color {
+fn rarity_color(rarity: ItemRarity) -> Color {
     match rarity {
-        crate::components::ItemRarity::Common => Color::srgb(0.48, 0.5, 0.54),
-        crate::components::ItemRarity::Uncommon => Color::srgb(0.24, 0.66, 0.31),
-        crate::components::ItemRarity::Rare => Color::srgb(0.22, 0.42, 0.9),
-        crate::components::ItemRarity::Epic => Color::srgb(0.58, 0.27, 0.86),
-        crate::components::ItemRarity::Legendary => Color::srgb(0.96, 0.58, 0.17),
-        crate::components::ItemRarity::Mythic => Color::srgb(0.92, 0.25, 0.32),
+        ItemRarity::Common => Color::srgb(0.48, 0.5, 0.54),
+        ItemRarity::Uncommon => Color::srgb(0.24, 0.66, 0.31),
+        ItemRarity::Rare => Color::srgb(0.22, 0.42, 0.9),
+        ItemRarity::Epic => Color::srgb(0.58, 0.27, 0.86),
+        ItemRarity::Legendary => Color::srgb(0.96, 0.58, 0.17),
+        ItemRarity::Mythic => Color::srgb(0.92, 0.25, 0.32),
     }
 }
 

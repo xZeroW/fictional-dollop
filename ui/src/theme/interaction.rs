@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
-use crate::{audio::sound_effect, screen::Screen};
+use crate::{domain::audio::sound_effect, screen::Screen};
 
 #[derive(AssetCollection, Resource)]
 struct InteractionAssets {

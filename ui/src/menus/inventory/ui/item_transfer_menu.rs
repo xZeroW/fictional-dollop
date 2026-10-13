@@ -1,10 +1,12 @@
 use bevy::prelude::*;
 
 use crate::{
-    assets::WeaponAssets,
-    game::weapon_data::{Weapons, WeaponsHandle},
+    domain::inventory::{InventoryItem, RunInventory, SAFE_INVENTORY_CAPACITY, SafeInventory},
+    infrastructure::{
+        assets::WeaponAssets,
+        weapon::{Weapons, WeaponsHandle},
+    },
     menus::{Menu, MenuCamera},
-    systems::{InventoryItem, RunInventory, SAFE_INVENTORY_CAPACITY, SafeInventory},
 };
 
 use super::super::{
